@@ -83,6 +83,21 @@ const {
         <div class="text-xs text-brand-gold" id="toast-level-title">You reached Level 2!</div>
       </div>
     </div>
+
+    <!-- PWA Install Prompt Banner (Mobile & Desktop) -->
+    <div id="pwa-install-banner" class="fixed bottom-4 left-4 z-40 hidden items-center gap-3 rounded-2xl border border-brand-border bg-brand-card/95 backdrop-blur-md p-3 shadow-2xl">
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-neon text-brand-dark font-black text-sm">
+        📲
+      </div>
+      <div>
+        <div class="text-xs font-bold text-white">Install Pokoly</div>
+        <div class="text-[10px] text-gray-400">Play in 1-tap from your homescreen</div>
+      </div>
+      <button id="pwa-install-btn" class="rounded-xl bg-brand-neon px-3 py-1.5 text-xs font-bold text-brand-dark hover:opacity-90 transition-opacity">
+        Install
+      </button>
+      <button id="pwa-dismiss-btn" class="text-gray-400 hover:text-white text-xs px-1">✕</button>
+    </div>
   </body>
 </html>
 
@@ -90,6 +105,42 @@ const {
   import { player } from '../utils/player';
   import { launchConfetti } from '../utils/confetti';
   import { sound } from '../utils/audio';
+
+  // Register Service Worker
+  if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
+  // PWA Install Prompt Handling
+  let deferredPrompt: any = null;
+  const installBanner = document.getElementById('pwa-install-banner');
+  const installBtn = document.getElementById('pwa-install-btn');
+  const dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBanner?.classList.remove('hidden');
+    installBanner?.classList.add('flex');
+  });
+
+  installBtn?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        player.unlockBadge('first_play');
+      }
+      deferredPrompt = null;
+      installBanner?.classList.add('hidden');
+    }
+  });
+
+  dismissBtn?.addEventListener('click', () => {
+    installBanner?.classList.add('hidden');
+  });
 
   // Watch for Level Ups
   let prevLevel = player.getProfile().level;

@@ -1,0 +1,244 @@
+---
+// Speed Typing Rush (Typing Speed Test)
+---
+
+<div id="typing-app" class="flex flex-col items-center justify-center p-4 select-none w-full max-w-2xl">
+  <!-- Stats Header: WPM, Accuracy, Time Left -->
+  <div class="mb-4 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-5 py-3 text-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-gray-400">WPM:</span>
+      <span id="typing-wpm" class="font-mono text-xl font-black text-brand-neon">0</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-gray-400">Accuracy:</span>
+      <span id="typing-acc" class="font-mono text-base font-bold text-emerald-400">100%</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-gray-400">Time:</span>
+      <span id="typing-time" class="font-mono text-base font-bold text-amber-400">60s</span>
+    </div>
+    <button id="typing-reset-btn" class="rounded-xl border border-brand-border bg-brand-card px-3 py-1.5 text-xs text-gray-300 hover:text-white transition-colors">
+      Restart
+    </button>
+  </div>
+
+  <!-- Words Display Box -->
+  <div class="relative w-full overflow-hidden rounded-3xl border-2 border-brand-border bg-brand-dark p-6 shadow-2xl">
+    <div id="words-container" class="flex flex-wrap gap-2 text-base sm:text-lg font-mono leading-relaxed max-h-[140px] overflow-hidden">
+      <!-- Words rendered dynamically -->
+    </div>
+
+    <!-- Hidden / Focus Input Field -->
+    <div class="mt-6 flex items-center gap-3">
+      <input
+        id="typing-input"
+        type="text"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="Click here and start typing to race..."
+        class="w-full rounded-2xl border-2 border-brand-neon/60 bg-brand-card px-4 py-3 font-mono text-base text-white placeholder-gray-500 focus:border-brand-neon focus:outline-none transition-all shadow-inner"
+      />
+    </div>
+
+    <!-- Results Modal Overlay -->
+    <div id="typing-results" class="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-brand-dark/95 backdrop-blur-md p-6 text-center opacity-0 pointer-events-none transition-all">
+      <span class="text-5xl animate-bounce">⚡</span>
+      <h3 class="font-display text-2xl font-bold text-white mt-2">Test Completed!</h3>
+      <div class="my-4 flex items-center justify-center gap-6 font-mono">
+        <div>
+          <div class="text-xs text-gray-400">Final Speed</div>
+          <div class="text-3xl font-black text-brand-neon" id="final-wpm">0 WPM</div>
+        </div>
+        <div class="h-10 w-[1px] bg-brand-border/60"></div>
+        <div>
+          <div class="text-xs text-gray-400">Accuracy</div>
+          <div class="text-3xl font-black text-emerald-400" id="final-acc">100%</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="typing-play-again" class="rounded-2xl bg-brand-accent px-6 py-2.5 font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform">
+          Race Again
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const WORD_BANK = [
+    'the', 'quick', 'brown', 'fox', 'jumps', 'over', 'lazy', 'dog', 'game', 'play',
+    'fast', 'speed', 'cyber', 'pixel', 'arcade', 'sound', 'score', 'level', 'player',
+    'power', 'laser', 'light', 'space', 'retro', 'click', 'drift', 'shift', 'pulse',
+    'cloud', 'storm', 'flame', 'quest', 'matrix', 'circuit', 'signal', 'screen',
+    'vector', 'canvas', 'motion', 'logic', 'puzzle', 'master', 'record', 'streak'
+  ];
+
+  let words: string[] = [];
+  let currentWordIdx = 0;
+  let correctKeystrokes = 0;
+  let totalKeystrokes = 0;
+  let timeLeft = 60;
+  let timerStarted = false;
+  let timerInterval: any = null;
+  let isGameOver = false;
+
+  const wordsContainer = document.getElementById('words-container')!;
+  const inputEl = document.getElementById('typing-input') as HTMLInputElement;
+  const wpmEl = document.getElementById('typing-wpm')!;
+  const accEl = document.getElementById('typing-acc')!;
+  const timeEl = document.getElementById('typing-time')!;
+  const resultsModal = document.getElementById('typing-results')!;
+  const finalWpmEl = document.getElementById('final-wpm')!;
+  const finalAccEl = document.getElementById('final-acc')!;
+  const playAgainBtn = document.getElementById('typing-play-again')!;
+  const resetBtn = document.getElementById('typing-reset-btn')!;
+
+  function generateWordStream() {
+    words = [];
+    for (let i = 0; i < 70; i++) {
+      words.push(WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)]);
+    }
+  }
+
+  function renderWords() {
+    wordsContainer.innerHTML = '';
+    words.forEach((w, idx) => {
+      const span = document.createElement('span');
+      span.id = `word-${idx}`;
+      span.textContent = w;
+      span.className = 'px-1 py-0.5 rounded transition-colors ' + (idx === currentWordIdx ? 'bg-brand-neon/20 text-brand-neon font-bold border-b-2 border-brand-neon' : 'text-gray-400');
+      wordsContainer.appendChild(span);
+    });
+  }
+
+  function startTimer() {
+    timerStarted = true;
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = `${timeLeft}s`;
+
+      // Live WPM calculation
+      const elapsedMins = (60 - timeLeft) / 60;
+      if (elapsedMins > 0) {
+        const liveWpm = Math.floor((correctKeystrokes / 5) / elapsedMins);
+        wpmEl.textContent = liveWpm.toString();
+      }
+
+      if (timeLeft <= 0) {
+        finishTest();
+      }
+    }, 1000);
+  }
+
+  function finishTest() {
+    clearInterval(timerInterval);
+    isGameOver = true;
+    inputEl.blur();
+
+    const elapsedMins = (60 - Math.max(1, timeLeft)) / 60;
+    const finalWpm = Math.max(0, Math.floor((correctKeystrokes / 5) / elapsedMins));
+    const accuracy = totalKeystrokes > 0 ? Math.min(100, Math.floor((correctKeystrokes / totalKeystrokes) * 100)) : 100;
+
+    finalWpmEl.textContent = `${finalWpm} WPM`;
+    finalAccEl.textContent = `${accuracy}%`;
+
+    sound.victory();
+    launchConfetti();
+    player.addXP(300, 'Completed Speed Typing Race');
+    player.progressQuest('get_score', finalWpm * 2);
+
+    resultsModal.classList.remove('opacity-0', 'pointer-events-none');
+  }
+
+  function init() {
+    clearInterval(timerInterval);
+    generateWordStream();
+    currentWordIdx = 0;
+    correctKeystrokes = 0;
+    totalKeystrokes = 0;
+    timeLeft = 60;
+    timerStarted = false;
+    isGameOver = false;
+
+    wpmEl.textContent = '0';
+    accEl.textContent = '100%';
+    timeEl.textContent = '60s';
+    inputEl.value = '';
+    resultsModal.classList.add('opacity-0', 'pointer-events-none');
+
+    renderWords();
+  }
+
+  inputEl.addEventListener('input', (e: any) => {
+    if (isGameOver) return;
+    if (!timerStarted) startTimer();
+
+    const val = inputEl.value;
+    const targetWord = words[currentWordIdx];
+
+    totalKeystrokes++;
+
+    if (val.endsWith(' ')) {
+      // Word completed check
+      const trimmed = val.trim();
+      const wordSpan = document.getElementById(`word-${currentWordIdx}`);
+
+      if (trimmed === targetWord) {
+        correctKeystrokes += targetWord.length + 1;
+        sound.blip();
+        if (wordSpan) wordSpan.className = 'px-1 py-0.5 rounded text-emerald-400 font-bold';
+      } else {
+        sound.click();
+        if (wordSpan) wordSpan.className = 'px-1 py-0.5 rounded text-rose-400 line-through';
+      }
+
+      currentWordIdx++;
+      inputEl.value = '';
+
+      // Update next word style
+      const nextWord = document.getElementById(`word-${currentWordIdx}`);
+      if (nextWord) {
+        nextWord.className = 'px-1 py-0.5 rounded bg-brand-neon/20 text-brand-neon font-bold border-b-2 border-brand-neon';
+      }
+
+      // Accuracy update
+      const acc = Math.min(100, Math.floor((correctKeystrokes / totalKeystrokes) * 100));
+      accEl.textContent = `${acc}%`;
+
+      if (currentWordIdx >= words.length) {
+        finishTest();
+      }
+    } else {
+      // Partial match feedback
+      const wordSpan = document.getElementById(`word-${currentWordIdx}`);
+      if (wordSpan) {
+        if (targetWord.startsWith(val)) {
+          wordSpan.className = 'px-1 py-0.5 rounded bg-brand-neon/20 text-brand-neon font-bold border-b-2 border-brand-neon';
+        } else {
+          wordSpan.className = 'px-1 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border-b-2 border-rose-500';
+        }
+      }
+    }
+  });
+
+  playAgainBtn.addEventListener('click', () => {
+    init();
+    inputEl.focus();
+  });
+  resetBtn.addEventListener('click', () => {
+    init();
+    inputEl.focus();
+  });
+  document.getElementById('btn-restart-game')?.addEventListener('click', () => {
+    init();
+    inputEl.focus();
+  });
+
+  init();
+</script>

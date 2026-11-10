@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GameCard from '../components/GameCard.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { GAMES } from '../data/games';
+
+const siteUrl = (Astro.site?.toString() || 'https://pokoly.com').replace(/\/$/, '');
+
+const unblockedSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Free Unblocked Games for School & Work - Pokoly',
+  description: 'Play safe, fast, and unblocked browser games at school or work. No downloads, zero restrictions, and 100% free HTML5 games.',
+  url: `${siteUrl}/unblocked`
+};
+---
+
+<BaseLayout
+  title="Unblocked Games for School & Work - Play Free Online at Pokoly"
+  description="Play the best free unblocked games online. Works on school Chromebooks, office PCs, and mobile devices with zero downloads, zero VPNs, and instant 60 FPS loading."
+  canonical={`${siteUrl}/unblocked`}
+  schema={unblockedSchema}
+>
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <!-- Header -->
+    <div class="rounded-3xl border border-brand-border bg-gradient-to-br from-brand-card via-brand-dark to-brand-card p-8 sm:p-10 shadow-2xl">
+      <div class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 font-mono text-xs font-bold text-emerald-400">
+        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>100% Safe • School &amp; Workplace Approved</span>
+      </div>
+
+      <h1 class="mt-4 font-display text-3xl font-black text-white sm:text-5xl">
+        Free Unblocked Games <br />
+        <span class="bg-gradient-to-r from-brand-neon via-indigo-400 to-brand-pink bg-clip-text text-transparent">
+          Play Instantly on Any Device
+        </span>
+      </h1>
+
+      <p class="mt-4 max-w-2xl text-sm sm:text-base text-gray-300 leading-relaxed">
+        Pokoly is engineered specifically to run in restricted network environments such as school Chromebooks and office laptops. Because all game logic executes purely client-side via lightweight HTML5 Canvas with no bulky asset downloads, games launch in milliseconds without triggering aggressive network firewalls.
+      </p>
+
+      <div class="mt-6 flex flex-wrap items-center gap-4 text-xs font-mono text-gray-400">
+        <div>✓ Chromebook Optimized</div>
+        <div>•</div>
+        <div>✓ No Login Required</div>
+        <div>•</div>
+        <div>✓ Zero Installation</div>
+        <div>•</div>
+        <div>✓ Clean &amp; Safe Content</div>
+      </div>
+    </div>
+
+    <!-- Ad Leaderboard -->
+    <div class="my-8 flex justify-center">
+      <AdSlot slot="leaderboard" />
+    </div>
+
+    <!-- Unblocked Games Grid -->
+    <section class="mt-8">
+      <h2 class="font-display text-2xl font-bold text-white mb-2">
+        Popular Unblocked Games ({GAMES.length})
+      </h2>
+      <p class="text-xs text-gray-400 mb-6">
+        Select any game to launch directly in full screen.
+      </p>
+
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {GAMES.map(game => (
+          <GameCard game={game} />
+        ))}
+      </div>
+    </section>
+
+    <!-- Long-Tail Unblocked SEO FAQ & Content -->
+    <section class="mt-14 space-y-8 rounded-3xl border border-brand-border bg-brand-card/40 p-6 sm:p-8 text-xs text-gray-300 leading-relaxed">
+      <h2 class="font-display text-xl font-bold text-white">
+        Frequently Asked Questions About Unblocked Games
+      </h2>
+
+      <div class="space-y-4">
+        <div>
+          <h3 class="font-bold text-white text-sm">Why do schools and offices block gaming websites?</h3>
+          <p class="mt-1 text-gray-400">
+            Most institutional networks block gaming websites due to heavy bandwidth consumption, video streaming lag, or security concerns with unverified executable files. Pokoly solves this by serving 100% lightweight static files cached globally on Cloudflare edge CDN, requiring minimal bandwidth and running safely inside the browser sandbox.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-white text-sm">How do I access games if the main domain is filtered?</h3>
+          <p class="mt-1 text-gray-400">
+            Each game at Pokoly lives on its own dedicated subdomain (such as <code class="text-brand-neon">wordle.pokoly.com</code>, <code class="text-brand-neon">suika.pokoly.com</code>, or <code class="text-brand-neon">solitaire.pokoly.com</code>). You can access and bookmark these subdomains directly.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-white text-sm">Do these games save my high scores?</h3>
+          <p class="mt-1 text-gray-400">
+            Yes! All game scores, streaks, and achievement badges are stored directly in your local browser storage, ensuring your progress is preserved even when closing your tab.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+

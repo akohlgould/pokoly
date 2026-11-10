@@ -342,6 +342,129 @@ export const GAMES: GameMeta[] = [
         answer: 'The game features 10 escalating procedural levels with unique block patterns and brick hardness.'
       }
     ]
+  },
+  {
+    id: 'speed-typing',
+    slug: 'speed-typing',
+    subdomain: 'typing',
+    title: 'Speed Typing Rush',
+    tagline: 'Test your words-per-minute (WPM) speed in a fast cyber typing sprint!',
+    category: 'arcade',
+    rating: 4.9,
+    playCount: '1.8M',
+    color: '#06b6d4',
+    badge: 'School Favorite',
+    releaseDate: '2026-02-25',
+    keywords: [
+      'speed typing test',
+      'typing speed game',
+      'wpm test online free',
+      'typing game unblocked',
+      'fast typing race'
+    ],
+    description: 'Race against the clock to type words with maximum accuracy and velocity. Track your real-time WPM, test your keyboard dexterity, and climb the speed leaderboards.',
+    controls: [
+      { key: 'A-Z / Space', action: 'Type matching highlighted words and press Space to advance' },
+      { key: 'Backspace', action: 'Correct misspelled characters' },
+      { key: 'Tab + Enter', action: 'Quick restart test' }
+    ],
+    instructions: [
+      'Type the highlighted stream of words as fast and accurately as possible.',
+      'Each correct word boosts your real-time WPM speed counter.',
+      'Complete the 60-second test to receive your verified Words Per Minute and Accuracy rating.'
+    ],
+    strategies: [
+      'Focus on rhythm and 100% accuracy first; raw speed naturally accelerates as typing errors decrease.',
+      'Keep your eyes focused 1-2 words ahead of your current keystroke.'
+    ],
+    faqs: [
+      {
+        question: 'What is an average WPM score in Speed Typing Rush?',
+        answer: 'Average typing speed is around 40-50 WPM. Professional typists achieve 80-100+ WPM.'
+      }
+    ]
+  },
+  {
+    id: 'sudoku',
+    slug: 'sudoku',
+    subdomain: 'sudoku',
+    title: 'Sudoku Modern: Daily Logic',
+    tagline: 'Clean, distraction-free 9x9 Sudoku puzzles with smart notes and hint assistance.',
+    category: 'puzzle',
+    rating: 4.9,
+    playCount: '3.1M',
+    color: '#8b5cf6',
+    badge: 'Daily Brain Test',
+    releaseDate: '2026-02-20',
+    keywords: [
+      'sudoku online free',
+      'play sudoku unblocked',
+      'daily sudoku easy hard',
+      'sudoku no ads clean',
+      '9x9 logic puzzle'
+    ],
+    description: 'Experience pure numerical deduction with our sleek Sudoku engine. Fill the 9x9 grid so each row, column, and 3x3 block contains every digit from 1 to 9 without repeating.',
+    controls: [
+      { key: '1-9 Keys / Number Pad', action: 'Input digit into selected cell' },
+      { key: 'Arrow Keys / Click', action: 'Navigate grid cells' },
+      { key: 'Backspace / Delete', action: 'Clear cell contents' },
+      { key: 'N Key / Pencil Toggle', action: 'Toggle pencil note-taking mode' }
+    ],
+    instructions: [
+      'Every row must contain digits 1 through 9 with no duplicates.',
+      'Every column must contain digits 1 through 9 with no duplicates.',
+      'Every 3x3 nonet block must contain digits 1 through 9 with no duplicates.'
+    ],
+    strategies: [
+      'Look for rows, columns, or 3x3 boxes that already have 6 or 7 digits filled in.',
+      'Use pencil notes to record candidate numbers for ambiguous squares.'
+    ],
+    faqs: [
+      {
+        question: 'Are Sudoku puzzles randomly generated or verified?',
+        answer: 'Every puzzle is mathematically verified to have a unique valid solution.'
+      }
+    ]
+  },
+  {
+    id: 'flappy-cyber',
+    slug: 'flappy-cyber',
+    subdomain: 'flappy',
+    title: 'Flappy Cyber: Neon Wings',
+    tagline: 'Tap to flap through neon energy pillars in this high-intensity reflex challenge!',
+    category: 'arcade',
+    rating: 4.7,
+    playCount: '2.5M',
+    color: '#10b981',
+    badge: 'High Replay',
+    releaseDate: '2026-03-01',
+    keywords: [
+      'flappy bird unblocked',
+      'play flappy bird online',
+      'flappy bird free no download',
+      'cyber flappy neon',
+      'one button game'
+    ],
+    description: 'The iconic one-tap reflex sensation reimagined with glowing cyberpunk visuals. Guide your cyber jet through narrow gaps between electrified neon barriers.',
+    controls: [
+      { key: 'Spacebar / Click / Tap', action: 'Flap wings to gain elevation' },
+      { key: 'P Key', action: 'Pause / Resume' }
+    ],
+    instructions: [
+      'Tap or press Space to ascend; gravity will continuously pull you downwards.',
+      'Pass between the upper and lower energy pillars to score 1 point.',
+      'Colliding with barriers or the ground causes an instant crash.'
+    ],
+    strategies: [
+      'Establish a steady rhythm of short, light taps rather than waiting until the last second.',
+      'Aim for the center-lower half of each gate to leave room for the flap ascent.'
+    ],
+    faqs: [
+      {
+        question: 'Is Flappy Cyber playable on touchscreens?',
+        answer: 'Yes! Tap anywhere on mobile screens to flap with zero input lag.'
+      }
+    ]
   }
 ];
 

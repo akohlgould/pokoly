@@ -38,15 +38,14 @@ const { game } = Astro.props;
     </div>
   </div>
 
-  <!-- Icon / Visual Graphic with Soft Glow -->
-  <a href={`/games/${game.slug}`} class="my-5 flex h-28 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-brand-dark to-brand-card text-5xl transition-transform duration-300 group-hover:scale-105 shadow-inner">
-    <span class="drop-shadow-lg group-hover:animate-bounce">
-      {game.category === 'word' && '📝'}
-      {game.category === 'physics' && '🍉'}
-      {game.category === 'puzzle' && '🧩'}
-      {game.category === 'card' && '🃏'}
-      {game.category === 'arcade' && '⚡'}
-    </span>
+  <!-- Visual Graphic / Custom Game Logo -->
+  <a href={`/games/${game.slug}`} class="my-4 flex h-32 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-brand-dark to-brand-card/60 p-2 transition-transform duration-300 group-hover:scale-105 shadow-inner">
+    <img
+      src={`/logos/${game.slug}.svg`}
+      alt={game.title}
+      class="h-24 w-24 object-contain drop-shadow-xl transition-transform duration-300 group-hover:scale-110"
+      loading="lazy"
+    />
   </a>
 
   <!-- Title & Description -->

@@ -97,8 +97,12 @@ const portalSchema = {
               </span>
             </div>
 
-            <div class="my-6 flex h-32 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-brand-card to-brand-dark text-6xl group-hover:scale-110 transition-transform shadow-inner">
-              🍉
+            <div class="my-6 flex h-32 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-brand-card to-brand-dark p-2 transition-transform shadow-inner">
+              <img
+                src={`/logos/${featuredGame.slug}.svg`}
+                alt={featuredGame.title}
+                class="h-28 w-28 object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-110"
+              />
             </div>
 
             <h3 class="font-display text-xl font-bold text-white group-hover:text-brand-neon transition-colors">

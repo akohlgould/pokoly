@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sdk-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#6366f1" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0d1117" />
+      <!-- 3x3 Outer Box -->
+      <rect x="22" y="22" width="76" height="76" rx="10" fill="#1e1b4b" stroke="url(#sdk-grad)" stroke-width="3" />
+      <!-- Grid lines -->
+      <line x1="47" y1="22" x2="47" y2="98" stroke="#4338ca" stroke-width="2" />
+      <line x1="73" y1="22" x2="73" y2="98" stroke="#4338ca" stroke-width="2" />
+      <line x1="22" y1="47" x2="98" y2="47" stroke="#4338ca" stroke-width="2" />
+      <line x1="22" y1="73" x2="98" y2="73" stroke="#4338ca" stroke-width="2" />
+      <!-- Numbers -->
+      <text x="35" y="41" font-family="monospace" font-weight="900" font-size="16" fill="#a5b4fc" text-anchor="middle">5</text>
+      <text x="60" y="66" font-family="monospace" font-weight="900" font-size="16" fill="#38bdf8" text-anchor="middle">9</text>
+      <text x="85" y="91" font-family="monospace" font-weight="900" font-size="16" fill="#a5b4fc" text-anchor="middle">3</text>
+      <text x="85" y="41" font-family="monospace" font-weight="900" font-size="16" fill="#38bdf8" text-anchor="middle">7</text>
+    </svg>

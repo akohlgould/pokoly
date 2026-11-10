@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="os-shield" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#8b5cf6" />
+        </linearGradient>
+        <filter id="os-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#050814" />
+      <!-- Orbital spinning rings -->
+      <ellipse cx="60" cy="60" rx="42" ry="20" fill="none" stroke="url(#os-shield)" stroke-width="2" transform="rotate(-30 60 60)" filter="url(#os-glow)" />
+      <!-- Orbiting orbs -->
+      <circle cx="86" cy="38" r="4" fill="#06b6d4" filter="url(#os-glow)" />
+      <circle cx="34" cy="82" r="4" fill="#ec4899" filter="url(#os-glow)" />
+      <!-- Player core ship -->
+      <polygon points="60,38 72,74 60,68 48,74" fill="#ffffff" filter="url(#os-glow)" />
+    </svg>

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host",
-    "build": "astro build",
+    "build": "astro build && cp -f public/_worker.js dist/_worker.js",
     "preview": "astro preview"
   },
   "dependencies": {

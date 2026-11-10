@@ -36,13 +36,13 @@ const portalSchema = {
   schema={portalSchema}
 >
   <!-- Ambient Cosmic Lighting Backdrops -->
-  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    <div class="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[130px]"></div>
-    <div class="absolute top-[400px] -right-40 h-[600px] w-[600px] rounded-full bg-indigo-600/10 blur-[150px]"></div>
-    <div class="absolute bottom-20 left-10 h-[500px] w-[500px] rounded-full bg-pink-500/10 blur-[140px]"></div>
+  <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div class="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-cyan-500/15 blur-[140px]"></div>
+    <div class="absolute top-[400px] -right-40 h-[600px] w-[600px] rounded-full bg-indigo-600/15 blur-[160px]"></div>
+    <div class="absolute bottom-20 left-10 h-[500px] w-[500px] rounded-full bg-pink-500/15 blur-[140px]"></div>
   </div>
 
-  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-12">
+  <main class="relative z-10 mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-12">
     <!-- Hero Section: Modern High-Impact Arcade Arena -->
     <section class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#121626]/90 via-[#0a0d18]/95 to-[#151226]/90 p-6 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
       <!-- Ambient Glow Accents -->
@@ -369,14 +369,14 @@ const portalSchema = {
       </div>
 
       <!-- Games Grid -->
-      <div id="games-grid" class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div id="games-grid" class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
         {GAMES.map(game => (
           <div
             data-game-category={game.category}
             data-game-title={game.title.toLowerCase()}
             data-game-slug={game.slug}
             data-game-keywords={game.keywords.join(' ').toLowerCase()}
-            class="game-item-card"
+            class="game-item-card h-full flex flex-col"
           >
             <GameCard game={game} />
           </div>
@@ -416,9 +416,9 @@ const portalSchema = {
       <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
         {GAMES.map(game => (
           <a
-            href={`https://${game.subdomain}.pokoly.com`}
-            target="_blank"
+            href={`/games/${game.slug}`}
             class="group flex flex-col justify-between rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs transition-all hover:border-brand-neon/60 hover:bg-white/10 hover:shadow-md"
+            title={`Launch ${game.title} (standalone at ${game.subdomain}.pokoly.com)`}
           >
             <div class="flex items-center gap-1.5 truncate">
               <span class="text-sm">🎮</span>
@@ -427,8 +427,8 @@ const portalSchema = {
               </span>
             </div>
             <div class="mt-1.5 flex items-center justify-between font-mono text-[10px] text-gray-400 group-hover:text-brand-neon">
-              <span class="truncate">.{game.subdomain}</span>
-              <span>↗</span>
+              <span class="truncate">{game.subdomain}.pokoly.com</span>
+              <span>→</span>
             </div>
           </a>
         ))}

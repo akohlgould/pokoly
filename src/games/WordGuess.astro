@@ -2,30 +2,30 @@
 // Word Guess: 5-Letter Daily & Unlimited
 ---
 
-<div id="wordle-app" class="flex w-full max-w-md flex-col items-center justify-between p-4 select-none">
+<div id="wordguess-app" class="flex w-full max-w-md flex-col items-center justify-between p-4 select-none">
   <!-- Stats Header -->
   <div class="mb-3 flex w-full items-center justify-between border-b border-brand-border/40 pb-2 text-xs">
     <div class="flex items-center gap-2">
       <span class="rounded bg-brand-border/60 px-2 py-0.5 font-mono text-[11px] text-brand-neon">Unlimited</span>
     </div>
     <div class="flex items-center gap-4 text-gray-400">
-      <div>Streak: <span id="wordle-streak" class="font-bold text-white">0</span></div>
-      <div>Score: <span id="wordle-wins" class="font-bold text-brand-gold">0</span></div>
+      <div>Streak: <span id="wordguess-streak" class="font-bold text-white">0</span></div>
+      <div>Score: <span id="wordguess-wins" class="font-bold text-brand-gold">0</span></div>
     </div>
   </div>
 
   <!-- Message Toast -->
-  <div id="wordle-toast" class="h-6 text-xs font-semibold text-brand-gold transition-opacity opacity-0 mb-1">
+  <div id="wordguess-toast" class="h-6 text-xs font-semibold text-brand-gold transition-opacity opacity-0 mb-1">
     Word copied!
   </div>
 
   <!-- 6x5 Letter Grid -->
-  <div id="wordle-grid" class="grid grid-rows-6 gap-1.5 pb-4">
+  <div id="wordguess-grid" class="grid grid-rows-6 gap-1.5 pb-4">
     <!-- 6 rows generated via client script -->
   </div>
 
   <!-- On-Screen Keyboard -->
-  <div id="wordle-keyboard" class="flex w-full flex-col gap-1.5 pt-2">
+  <div id="wordguess-keyboard" class="flex w-full flex-col gap-1.5 pt-2">
     <!-- Generated dynamically -->
   </div>
 </div>
@@ -48,14 +48,14 @@
   let isGameOver = false;
   let gridState: string[][] = Array(6).fill('').map(() => Array(5).fill(''));
 
-  const gridEl = document.getElementById('wordle-grid')!;
-  const keyboardEl = document.getElementById('wordle-keyboard')!;
-  const toastEl = document.getElementById('wordle-toast')!;
-  const streakEl = document.getElementById('wordle-streak')!;
-  const winsEl = document.getElementById('wordle-wins')!;
+  const gridEl = document.getElementById('wordguess-grid')!;
+  const keyboardEl = document.getElementById('wordguess-keyboard')!;
+  const toastEl = document.getElementById('wordguess-toast')!;
+  const streakEl = document.getElementById('wordguess-streak')!;
+  const winsEl = document.getElementById('wordguess-wins')!;
 
-  let streak = parseInt(localStorage.getItem('pokoly_wordle_streak') || '0', 10);
-  let wins = parseInt(localStorage.getItem('pokoly_wordle_wins') || '0', 10);
+  let streak = parseInt(localStorage.getItem('pokoly_wordguess_streak') || '0', 10);
+  let wins = parseInt(localStorage.getItem('pokoly_wordguess_wins') || '0', 10);
   streakEl.textContent = streak.toString();
   winsEl.textContent = wins.toString();
 
@@ -196,8 +196,8 @@
         showToast('Splendid! You guessed it!');
         streak++;
         wins++;
-        localStorage.setItem('pokoly_wordle_streak', streak.toString());
-        localStorage.setItem('pokoly_wordle_wins', wins.toString());
+        localStorage.setItem('pokoly_wordguess_streak', streak.toString());
+        localStorage.setItem('pokoly_wordguess_wins', wins.toString());
         streakEl.textContent = streak.toString();
         winsEl.textContent = wins.toString();
       } else if (currentRow === 5) {
@@ -205,7 +205,7 @@
         sound.gameOver();
         showToast(`Word was: ${answer}`);
         streak = 0;
-        localStorage.setItem('pokoly_wordle_streak', '0');
+        localStorage.setItem('pokoly_wordguess_streak', '0');
         streakEl.textContent = '0';
       } else {
         sound.score();

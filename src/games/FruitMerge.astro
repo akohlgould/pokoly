@@ -2,33 +2,33 @@
 // Cosmic Fruit Merge (Watermelon Physics Drop)
 ---
 
-<div id="suika-wrapper" class="flex flex-col items-center justify-center p-3 select-none">
+<div id="fruit-wrapper" class="flex flex-col items-center justify-center p-3 select-none">
   <!-- Score Bar -->
   <div class="mb-3 flex w-full max-w-[380px] items-center justify-between rounded-xl bg-brand-dark/90 px-4 py-2 border border-brand-border/60 text-xs">
     <div class="flex items-center gap-2">
       <span class="text-gray-400">Score:</span>
-      <span id="suika-score" class="font-mono text-base font-bold text-amber-400">0</span>
+      <span id="fruit-score" class="font-mono text-base font-bold text-amber-400">0</span>
     </div>
     <div class="flex items-center gap-2">
       <span class="text-gray-400">Best:</span>
-      <span id="suika-best" class="font-mono text-base font-bold text-white">0</span>
+      <span id="fruit-best" class="font-mono text-base font-bold text-white">0</span>
     </div>
     <div class="flex items-center gap-1.5">
       <span class="text-gray-400">Next:</span>
-      <span id="suika-next-fruit" class="text-xl">🍒</span>
+      <span id="fruit-next-fruit" class="text-xl">🍒</span>
     </div>
   </div>
 
   <!-- Physics Canvas -->
   <div class="relative overflow-hidden rounded-2xl border-2 border-brand-border bg-gradient-to-b from-brand-card to-brand-dark shadow-2xl">
-    <canvas id="suika-canvas" width="360" height="520" class="block cursor-crosshair touch-none"></canvas>
+    <canvas id="fruit-canvas" width="360" height="520" class="block cursor-crosshair touch-none"></canvas>
 
     <!-- Game Over Overlay -->
-    <div id="suika-gameover" class="absolute inset-0 flex flex-col items-center justify-center bg-brand-dark/90 backdrop-blur-sm p-6 text-center transition-all opacity-0 pointer-events-none">
+    <div id="fruit-gameover" class="absolute inset-0 flex flex-col items-center justify-center bg-brand-dark/90 backdrop-blur-sm p-6 text-center transition-all opacity-0 pointer-events-none">
       <span class="text-4xl">💥</span>
       <h3 class="mt-2 font-display text-2xl font-bold text-white">Container Overflow!</h3>
-      <p class="mt-1 text-xs text-gray-300">Final Score: <span id="suika-final-score" class="font-mono font-bold text-brand-gold">0</span></p>
-      <button id="suika-play-again" class="mt-4 rounded-xl bg-brand-accent px-6 py-2.5 font-semibold text-white shadow-lg transition-transform hover:scale-105 active:scale-95">
+      <p class="mt-1 text-xs text-gray-300">Final Score: <span id="fruit-final-score" class="font-mono font-bold text-brand-gold">0</span></p>
+      <button id="fruit-play-again" class="mt-4 rounded-xl bg-brand-accent px-6 py-2.5 font-semibold text-white shadow-lg transition-transform hover:scale-105 active:scale-95">
         Play Again
       </button>
     </div>
@@ -81,14 +81,14 @@
     }
   }
 
-  const canvas = document.getElementById('suika-canvas') as HTMLCanvasElement;
+  const canvas = document.getElementById('fruit-canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
-  const scoreEl = document.getElementById('suika-score')!;
-  const bestEl = document.getElementById('suika-best')!;
-  const nextEl = document.getElementById('suika-next-fruit')!;
-  const gameOverModal = document.getElementById('suika-gameover')!;
-  const finalScoreEl = document.getElementById('suika-final-score')!;
-  const playAgainBtn = document.getElementById('suika-play-again')!;
+  const scoreEl = document.getElementById('fruit-score')!;
+  const bestEl = document.getElementById('fruit-best')!;
+  const nextEl = document.getElementById('fruit-next-fruit')!;
+  const gameOverModal = document.getElementById('fruit-gameover')!;
+  const finalScoreEl = document.getElementById('fruit-final-score')!;
+  const playAgainBtn = document.getElementById('fruit-play-again')!;
 
   const width = canvas.width;
   const height = canvas.height;
@@ -99,7 +99,7 @@
 
   let fruits: CircleBody[] = [];
   let score = 0;
-  let best = parseInt(localStorage.getItem('pokoly_suika_best') || '0', 10);
+  let best = parseInt(localStorage.getItem('pokoly_fruit_best') || '0', 10);
   bestEl.textContent = best.toString();
 
   let nextTier = Math.floor(Math.random() * 3);
@@ -167,7 +167,7 @@
             if (score > best) {
               best = score;
               bestEl.textContent = best.toString();
-              localStorage.setItem('pokoly_suika_best', best.toString());
+              localStorage.setItem('pokoly_fruit_best', best.toString());
             }
 
             sound.merge();

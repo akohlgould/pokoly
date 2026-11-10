@@ -2,8 +2,8 @@
  * Cloudflare Edge Worker: Wildcard Subdomain Router for Pokoly
  *
  * Maps subdomains like:
- *   wordle.pokoly.com     -> /games/word-guess
- *   suika.pokoly.com      -> /games/fruit-merge
+ *   words.pokoly.com      -> /games/word-guess
+ *   fruits.pokoly.com     -> /games/fruit-merge
  *   2048.pokoly.com       -> /games/neon-2048
  *   solitaire.pokoly.com  -> /games/solitaire
  *   snake.pokoly.com      -> /games/cyber-snake
@@ -16,10 +16,8 @@
 const SUBDOMAIN_MAP = {
   'words': '/games/word-guess',
   'wordguess': '/games/word-guess',
-  'wordle': '/games/word-guess',
   'fruits': '/games/fruit-merge',
   'merge': '/games/fruit-merge',
-  'suika': '/games/fruit-merge',
   '2048': '/games/neon-2048',
   'solitaire': '/games/solitaire',
   'cards': '/games/solitaire',
@@ -32,22 +30,17 @@ const SUBDOMAIN_MAP = {
   'lexifall': '/games/lexifall',
   'timeline': '/games/chronotrail',
   'chronotrail': '/games/chronotrail',
-  'chronocross': '/games/chronotrail',
   'vowelshift': '/games/vowelshift',
   'cryptogram': '/games/cipherpunk',
   'numbers': '/games/numberdrop',
-  'countdown': '/games/numberdrop',
   'geopixel': '/games/geopixel',
   'semantic': '/games/semanticlimb',
-  'semantle': '/games/semanticlimb',
   'wordhedge': '/games/wordhedge',
   'radicals': '/games/kanjiforge',
   'nanopoker': '/games/nanojoker',
   'nanojoker': '/games/nanojoker',
-  'nanobalatro': '/games/nanojoker',
   'orbitsurvivors': '/games/orbit-survivors',
   'pegdungeon': '/games/pegdungeon',
-  'peggledungeon': '/games/pegdungeon',
   'typing': '/games/speed-typing',
   'sudoku': '/games/sudoku',
   'flappy': '/games/flappy-cyber',

@@ -1,0 +1,36 @@
+---
+import GameLayout from '../../layouts/GameLayout.astro';
+import { GAMES } from '../../data/games';
+import type { GameMeta } from '../../data/games';
+
+import WordGuess from '../../games/WordGuess.astro';
+import FruitMerge from '../../games/FruitMerge.astro';
+import Neon2048 from '../../games/Neon2048.astro';
+import KlondikeSolitaire from '../../games/KlondikeSolitaire.astro';
+import CyberSnake from '../../games/CyberSnake.astro';
+import Minesweeper from '../../games/Minesweeper.astro';
+import BrickBreaker from '../../games/BrickBreaker.astro';
+
+export function getStaticPaths() {
+  return GAMES.map(game => ({
+    params: { id: game.slug },
+    props: { game },
+  }));
+}
+
+interface Props {
+  game: GameMeta;
+}
+
+const { game } = Astro.props;
+---
+
+<GameLayout game={game}>
+  {game.id === 'word-guess' && <WordGuess />}
+  {game.id === 'fruit-merge' && <FruitMerge />}
+  {game.id === 'neon-2048' && <Neon2048 />}
+  {game.id === 'solitaire' && <KlondikeSolitaire />}
+  {game.id === 'cyber-snake' && <CyberSnake />}
+  {game.id === 'minesweeper' && <Minesweeper />}
+  {game.id === 'breakout' && <BrickBreaker />}
+</GameLayout>

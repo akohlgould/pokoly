@@ -1,0 +1,105 @@
+---
+import type { GameMeta } from '../data/games';
+
+interface Props {
+  game: GameMeta;
+}
+
+const { game } = Astro.props;
+---
+
+<div
+  class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-brand-border bg-brand-card/80 p-4 transition-all duration-300 hover:-translate-y-2 hover:border-brand-neon hover:shadow-2xl hover:shadow-brand-neon/15"
+>
+  <!-- Card Top: Subdomain Badge + Favorite Heart -->
+  <div class="flex items-center justify-between text-xs z-10">
+    <a
+      href={`https://${game.subdomain}.pokoly.com`}
+      target="_blank"
+      class="rounded-full bg-brand-dark/80 px-2.5 py-1 font-mono text-[10px] text-brand-neon hover:bg-brand-border transition-colors border border-brand-border/60"
+      title="Direct standalone subdomain"
+    >
+      {game.subdomain}.pokoly.com
+    </a>
+
+    <div class="flex items-center gap-1.5">
+      {game.badge && (
+        <span class="rounded-full bg-brand-accent/20 px-2 py-0.5 text-[9px] font-bold text-brand-accent border border-brand-accent/30">
+          {game.badge}
+        </span>
+      )}
+      <button
+        class="card-fav-btn flex h-7 w-7 items-center justify-center rounded-full bg-brand-dark/80 text-xs transition-transform hover:scale-110 active:scale-90"
+        data-slug={game.slug}
+        title="Favorite this game"
+      >
+        🤍
+      </button>
+    </div>
+  </div>
+
+  <!-- Icon / Visual Graphic with Soft Glow -->
+  <a href={`/games/${game.slug}`} class="my-5 flex h-28 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-brand-dark to-brand-card text-5xl transition-transform duration-300 group-hover:scale-105 shadow-inner">
+    <span class="drop-shadow-lg group-hover:animate-bounce">
+      {game.category === 'word' && '📝'}
+      {game.category === 'physics' && '🍉'}
+      {game.category === 'puzzle' && '🧩'}
+      {game.category === 'card' && '🃏'}
+      {game.category === 'arcade' && '⚡'}
+    </span>
+  </a>
+
+  <!-- Title & Description -->
+  <div>
+    <a href={`/games/${game.slug}`}>
+      <h3 class="font-display text-base font-bold text-white transition-colors group-hover:text-brand-neon">
+        {game.title}
+      </h3>
+    </a>
+    <p class="mt-1 line-clamp-2 text-xs text-gray-400">
+      {game.tagline}
+    </p>
+  </div>
+
+  <!-- Rating, Plays & 1-Click Launch -->
+  <div class="mt-4 flex items-center justify-between border-t border-brand-border/40 pt-3 text-[11px] text-gray-400">
+    <div class="flex items-center gap-1 text-amber-400">
+      <span>★</span>
+      <span class="font-semibold text-gray-200">{game.rating}</span>
+    </div>
+
+    <div class="font-mono text-[10px]">
+      👥 {game.playCount}
+    </div>
+
+    <a
+      href={`/games/${game.slug}`}
+      class="flex items-center gap-1 rounded-xl bg-brand-neon/15 px-3 py-1 font-bold text-brand-neon border border-brand-neon/30 transition-all group-hover:bg-brand-neon group-hover:text-brand-dark"
+    >
+      <span>Play</span>
+      <span>→</span>
+    </a>
+  </div>
+</div>
+
+<script>
+  import { player } from '../utils/player';
+  import { sound } from '../utils/audio';
+
+  document.querySelectorAll('.card-fav-btn').forEach(btn => {
+    const slug = btn.getAttribute('data-slug');
+    if (!slug) return;
+
+    if (player.isFavorite(slug)) {
+      btn.textContent = '❤️';
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isFav = player.toggleFavorite(slug);
+      btn.textContent = isFav ? '❤️' : '🤍';
+      sound.blip();
+    });
+  });
+</script>

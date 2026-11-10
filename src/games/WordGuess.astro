@@ -1,0 +1,240 @@
+---
+// Word Guess (Wordle Unlimited & Daily)
+---
+
+<div id="wordle-app" class="flex w-full max-w-md flex-col items-center justify-between p-4 select-none">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between border-b border-brand-border/40 pb-2 text-xs">
+    <div class="flex items-center gap-2">
+      <span class="rounded bg-brand-border/60 px-2 py-0.5 font-mono text-[11px] text-brand-neon">Unlimited</span>
+    </div>
+    <div class="flex items-center gap-4 text-gray-400">
+      <div>Streak: <span id="wordle-streak" class="font-bold text-white">0</span></div>
+      <div>Score: <span id="wordle-wins" class="font-bold text-brand-gold">0</span></div>
+    </div>
+  </div>
+
+  <!-- Message Toast -->
+  <div id="wordle-toast" class="h-6 text-xs font-semibold text-brand-gold transition-opacity opacity-0 mb-1">
+    Word copied!
+  </div>
+
+  <!-- 6x5 Letter Grid -->
+  <div id="wordle-grid" class="grid grid-rows-6 gap-1.5 pb-4">
+    <!-- 6 rows generated via client script -->
+  </div>
+
+  <!-- On-Screen Keyboard -->
+  <div id="wordle-keyboard" class="flex w-full flex-col gap-1.5 pt-2">
+    <!-- Generated dynamically -->
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const WORD_LIST = [
+    'CRANE', 'AUDIO', 'ROAST', 'SLATE', 'PLANT', 'GHOST', 'VIBES', 'LIGHT',
+    'SPACE', 'CYBER', 'PIXEL', 'CLOUD', 'FLAME', 'POWER', 'STORM', 'BRAIN',
+    'MAGIC', 'SHARP', 'DANCE', 'QUEST', 'BLITZ', 'PULSE', 'SPARK', 'TIGER',
+    'FLASH', 'NIGHT', 'DREAM', 'OCEAN', 'SOLAR', 'PRISM', 'CHESS', 'FORCE'
+  ];
+
+  let currentWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+  let currentRow = 0;
+  let currentCol = 0;
+  let isGameOver = false;
+  let gridState: string[][] = Array(6).fill('').map(() => Array(5).fill(''));
+
+  const gridEl = document.getElementById('wordle-grid')!;
+  const keyboardEl = document.getElementById('wordle-keyboard')!;
+  const toastEl = document.getElementById('wordle-toast')!;
+  const streakEl = document.getElementById('wordle-streak')!;
+  const winsEl = document.getElementById('wordle-wins')!;
+
+  let streak = parseInt(localStorage.getItem('pokoly_wordle_streak') || '0', 10);
+  let wins = parseInt(localStorage.getItem('pokoly_wordle_wins') || '0', 10);
+  streakEl.textContent = streak.toString();
+  winsEl.textContent = wins.toString();
+
+  function showToast(msg: string) {
+    toastEl.textContent = msg;
+    toastEl.classList.remove('opacity-0');
+    setTimeout(() => toastEl.classList.add('opacity-0'), 2000);
+  }
+
+  function initGrid() {
+    gridEl.innerHTML = '';
+    for (let r = 0; r < 6; r++) {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'grid grid-cols-5 gap-1.5';
+      rowDiv.id = `row-${r}`;
+      for (let c = 0; c < 5; c++) {
+        const cell = document.createElement('div');
+        cell.id = `cell-${r}-${c}`;
+        cell.className = 'flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-lg border-2 border-brand-border bg-brand-dark/80 text-xl font-black text-white transition-all duration-300';
+        rowDiv.appendChild(cell);
+      }
+      gridEl.appendChild(rowDiv);
+    }
+  }
+
+  const KEYBOARD_ROWS = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫']
+  ];
+
+  function initKeyboard() {
+    keyboardEl.innerHTML = '';
+    KEYBOARD_ROWS.forEach(row => {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'flex justify-center gap-1';
+      row.forEach(key => {
+        const btn = document.createElement('button');
+        btn.textContent = key;
+        btn.id = `key-${key}`;
+        btn.className = `flex h-11 items-center justify-center rounded font-mono font-bold text-xs transition-colors ${
+          key === 'ENTER' || key === '⌫'
+            ? 'px-3 bg-brand-card text-brand-neon hover:bg-brand-border'
+            : 'w-8 sm:w-9 bg-brand-card text-gray-200 hover:bg-brand-border'
+        }`;
+        btn.addEventListener('click', () => handleInput(key));
+        rowDiv.appendChild(btn);
+      });
+      keyboardEl.appendChild(rowDiv);
+    });
+  }
+
+  function handleInput(key: string) {
+    if (isGameOver) return;
+
+    if (key === 'ENTER') {
+      submitGuess();
+    } else if (key === '⌫' || key === 'BACKSPACE') {
+      deleteLetter();
+    } else if (/^[A-Z]$/.test(key)) {
+      addLetter(key);
+    }
+  }
+
+  function addLetter(letter: string) {
+    if (currentCol < 5) {
+      gridState[currentRow][currentCol] = letter;
+      const cell = document.getElementById(`cell-${currentRow}-${currentCol}`);
+      if (cell) {
+        cell.textContent = letter;
+        cell.classList.add('border-brand-neon', 'scale-105');
+        setTimeout(() => cell.classList.remove('scale-105'), 100);
+      }
+      sound.blip();
+      currentCol++;
+    }
+  }
+
+  function deleteLetter() {
+    if (currentCol > 0) {
+      currentCol--;
+      gridState[currentRow][currentCol] = '';
+      const cell = document.getElementById(`cell-${currentRow}-${currentCol}`);
+      if (cell) {
+        cell.textContent = '';
+        cell.classList.remove('border-brand-neon');
+      }
+      sound.click();
+    }
+  }
+
+  function submitGuess() {
+    if (currentCol < 5) {
+      showToast('Need 5 letters!');
+      return;
+    }
+
+    const guess = gridState[currentRow].join('');
+    const answer = currentWord;
+    const answerArr = answer.split('');
+
+    for (let i = 0; i < 5; i++) {
+      const cell = document.getElementById(`cell-${currentRow}-${i}`);
+      const letter = guess[i];
+      const keyBtn = document.getElementById(`key-${letter}`);
+
+      setTimeout(() => {
+        if (!cell) return;
+        cell.classList.remove('border-brand-border', 'border-brand-neon');
+
+        if (letter === answer[i]) {
+          cell.className = 'flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-lg bg-emerald-600 text-xl font-black text-white shadow-md';
+          if (keyBtn) keyBtn.className = 'flex h-11 w-8 sm:w-9 items-center justify-center rounded font-mono font-bold text-xs bg-emerald-600 text-white';
+        } else if (answerArr.includes(letter)) {
+          cell.className = 'flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-lg bg-amber-500 text-xl font-black text-white shadow-md';
+          if (keyBtn && !keyBtn.classList.contains('bg-emerald-600')) {
+            keyBtn.className = 'flex h-11 w-8 sm:w-9 items-center justify-center rounded font-mono font-bold text-xs bg-amber-500 text-white';
+          }
+        } else {
+          cell.className = 'flex h-12 w-12 sm:h-13 sm:w-13 items-center justify-center rounded-lg bg-gray-800 text-xl font-black text-gray-400';
+          if (keyBtn && !keyBtn.classList.contains('bg-emerald-600') && !keyBtn.classList.contains('bg-amber-500')) {
+            keyBtn.className = 'flex h-11 w-8 sm:w-9 items-center justify-center rounded font-mono font-bold text-xs bg-gray-800 text-gray-500';
+          }
+        }
+      }, i * 200);
+    }
+
+    setTimeout(() => {
+      if (guess === answer) {
+        isGameOver = true;
+        sound.victory();
+        launchConfetti();
+        player.addXP(250, 'Word Guess Solved');
+        player.progressQuest('get_score', 150);
+        if (currentRow <= 2) {
+          player.unlockBadge('word_ace');
+        }
+        showToast('Splendid! You guessed it!');
+        streak++;
+        wins++;
+        localStorage.setItem('pokoly_wordle_streak', streak.toString());
+        localStorage.setItem('pokoly_wordle_wins', wins.toString());
+        streakEl.textContent = streak.toString();
+        winsEl.textContent = wins.toString();
+      } else if (currentRow === 5) {
+        isGameOver = true;
+        sound.gameOver();
+        showToast(`Word was: ${answer}`);
+        streak = 0;
+        localStorage.setItem('pokoly_wordle_streak', '0');
+        streakEl.textContent = '0';
+      } else {
+        sound.score();
+        currentRow++;
+        currentCol = 0;
+      }
+    }, 1100);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleInput('ENTER');
+    else if (e.key === 'Backspace') handleInput('⌫');
+    else if (/^[a-zA-Z]$/.test(e.key)) handleInput(e.key.toUpperCase());
+  });
+
+  const resetBtn = document.getElementById('btn-restart-game');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      currentWord = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+      currentRow = 0;
+      currentCol = 0;
+      isGameOver = false;
+      gridState = Array(6).fill('').map(() => Array(5).fill(''));
+      initGrid();
+      initKeyboard();
+      showToast('New word generated!');
+    });
+  }
+
+  initGrid();
+  initKeyboard();
+</script>

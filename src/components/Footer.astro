@@ -1,0 +1,82 @@
+---
+import { GAMES, CATEGORIES } from '../data/games';
+---
+
+<footer class="border-t border-brand-border/80 bg-brand-dark pt-12 pb-16 text-gray-400">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6">
+    <div class="grid grid-cols-1 gap-10 md:grid-cols-4 lg:grid-cols-5">
+      <!-- Col 1: Brand & Mission -->
+      <div class="md:col-span-2">
+        <a href="/" class="flex items-center gap-2.5">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-lg shadow-md">
+            👾
+          </div>
+          <span class="font-display text-xl font-black tracking-tight text-white">
+            Pokoly<span class="text-brand-pink">.com</span>
+          </span>
+        </a>
+        <p class="mt-3 max-w-sm text-sm text-gray-400 leading-relaxed">
+          The instant-play web game platform with zero downloads, zero account requirements, and 100% free browser games. Optimized for fast loading on phones, tablets, and desktops.
+        </p>
+        <div class="mt-4 flex items-center gap-3 text-xs text-gray-500">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-400">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            Zero Server Latency
+          </span>
+          <span>⚡ Client-Side WebGL</span>
+        </div>
+      </div>
+
+      <!-- Col 2: Categories -->
+      <div>
+        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Game Genres</h3>
+        <ul class="mt-3 space-y-2 text-xs">
+          {CATEGORIES.slice(1).map(cat => (
+            <li>
+              <a href={`/categories/${cat.id}`} class="transition-colors hover:text-brand-neon">
+                {cat.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Col 3: Popular Subdomains -->
+      <div>
+        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Subdomain Hubs</h3>
+        <ul class="mt-3 space-y-2 text-xs">
+          {GAMES.slice(0, 5).map(game => (
+            <li>
+              <a href={`/games/${game.slug}`} class="flex items-center gap-1.5 transition-colors hover:text-white">
+                <span class="text-brand-neon">{game.subdomain}.pokoly.com</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Col 4: Legal & Ad Compliance -->
+      <div>
+        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Legal & Contact</h3>
+        <ul class="mt-3 space-y-2 text-xs">
+          <li><a href="/privacy" class="transition-colors hover:text-white">Privacy Policy</a></li>
+          <li><a href="/terms" class="transition-colors hover:text-white">Terms of Service</a></li>
+          <li><a href="/about" class="transition-colors hover:text-white">About Pokoly</a></li>
+          <li><a href="/unblocked" class="transition-colors hover:text-white">Unblocked Games Guide</a></li>
+          <li><a href="mailto:contact@pokoly.com" class="transition-colors hover:text-white">Contact & Support</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-brand-border/40 pt-8 sm:flex-row text-xs text-gray-500">
+      <p>© 2026 Pokoly.com. All rights reserved. High performance browser game platform.</p>
+      <div class="flex items-center gap-4">
+        <span>Fast Edge CDN</span>
+        <span>•</span>
+        <span>HTML5 Canvas</span>
+        <span>•</span>
+        <span>No Lag</span>
+      </div>
+    </div>
+  </div>
+</footer>

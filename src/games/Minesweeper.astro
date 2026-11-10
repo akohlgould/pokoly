@@ -1,0 +1,288 @@
+---
+// Minesweeper Modern: Logic Sweeper
+---
+
+<div id="mines-app" class="flex flex-col items-center justify-center p-3 select-none">
+  <!-- Top Bar: Mines left, Smiley status, Timer -->
+  <div class="mb-3 flex w-full max-w-[340px] items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div class="flex items-center gap-1.5 font-mono text-base font-bold text-red-500">
+      <span>💣</span>
+      <span id="mines-count">10</span>
+    </div>
+
+    <!-- Smiley Status Button -->
+    <button id="mines-smiley" class="flex h-9 w-9 items-center justify-center rounded-lg border border-brand-border bg-brand-card text-lg transition-transform hover:scale-105 active:scale-95">
+      😎
+    </button>
+
+    <div class="flex items-center gap-1.5 font-mono text-base font-bold text-amber-400">
+      <span>⏱</span>
+      <span id="mines-timer">000</span>
+    </div>
+  </div>
+
+  <!-- Board -->
+  <div class="overflow-auto rounded-2xl border-2 border-brand-border bg-brand-dark p-2 shadow-2xl">
+    <div id="mines-grid" class="grid grid-cols-9 gap-1">
+      <!-- 9x9 cells -->
+    </div>
+  </div>
+
+  <!-- Mobile Mode Switcher: Dig vs Flag -->
+  <div class="mt-4 sm:hidden flex items-center gap-3 text-xs">
+    <button id="mode-dig" class="flex items-center gap-1.5 rounded-lg border border-brand-neon bg-brand-neon/20 px-3 py-1.5 font-bold text-brand-neon">
+      ⛏ Dig Mode
+    </button>
+    <button id="mode-flag" class="flex items-center gap-1.5 rounded-lg border border-brand-border bg-brand-card px-3 py-1.5 text-gray-400">
+      🚩 Flag Mode
+    </button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const rows = 9;
+  const cols = 9;
+  const totalMines = 10;
+
+  interface Cell {
+    r: number;
+    c: number;
+    isMine: boolean;
+    revealed: boolean;
+    flagged: boolean;
+    count: number;
+  }
+
+  let board: Cell[][] = [];
+  let isGameOver = false;
+  let hasWon = false;
+  let firstClick = true;
+  let flagsPlaced = 0;
+  let timerSeconds = 0;
+  let timerInterval: any = null;
+  let mobileFlagMode = false;
+
+  const gridEl = document.getElementById('mines-grid')!;
+  const minesCountEl = document.getElementById('mines-count')!;
+  const timerEl = document.getElementById('mines-timer')!;
+  const smileyEl = document.getElementById('mines-smiley')!;
+  const modeDigBtn = document.getElementById('mode-dig');
+  const modeFlagBtn = document.getElementById('mode-flag');
+
+  const NUMBER_COLORS: Record<number, string> = {
+    1: 'text-blue-400',
+    2: 'text-emerald-400',
+    3: 'text-rose-400',
+    4: 'text-purple-400',
+    5: 'text-amber-400',
+    6: 'text-cyan-400',
+    7: 'text-pink-400',
+    8: 'text-gray-300',
+  };
+
+  function initBoard() {
+    board = [];
+    isGameOver = false;
+    hasWon = false;
+    firstClick = true;
+    flagsPlaced = 0;
+    timerSeconds = 0;
+    clearInterval(timerInterval);
+    timerEl.textContent = '000';
+    minesCountEl.textContent = totalMines.toString();
+    smileyEl.textContent = '😎';
+
+    for (let r = 0; r < rows; r++) {
+      board[r] = [];
+      for (let c = 0; c < cols; c++) {
+        board[r][c] = {
+          r, c,
+          isMine: false,
+          revealed: false,
+          flagged: false,
+          count: 0
+        };
+      }
+    }
+    render();
+  }
+
+  function placeMines(firstR: number, firstC: number) {
+    let placed = 0;
+    while (placed < totalMines) {
+      const r = Math.floor(Math.random() * rows);
+      const c = Math.floor(Math.random() * cols);
+      // Ensure first clicked cell and its 8 neighbors are mine-free
+      if (!board[r][c].isMine && (Math.abs(r - firstR) > 1 || Math.abs(c - firstC) > 1)) {
+        board[r][c].isMine = true;
+        placed++;
+      }
+    }
+
+    // Calculate proximity numbers
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!board[r][c].isMine) {
+          let count = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dr === 0 && dc === 0 ? null : null, dc++) {
+              const nr = r + dr;
+              const nc = c + dc;
+              if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc].isMine) {
+                count++;
+              }
+            }
+          }
+          board[r][c].count = count;
+        }
+      }
+    }
+  }
+
+  function render() {
+    gridEl.innerHTML = '';
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = board[r][c];
+        const btn = document.createElement('button');
+        btn.className = 'w-8 h-8 sm:w-9 sm:h-9 rounded flex items-center justify-center font-mono font-bold text-sm transition-all duration-100 select-none ';
+
+        if (cell.revealed) {
+          if (cell.isMine) {
+            btn.className += ' bg-rose-600 text-white';
+            btn.textContent = '💣';
+          } else {
+            btn.className += ' bg-brand-card/90 border border-brand-border/40';
+            if (cell.count > 0) {
+              btn.className += ` ${NUMBER_COLORS[cell.count] || 'text-white'}`;
+              btn.textContent = cell.count.toString();
+            }
+          }
+        } else {
+          btn.className += ' bg-brand-border/80 border border-brand-border hover:bg-brand-border text-white active:scale-95';
+          if (cell.flagged) {
+            btn.textContent = '🚩';
+          }
+        }
+
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (mobileFlagMode) {
+            toggleFlag(r, c);
+          } else {
+            handleClick(r, c);
+          }
+        });
+
+        btn.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          toggleFlag(r, c);
+        });
+
+        gridEl.appendChild(btn);
+      }
+    }
+  }
+
+  function handleClick(r: number, c: number) {
+    if (isGameOver || board[r][c].revealed || board[r][c].flagged) return;
+
+    if (firstClick) {
+      firstClick = false;
+      placeMines(r, c);
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        timerEl.textContent = Math.min(999, timerSeconds).toString().padStart(3, '0');
+      }, 1000);
+    }
+
+    const cell = board[r][c];
+
+    if (cell.isMine) {
+      // Detonation!
+      cell.revealed = true;
+      isGameOver = true;
+      clearInterval(timerInterval);
+      sound.explosion();
+      smileyEl.textContent = '😵';
+
+      // Reveal all mines
+      for (let row of board) {
+        for (let item of row) {
+          if (item.isMine) item.revealed = true;
+        }
+      }
+      render();
+      return;
+    }
+
+    sound.blip();
+    revealCascade(r, c);
+    checkWin();
+    render();
+  }
+
+  function revealCascade(r: number, c: number) {
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+    const cell = board[r][c];
+    if (cell.revealed || cell.flagged || cell.isMine) return;
+
+    cell.revealed = true;
+
+    if (cell.count === 0) {
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          revealCascade(r + dr, c + dc);
+        }
+      }
+    }
+  }
+
+  function toggleFlag(r: number, c: number) {
+    if (isGameOver || board[r][c].revealed) return;
+    const cell = board[r][c];
+    cell.flagged = !cell.flagged;
+    flagsPlaced += cell.flagged ? 1 : -1;
+    minesCountEl.textContent = (totalMines - flagsPlaced).toString();
+    sound.click();
+    render();
+  }
+
+  function checkWin() {
+    let unrevealedSafe = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!board[r][c].isMine && !board[r][c].revealed) {
+          unrevealedSafe++;
+        }
+      }
+    }
+    if (unrevealedSafe === 0) {
+      isGameOver = true;
+      hasWon = true;
+      clearInterval(timerInterval);
+      sound.victory();
+      smileyEl.textContent = '🥳';
+    }
+  }
+
+  smileyEl.addEventListener('click', initBoard);
+  document.getElementById('btn-restart-game')?.addEventListener('click', initBoard);
+
+  if (modeDigBtn && modeFlagBtn) {
+    modeDigBtn.addEventListener('click', () => {
+      mobileFlagMode = false;
+      modeDigBtn.className = 'flex items-center gap-1.5 rounded-lg border border-brand-neon bg-brand-neon/20 px-3 py-1.5 font-bold text-brand-neon';
+      modeFlagBtn.className = 'flex items-center gap-1.5 rounded-lg border border-brand-border bg-brand-card px-3 py-1.5 text-gray-400';
+    });
+    modeFlagBtn.addEventListener('click', () => {
+      mobileFlagMode = true;
+      modeFlagBtn.className = 'flex items-center gap-1.5 rounded-lg border border-amber-400 bg-amber-400/20 px-3 py-1.5 font-bold text-amber-400';
+      modeDigBtn.className = 'flex items-center gap-1.5 rounded-lg border border-brand-border bg-brand-card px-3 py-1.5 text-gray-400';
+    });
+  }
+
+  initBoard();
+</script>

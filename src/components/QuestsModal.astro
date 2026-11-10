@@ -1,0 +1,192 @@
+---
+// Quests, Daily Streak, and Trophy Room Modal
+---
+
+<div id="quests-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 opacity-0 pointer-events-none transition-all duration-300">
+  <div class="relative w-full max-w-lg rounded-3xl border border-brand-border bg-brand-card p-6 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <!-- Close Button -->
+    <button id="close-quests-modal" class="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-brand-dark/80 text-gray-400 hover:text-white transition-colors">
+      ✕
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 border-b border-brand-border/60 pb-4">
+      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-2xl shadow-lg shadow-amber-500/20">
+        🏆
+      </div>
+      <div>
+        <h2 class="font-display text-xl font-bold text-white">Daily Pass & Trophies</h2>
+        <p class="text-xs text-gray-400">Complete quests daily to level up and earn badges!</p>
+      </div>
+    </div>
+
+    <!-- Scrollable Body -->
+    <div class="overflow-y-auto space-y-6 pt-4 pr-1 text-xs">
+      <!-- Daily Streak Progress Section -->
+      <div class="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent p-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl animate-pulse">🔥</span>
+            <div>
+              <div class="font-bold text-white text-sm">
+                <span id="modal-streak-count">1</span>-Day Streak
+              </div>
+              <div class="text-[11px] text-amber-300">Play tomorrow to boost your flame!</div>
+            </div>
+          </div>
+          <span class="rounded-full bg-amber-400/20 px-2.5 py-1 font-mono text-[10px] font-bold text-amber-300 border border-amber-400/30">
+            +100 XP / Day
+          </span>
+        </div>
+
+        <!-- 7-Day Visual Tracker -->
+        <div class="mt-4 grid grid-cols-7 gap-1 text-center font-mono text-[10px]">
+          <div class="rounded-lg bg-emerald-500/20 border border-emerald-500/40 p-1.5 text-emerald-300">
+            <div>D1</div>
+            <div class="text-xs">✓</div>
+          </div>
+          <div class="rounded-lg bg-emerald-500/20 border border-emerald-500/40 p-1.5 text-emerald-300">
+            <div>D2</div>
+            <div class="text-xs">✓</div>
+          </div>
+          <div class="rounded-lg bg-amber-500/30 border border-amber-400 p-1.5 text-amber-300 font-bold">
+            <div>D3</div>
+            <div class="text-xs">🔥</div>
+          </div>
+          <div class="rounded-lg bg-brand-dark/60 border border-brand-border/40 p-1.5 text-gray-500">
+            <div>D4</div>
+            <div class="text-xs">🔒</div>
+          </div>
+          <div class="rounded-lg bg-brand-dark/60 border border-brand-border/40 p-1.5 text-gray-500">
+            <div>D5</div>
+            <div class="text-xs">🔒</div>
+          </div>
+          <div class="rounded-lg bg-brand-dark/60 border border-brand-border/40 p-1.5 text-gray-500">
+            <div>D6</div>
+            <div class="text-xs">🔒</div>
+          </div>
+          <div class="rounded-lg bg-brand-dark/60 border border-brand-border/40 p-1.5 text-amber-400">
+            <div>D7</div>
+            <div class="text-xs">👑</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Quests -->
+      <div>
+        <div class="flex items-center justify-between pb-2">
+          <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Today's Daily Quests</h3>
+          <span class="text-[11px] text-brand-neon font-mono">Resets Midnight</span>
+        </div>
+
+        <div id="quests-list" class="space-y-2.5">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Trophies & Badges Grid -->
+      <div>
+        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase pb-3">Achievement Badges</h3>
+        <div id="badges-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Bookmark / Return Reminder CTA -->
+      <div class="rounded-xl border border-brand-border/80 bg-brand-dark/70 p-3.5 text-center">
+        <div class="font-bold text-white text-xs">⭐ Never lose your streak!</div>
+        <p class="mt-1 text-[11px] text-gray-400">
+          Press <kbd class="rounded bg-brand-card px-1.5 py-0.5 border border-brand-border font-mono text-[10px]">Ctrl+D</kbd> or <kbd class="rounded bg-brand-card px-1.5 py-0.5 border border-brand-border font-mono text-[10px]">Cmd+D</kbd> to bookmark Pokoly.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { player, ALL_BADGES } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+  import { sound } from '../utils/audio';
+
+  const modal = document.getElementById('quests-modal')!;
+  const closeBtn = document.getElementById('close-quests-modal')!;
+  const streakCountEl = document.getElementById('modal-streak-count')!;
+  const questsListEl = document.getElementById('quests-list')!;
+  const badgesGridEl = document.getElementById('badges-grid')!;
+
+  function renderModalContent() {
+    const profile = player.getProfile();
+    if (streakCountEl) streakCountEl.textContent = profile.streak.toString();
+
+    // Render Quests
+    if (questsListEl) {
+      questsListEl.innerHTML = '';
+      profile.quests.forEach(q => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/60 p-3 transition-colors';
+        const pct = Math.min(100, Math.floor((q.progress / q.target) * 100));
+
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-xl">${q.icon}</span>
+            <div>
+              <div class="font-bold text-white text-xs">${q.title}</div>
+              <div class="text-[11px] text-gray-400">${q.description}</div>
+              <div class="mt-1.5 h-1.5 w-28 sm:w-40 rounded-full bg-brand-border/40 overflow-hidden">
+                <div class="h-full bg-brand-neon rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            ${
+              q.completed
+                ? '<span class="rounded-full bg-emerald-500/20 px-2.5 py-1 font-bold text-[10px] text-emerald-400 border border-emerald-500/30">✓ Done</span>'
+                : `<span class="rounded bg-brand-card px-2 py-1 font-mono text-[10px] text-amber-400">+${q.xpReward} XP</span>`
+            }
+          </div>
+        `;
+        questsListEl.appendChild(item);
+      });
+    }
+
+    // Render Badges
+    if (badgesGridEl) {
+      badgesGridEl.innerHTML = '';
+      ALL_BADGES.forEach(b => {
+        const unlocked = profile.badges[b.id];
+        const card = document.createElement('div');
+        card.className = `flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition-all ${
+          unlocked
+            ? 'border-brand-neon/60 bg-brand-neon/10 text-white'
+            : 'border-brand-border/40 bg-brand-dark/40 text-gray-500 opacity-60'
+        }`;
+
+        card.innerHTML = `
+          <span class="text-2xl ${unlocked ? 'scale-110 drop-shadow-md' : 'grayscale'}">${b.icon}</span>
+          <span class="mt-1 font-bold text-[10px] truncate max-w-full">${b.name}</span>
+          <span class="text-[9px] text-gray-400 line-clamp-1">${b.desc}</span>
+        `;
+        badgesGridEl.appendChild(card);
+      });
+    }
+  }
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+  });
+
+  // Global trigger
+  window.addEventListener('open-quests-modal', () => {
+    renderModalContent();
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    sound.click();
+  });
+
+  player.subscribe(renderModalContent);
+</script>

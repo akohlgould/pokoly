@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="About Pokoly Studio - Zero-Cost High Performance Browser Games"
+  description="Learn about the engineering philosophy behind Pokoly: client-side WebGL, zero-cost edge hosting, and instant access."
+>
+  <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 text-gray-300 leading-relaxed text-sm space-y-6">
+    <h1 class="font-display text-3xl font-black text-white">About Pokoly Studio</h1>
+    <p class="text-base text-gray-300 leading-relaxed">
+      Pokoly was engineered with a radical goal: <strong class="text-white">eliminate everything that makes web gaming painful.</strong>
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+      <div class="rounded-xl border border-brand-border bg-brand-card/50 p-5">
+        <h3 class="font-bold text-white text-base">🏎 100% Client-Side Execution</h3>
+        <p class="mt-2 text-xs text-gray-400">
+          Every frame, physics calculation, and sound effect is generated in real-time by your device using modern HTML5 Canvas, WebGL, and the Web Audio API. This means zero lag, zero wait times, and 60 FPS fluidity.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-brand-border bg-brand-card/50 p-5">
+        <h3 class="font-bold text-white text-base">🌐 Subdomain Architecture</h3>
+        <p class="mt-2 text-xs text-gray-400">
+          Rather than forcing players into cumbersome app stores or crowded directories, each game lives on its own dedicated subdomain (e.g. wordle.pokoly.com, suika.pokoly.com) for bookmarking.
+        </p>
+      </div>
+    </div>
+
+    <h2 class="text-lg font-bold text-white mt-8">Engineering Stack</h2>
+    <ul class="list-disc pl-5 space-y-2 text-xs text-gray-400">
+      <li><strong>Astro 5+ Static Compiler:</strong> Pre-renders 100% semantic static HTML for 100/100 Core Web Vitals.</li>
+      <li><strong>Procedural Sound Synthesizer:</strong> Zero bytes of external MP3 audio asset downloads.</li>
+      <li><strong>Cloudflare Edge CDN:</strong> Cached across 300+ cities globally with sub-20ms first-byte response time.</li>
+    </ul>
+  </main>
+</BaseLayout>

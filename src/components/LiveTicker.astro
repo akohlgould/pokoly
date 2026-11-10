@@ -1,0 +1,78 @@
+---
+// Real-time social proof activity ticker
+---
+
+<div class="relative w-full overflow-hidden border-b border-brand-border/40 bg-brand-dark/95 py-1.5 text-[11px] text-gray-400">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
+    <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+      <span class="flex h-2 w-2 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      </span>
+      <span class="font-mono text-emerald-400 font-bold" id="live-online-count">4,280</span>
+      <span class="text-gray-400">players online right now</span>
+      <span class="text-brand-border mx-2">•</span>
+      <div id="ticker-feed-container" class="inline-block transition-all duration-500 text-gray-300">
+        <span id="ticker-text">🎉 Sarah just solved Word Guess in 3 attempts!</span>
+      </div>
+    </div>
+
+    <div class="hidden md:flex items-center gap-4 text-gray-400 font-mono text-[10px]">
+      <span>⚡ 0ms Latency</span>
+      <span>•</span>
+      <span class="text-brand-gold">🏆 Daily Challenge Resets in <span id="daily-countdown">--:--:--</span></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MESSAGES = [
+    '🍉 Liam from Toronto just reached the Giant Watermelon in Suika!',
+    '✨ Noah from Austin hit the 2048 tile in Neon 2048!',
+    '🃏 Elena cleared Klondike Solitaire in 3m 42s!',
+    '⚡ Max scored 240 in Cyber Snake on a 7-day streak!',
+    '💣 Lucas cleared Expert Minesweeper with 0 detonated mines!',
+    '🔥 42 players just earned the "On Fire" 3-day streak trophy!',
+    '🎮 Sophia challenged 3 friends to beat her score of 890 in Brick Breaker!'
+  ];
+
+  let msgIdx = 0;
+  const tickerText = document.getElementById('ticker-text');
+  const countEl = document.getElementById('live-online-count');
+  const countdownEl = document.getElementById('daily-countdown');
+
+  // Random realistic drift in online count
+  let count = 4280;
+  setInterval(() => {
+    count += Math.floor(Math.random() * 7) - 3;
+    if (countEl) countEl.textContent = count.toLocaleString();
+  }, 4000);
+
+  // Rotate social proof message
+  setInterval(() => {
+    if (tickerText) {
+      tickerText.style.opacity = '0';
+      setTimeout(() => {
+        msgIdx = (msgIdx + 1) % MESSAGES.length;
+        tickerText.textContent = MESSAGES[msgIdx];
+        tickerText.style.opacity = '1';
+      }, 400);
+    }
+  }, 5000);
+
+  // Daily countdown timer to midnight
+  function updateCountdown() {
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const diff = Math.max(0, midnight.getTime() - now.getTime());
+
+    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+
+    if (countdownEl) countdownEl.textContent = `${h}:${m}:${s}`;
+  }
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+</script>

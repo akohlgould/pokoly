@@ -1,0 +1,53 @@
+/**
+ * Cloudflare Edge Worker: Wildcard Subdomain Router for Pokoly
+ *
+ * Maps subdomains like:
+ *   wordle.pokoly.com     -> /games/word-guess
+ *   suika.pokoly.com      -> /games/fruit-merge
+ *   2048.pokoly.com       -> /games/neon-2048
+ *   solitaire.pokoly.com  -> /games/solitaire
+ *   snake.pokoly.com      -> /games/cyber-snake
+ *   minesweeper.pokoly.com-> /games/minesweeper
+ *   breakout.pokoly.com   -> /games/breakout
+ *
+ * Root domain (pokoly.com / www.pokoly.com) serves the master arcade portal.
+ */
+
+const SUBDOMAIN_MAP = {
+  'wordle': '/games/word-guess',
+  'words': '/games/word-guess',
+  'suika': '/games/fruit-merge',
+  'merge': '/games/fruit-merge',
+  '2048': '/games/neon-2048',
+  'solitaire': '/games/solitaire',
+  'cards': '/games/solitaire',
+  'snake': '/games/cyber-snake',
+  'minesweeper': '/games/minesweeper',
+  'mines': '/games/minesweeper',
+  'breakout': '/games/breakout',
+  'bricks': '/games/breakout',
+};
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const host = url.hostname.toLowerCase();
+    const parts = host.split('.');
+
+    // Check if accessing via subdomain (e.g. wordle.pokoly.com)
+    // For localhost testing, parts can be [subdomain, localhost] or similar
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      const sub = parts[0];
+      const targetPath = SUBDOMAIN_MAP[sub];
+
+      // If at root of the subdomain and a mapping exists, rewrite to the game page
+      if (targetPath && (url.pathname === '/' || url.pathname === '')) {
+        url.pathname = targetPath;
+        return env.ASSETS.fetch(new Request(url.toString(), request));
+      }
+    }
+
+    // Default: serve standard asset from Cloudflare Pages static output
+    return env.ASSETS.fetch(request);
+  }
+};

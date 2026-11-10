@@ -1,0 +1,114 @@
+---
+import LiveTicker from '../components/LiveTicker.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import QuestsModal from '../components/QuestsModal.astro';
+import MarketingModal from '../components/MarketingModal.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  schema?: object | object[];
+}
+
+const {
+  title,
+  description,
+  canonical = Astro.url.href,
+  schema
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="dark scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Primary Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:site_name" content="Pokoly.com" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonical} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+
+    {schema && (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    )}
+  </head>
+  <body class="min-h-screen bg-brand-dark font-sans text-gray-100 antialiased selection:bg-brand-neon selection:text-brand-dark flex flex-col justify-between">
+    <div>
+      <!-- Live Social Proof Activity Ticker -->
+      <LiveTicker />
+
+      <!-- Main Navigation -->
+      <Navbar />
+
+      <!-- Page Content -->
+      <slot />
+    </div>
+
+    <!-- Footer -->
+    <Footer />
+
+    <!-- Global Retention & Marketing Modals -->
+    <QuestsModal />
+    <MarketingModal />
+
+    <!-- Level-up Celebration Toast Notification -->
+    <div id="level-up-toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-brand-gold/60 bg-brand-card p-4 shadow-2xl shadow-brand-gold/20 transition-all duration-500 translate-y-24 opacity-0 pointer-events-none">
+      <span class="text-3xl animate-bounce">🏆</span>
+      <div>
+        <div class="font-bold text-white text-sm">Level Up!</div>
+        <div class="text-xs text-brand-gold" id="toast-level-title">You reached Level 2!</div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+  import { sound } from '../utils/audio';
+
+  // Watch for Level Ups
+  let prevLevel = player.getProfile().level;
+  player.subscribe(() => {
+    const curLevel = player.getProfile().level;
+    if (curLevel > prevLevel) {
+      prevLevel = curLevel;
+      launchConfetti();
+      sound.victory();
+
+      const toast = document.getElementById('level-up-toast');
+      const toastTitle = document.getElementById('toast-level-title');
+      if (toast && toastTitle) {
+        toastTitle.textContent = `You reached Level ${curLevel}: ${player.getTitle()}!`;
+        toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+          toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+        }, 4000);
+      }
+    }
+  });
+</script>

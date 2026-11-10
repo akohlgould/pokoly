@@ -1,0 +1,60 @@
+---
+interface Props {
+  slot: 'leaderboard' | 'rectangle' | 'in-game' | 'footer-banner';
+  className?: string;
+}
+
+const { slot, className = '' } = Astro.props;
+
+// In production, toggle this to render your AdSense / AdinPlay / Monetag tags
+const ADS_ENABLED = false;
+---
+
+<div class={`ad-container relative flex flex-col items-center justify-center overflow-hidden rounded-xl border border-brand-border/60 bg-brand-card/40 p-2 text-center text-xs text-gray-400 transition-all hover:border-brand-border ${className}`}>
+  <div class="absolute top-1 right-2 font-mono text-[9px] tracking-wider text-gray-500 uppercase">Sponsored</div>
+  
+  {slot === 'leaderboard' && (
+    <div class="flex h-[90px] w-full max-w-[728px] items-center justify-center rounded-lg border border-dashed border-gray-700/50 bg-brand-dark/50 px-4">
+      {ADS_ENABLED ? (
+        <div>Ad Unit: 728x90</div>
+      ) : (
+        <div class="flex flex-col items-center gap-1">
+          <span class="font-medium text-gray-300">🎮 High-RPM Ad Space (728x90)</span>
+          <span class="text-[11px] text-gray-400">Google AdSense / AdinPlay Programmatic Slot</span>
+        </div>
+      )}
+    </div>
+  )}
+
+  {slot === 'rectangle' && (
+    <div class="flex h-[250px] w-full max-w-[300px] items-center justify-center rounded-lg border border-dashed border-gray-700/50 bg-brand-dark/50 p-4">
+      {ADS_ENABLED ? (
+        <div>Ad Unit: 300x250</div>
+      ) : (
+        <div class="flex flex-col items-center gap-2">
+          <div class="rounded bg-brand-accent/20 px-2 py-0.5 text-[10px] font-semibold text-brand-accent">Sidebar Ad Unit</div>
+          <span class="font-medium text-gray-300">300x250 Display Slot</span>
+          <span class="text-[10px] text-gray-400 leading-relaxed">Monetizes average session times (&gt;12 min)</span>
+        </div>
+      )}
+    </div>
+  )}
+
+  {slot === 'in-game' && (
+    <div class="flex h-full min-h-[160px] w-full items-center justify-center rounded-lg border border-dashed border-gray-700/50 bg-brand-dark/70 p-3">
+      <div class="flex flex-col items-center gap-1.5">
+        <span class="text-sm font-semibold text-brand-gold">⚡ Rewarded / Interstitial Slot</span>
+        <span class="text-[11px] text-gray-400">Triggers on Level Complete & Game Over</span>
+      </div>
+    </div>
+  )}
+
+  {slot === 'footer-banner' && (
+    <div class="flex h-[60px] md:h-[90px] w-full max-w-[970px] items-center justify-center rounded-lg border border-dashed border-gray-700/50 bg-brand-dark/50 px-4">
+      <div class="flex items-center gap-3">
+        <span class="text-base">💎</span>
+        <span class="text-xs text-gray-400 font-mono">Pokoly Network Ad Placement — Maximize Session eCPM</span>
+      </div>
+    </div>
+  )}
+</div>

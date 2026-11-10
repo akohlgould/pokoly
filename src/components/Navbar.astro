@@ -1,0 +1,86 @@
+---
+import { CATEGORIES } from '../data/games';
+import PlayerBar from './PlayerBar.astro';
+---
+
+<header class="sticky top-0 z-40 border-b border-brand-border/80 bg-brand-dark/95 backdrop-blur-md">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
+    <div class="flex items-center gap-6">
+      <a href="/" class="group flex items-center gap-2.5">
+        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-indigo-500/25 transition-transform group-hover:scale-105">
+          <span class="text-xl">👾</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-display text-xl font-black tracking-tight text-white group-hover:text-brand-neon transition-colors">
+            Pokoly<span class="text-brand-pink">.com</span>
+          </span>
+          <span class="text-[9px] font-mono tracking-wider text-gray-400 uppercase -mt-1">Free Browser Games</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav categories -->
+      <nav class="hidden lg:flex items-center gap-1 text-xs font-medium text-gray-300">
+        {CATEGORIES.slice(1).map(cat => (
+          <a
+            href={`/categories/${cat.id}`}
+            class="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition-colors hover:bg-brand-card hover:text-white"
+          >
+            <span>{cat.icon}</span>
+            <span>{cat.name}</span>
+          </a>
+        ))}
+      </nav>
+    </div>
+
+    <!-- Center/Right: Gamification Streak + Level + Sound + Random -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Player Streak & Level Progress -->
+      <PlayerBar />
+
+      <!-- Random Game Quick Button -->
+      <button
+        id="random-game-btn"
+        class="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-brand-border bg-brand-card px-2.5 py-1.5 text-xs font-medium text-gray-200 transition-all hover:border-brand-neon hover:text-white active:scale-95"
+        title="Play a surprise random game"
+      >
+        <span>🎲</span>
+        <span class="hidden md:inline">Surprise</span>
+      </button>
+
+      <!-- Sound Toggle -->
+      <button
+        id="global-audio-toggle"
+        title="Toggle Sound Effects"
+        class="flex h-8 w-8 items-center justify-center rounded-xl border border-brand-border bg-brand-card text-xs text-gray-300 transition-colors hover:border-brand-border hover:text-white"
+      >
+        <span id="audio-icon">🔊</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const audioBtn = document.getElementById('global-audio-toggle');
+  const audioIcon = document.getElementById('audio-icon');
+
+  if (audioBtn && audioIcon) {
+    audioBtn.addEventListener('click', () => {
+      sound.enabled = !sound.enabled;
+      audioIcon.textContent = sound.enabled ? '🔊' : '🔇';
+      if (sound.enabled) {
+        sound.click();
+      }
+    });
+  }
+
+  const randomBtn = document.getElementById('random-game-btn');
+  if (randomBtn) {
+    randomBtn.addEventListener('click', () => {
+      const gameSlugs = ['word-guess', 'fruit-merge', 'neon-2048', 'solitaire', 'cyber-snake', 'minesweeper', 'breakout'];
+      const chosen = gameSlugs[Math.floor(Math.random() * gameSlugs.length)];
+      window.location.href = `/games/${chosen}`;
+    });
+  }
+</script>

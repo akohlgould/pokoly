@@ -1,0 +1,401 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import AdSlot from '../components/AdSlot.astro';
+import GameCard from '../components/GameCard.astro';
+import type { GameMeta } from '../data/games';
+import { GAMES } from '../data/games';
+import { generateGameSchema } from '../utils/seo';
+
+interface Props {
+  game: GameMeta;
+}
+
+const { game } = Astro.props;
+const siteUrl = (Astro.site?.toString() || 'https://pokoly.com').replace(/\/$/, '');
+const schema = generateGameSchema(game, siteUrl);
+
+// Find smart next game recommendations
+const relatedGames = GAMES.filter(g => g.id !== game.id);
+const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.length)];
+---
+
+<BaseLayout
+  title={`${game.title} - Play Free Online at Pokoly`}
+  description={game.description}
+  canonical={`${siteUrl}/games/${game.slug}`}
+  schema={schema}
+>
+  <main class="mx-auto max-w-7xl px-4 py-5 sm:px-6">
+    <!-- Incoming Challenge Alert Banner (Conditional if arriving via challenge link) -->
+    <div id="challenge-banner" class="mb-4 hidden rounded-2xl border-2 border-brand-gold bg-gradient-to-r from-amber-500/20 via-brand-card to-amber-500/10 p-3.5 shadow-lg shadow-amber-500/10 text-xs text-white">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl animate-bounce">⚔️</span>
+          <div>
+            <div class="font-bold text-amber-300 text-sm">
+              <span id="challenger-name">A friend</span> challenged you!
+            </div>
+            <div class="text-gray-300">
+              Can you beat their record score of <span id="challenge-target" class="font-mono font-bold text-brand-gold">0</span>?
+            </div>
+          </div>
+        </div>
+        <button id="dismiss-challenge-banner" class="text-gray-400 hover:text-white text-sm px-2">✕</button>
+      </div>
+    </div>
+
+    <!-- Top Breadcrumb & Viral Subdomain Bar -->
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <nav class="flex items-center gap-2 text-gray-400">
+        <a href="/" class="hover:text-white">Home</a>
+        <span>/</span>
+        <a href={`/categories/${game.category}`} class="capitalize hover:text-white">{game.category}</a>
+        <span>/</span>
+        <span class="text-gray-200">{game.title}</span>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <span class="text-gray-400">Direct Subdomain:</span>
+        <a
+          href={`https://${game.subdomain}.pokoly.com`}
+          target="_blank"
+          class="rounded-lg bg-brand-border/60 px-2.5 py-1 font-mono text-[11px] text-brand-neon hover:bg-brand-border transition-colors flex items-center gap-1"
+        >
+          <span>{game.subdomain}.pokoly.com</span>
+          <span class="text-[9px]">↗</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Top Leaderboard Ad Slot -->
+    <div class="mb-6 flex justify-center">
+      <AdSlot slot="leaderboard" />
+    </div>
+
+    <!-- Main Game Container Grid -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+      <!-- Game Canvas + Controls (3 cols on desktop) -->
+      <div class="lg:col-span-3">
+        <div class="relative overflow-hidden rounded-3xl border border-brand-border bg-brand-card shadow-2xl">
+          <!-- Game Header Bar with Viral Buttons -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-brand-border/60 bg-brand-dark/70 px-4 py-3">
+            <div class="flex items-center gap-2.5">
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+              <h1 class="font-display text-base font-bold text-white">
+                {game.title}
+              </h1>
+            </div>
+
+            <!-- In-game quick action bar with Heart / Challenge / Fullscreen -->
+            <div class="flex items-center gap-2 text-xs">
+              <!-- Favorite Heart Button -->
+              <button
+                id="btn-fav-game"
+                data-slug={game.slug}
+                class="flex items-center gap-1.5 rounded-xl border border-brand-border bg-brand-dark px-2.5 py-1.5 text-gray-300 transition-all hover:border-pink-500 hover:text-pink-400 active:scale-90"
+                title="Favorite Game"
+              >
+                <span id="fav-icon">🤍</span>
+                <span class="hidden sm:inline" id="fav-text">Save</span>
+              </button>
+
+              <!-- Viral Challenge & Share Button -->
+              <button
+                id="btn-challenge-friend"
+                data-title={game.title}
+                data-slug={game.slug}
+                data-subdomain={game.subdomain}
+                class="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-brand-accent px-3 py-1.5 font-bold text-white shadow-md shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
+                title="Challenge Friends or Embed Game"
+              >
+                <span>⚔️</span>
+                <span>Challenge Friend</span>
+              </button>
+
+              <!-- Reset Game Button -->
+              <button
+                id="btn-restart-game"
+                class="flex items-center gap-1 rounded-xl border border-brand-border bg-brand-dark px-2.5 py-1.5 text-gray-300 transition-colors hover:text-white"
+                title="Restart Game"
+              >
+                <span>🔄</span>
+                <span class="hidden sm:inline">Reset</span>
+              </button>
+
+              <!-- Fullscreen Button -->
+              <button
+                id="btn-fullscreen"
+                class="flex items-center gap-1 rounded-xl border border-brand-border bg-brand-dark px-2.5 py-1.5 text-gray-300 transition-colors hover:text-white"
+                title="Toggle Fullscreen"
+              >
+                <span>⛶</span>
+                <span class="hidden sm:inline">Fullscreen</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Game Viewport Container -->
+          <div id="game-viewport-container" class="relative flex min-h-[500px] w-full items-center justify-center bg-black/90">
+            <slot />
+          </div>
+
+          <!-- Bottom "Next Up" Autoplay & Recommendation Bar -->
+          <div class="flex items-center justify-between border-t border-brand-border/60 bg-brand-dark/90 px-4 py-2.5 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="rounded bg-brand-accent/20 px-2 py-0.5 text-[10px] font-bold text-brand-neon">Next Up</span>
+              <span class="text-gray-300 truncate max-w-[180px] sm:max-w-none">
+                {nextRecommended.title.split(':')[0]}
+              </span>
+            </div>
+            <a
+              href={`/games/${nextRecommended.slug}`}
+              class="flex items-center gap-1 font-bold text-brand-neon hover:underline"
+            >
+              <span>Play Next</span>
+              <span>→</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Social Proof Stats Strip -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-border/60 bg-brand-card/30 p-4 text-xs text-gray-400">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400">★</span>
+            <span class="font-semibold text-white">{game.rating} / 5.0</span>
+            <span>(1,240 verified reviews)</span>
+          </div>
+          <div>👥 <span class="font-mono text-gray-300">{game.playCount}</span> Total Sessions</div>
+          <div>💻 Works on Mobile, Tablet & PC</div>
+          <div class="text-emerald-400 font-medium">✓ 100% Free • No Download</div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sidebar Ad & Quick Recommendations -->
+      <div class="space-y-6 lg:col-span-1">
+        <AdSlot slot="rectangle" />
+
+        <div class="rounded-3xl border border-brand-border bg-brand-card/50 p-4">
+          <div class="flex items-center justify-between pb-3">
+            <h2 class="font-mono text-xs font-semibold tracking-wider text-gray-300 uppercase">
+              ⚡ Up Next For You
+            </h2>
+            <span class="text-[10px] text-brand-neon font-mono">Popular</span>
+          </div>
+
+          <div class="space-y-3">
+            {relatedGames.slice(0, 4).map(rel => (
+              <a
+                href={`/games/${rel.slug}`}
+                class="group flex items-center gap-3 rounded-2xl border border-brand-border/40 bg-brand-dark/60 p-2.5 transition-all hover:border-brand-neon hover:bg-brand-card"
+              >
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-card text-2xl group-hover:scale-110 transition-transform">
+                  {rel.category === 'word' && '📝'}
+                  {rel.category === 'physics' && '🍉'}
+                  {rel.category === 'puzzle' && '🧩'}
+                  {rel.category === 'card' && '🃏'}
+                  {rel.category === 'arcade' && '⚡'}
+                </div>
+                <div class="overflow-hidden">
+                  <div class="truncate text-xs font-bold text-white group-hover:text-brand-neon">
+                    {rel.title}
+                  </div>
+                  <div class="truncate font-mono text-[10px] text-gray-400">
+                    {rel.subdomain}.pokoly.com
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Long-Form Programmatic SEO Content Sections -->
+    <section class="mt-12 space-y-10 border-t border-brand-border/60 pt-10">
+      <div>
+        <h2 class="font-display text-2xl font-bold text-white">About {game.title}</h2>
+        <p class="mt-3 text-sm leading-relaxed text-gray-300">
+          {game.description}
+        </p>
+      </div>
+
+      <!-- Instructions & Rules -->
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div class="rounded-3xl border border-brand-border bg-brand-card/40 p-6">
+          <h3 class="flex items-center gap-2 font-display text-lg font-bold text-white">
+            <span>📖</span> How to Play
+          </h3>
+          <ul class="mt-4 space-y-3 text-xs text-gray-300 leading-relaxed">
+            {game.instructions.map((inst, idx) => (
+              <li class="flex items-start gap-2.5">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-accent/20 font-mono text-[11px] font-bold text-brand-accent">
+                  {idx + 1}
+                </span>
+                <span>{inst}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Strategy & Pro Tips -->
+        <div class="rounded-3xl border border-brand-border bg-brand-card/40 p-6">
+          <h3 class="flex items-center gap-2 font-display text-lg font-bold text-white">
+            <span>💡</span> Pro Tips & Winning Strategies
+          </h3>
+          <ul class="mt-4 space-y-3 text-xs text-gray-300 leading-relaxed">
+            {game.strategies.map((tip) => (
+              <li class="flex items-start gap-2.5">
+                <span class="text-amber-400">✦</span>
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Keyboard & Touch Controls Table -->
+      <div class="rounded-3xl border border-brand-border bg-brand-card/40 p-6">
+        <h3 class="flex items-center gap-2 font-display text-lg font-bold text-white">
+          <span>🎮</span> Controls & Shortcuts
+        </h3>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-brand-border/60 text-gray-400">
+                <th class="py-2.5 pr-4 font-mono font-medium">Input / Key</th>
+                <th class="py-2.5 font-medium">Action Description</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-border/30 text-gray-300">
+              {game.controls.map(c => (
+                <tr>
+                  <td class="py-2.5 pr-4 font-mono font-bold text-brand-neon">{c.key}</td>
+                  <td class="py-2.5">{c.action}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FAQ Accordion -->
+      <div class="rounded-3xl border border-brand-border bg-brand-card/40 p-6">
+        <h3 class="flex items-center gap-2 font-display text-lg font-bold text-white">
+          <span>❓</span> Frequently Asked Questions
+        </h3>
+        <div class="mt-4 divide-y divide-brand-border/40">
+          {game.faqs.map(faq => (
+            <details class="group py-4">
+              <summary class="flex cursor-pointer items-center justify-between font-medium text-white transition-colors group-hover:text-brand-neon">
+                <span class="text-sm">{faq.question}</span>
+                <span class="ml-4 shrink-0 transition-transform group-open:rotate-180">▼</span>
+              </summary>
+              <p class="mt-3 text-xs text-gray-300 leading-relaxed">
+                {faq.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <!-- Cross-Promotional Grid -->
+      <div>
+        <h3 class="font-display text-xl font-bold text-white">More Free Online Games You'll Love</h3>
+        <p class="mt-1 text-xs text-gray-400">Instant browser launch with zero lag and zero downloads.</p>
+        <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {relatedGames.slice(0, 4).map(rel => (
+            <GameCard game={rel} />
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  import { player } from '../utils/player';
+  import { sound } from '../utils/audio';
+
+  const gameSlug = window.location.pathname.split('/').filter(Boolean).pop() || '';
+
+  // Track player progress
+  if (gameSlug) {
+    player.trackGamePlay(gameSlug);
+  }
+
+  // Incoming Challenge Detection
+  const params = new URLSearchParams(window.location.search);
+  const challengeScore = params.get('challenge');
+  const challengerName = params.get('challenger');
+  const challengeBanner = document.getElementById('challenge-banner');
+  const challengerNameEl = document.getElementById('challenger-name');
+  const challengeTargetEl = document.getElementById('challenge-target');
+  const dismissBtn = document.getElementById('dismiss-challenge-banner');
+
+  if (challengeScore && challengeBanner) {
+    challengeBanner.classList.remove('hidden');
+    if (challengerName && challengerNameEl) challengerNameEl.textContent = challengerName;
+    if (challengeTargetEl) challengeTargetEl.textContent = challengeScore;
+  }
+  dismissBtn?.addEventListener('click', () => {
+    challengeBanner?.classList.add('hidden');
+  });
+
+  // Favorite button
+  const favBtn = document.getElementById('btn-fav-game');
+  const favIcon = document.getElementById('fav-icon');
+  const favText = document.getElementById('fav-text');
+
+  function updateFavBtn() {
+    if (gameSlug && player.isFavorite(gameSlug)) {
+      if (favIcon) favIcon.textContent = '❤️';
+      if (favText) favText.textContent = 'Saved';
+      favBtn?.classList.add('border-pink-500', 'text-pink-400');
+    } else {
+      if (favIcon) favIcon.textContent = '🤍';
+      if (favText) favText.textContent = 'Save';
+      favBtn?.classList.remove('border-pink-500', 'text-pink-400');
+    }
+  }
+  updateFavBtn();
+
+  favBtn?.addEventListener('click', () => {
+    if (gameSlug) {
+      player.toggleFavorite(gameSlug);
+      sound.blip();
+      updateFavBtn();
+    }
+  });
+
+  // Challenge Friend Trigger
+  const challengeBtn = document.getElementById('btn-challenge-friend');
+  challengeBtn?.addEventListener('click', () => {
+    const title = challengeBtn.getAttribute('data-title') || document.title;
+    const slug = challengeBtn.getAttribute('data-slug') || gameSlug;
+    const subdomain = challengeBtn.getAttribute('data-subdomain') || 'play';
+
+    window.dispatchEvent(
+      new CustomEvent('open-marketing-modal', {
+        detail: {
+          gameTitle: title,
+          gameSlug: slug,
+          subdomain: subdomain,
+          score: 100,
+        }
+      })
+    );
+  });
+
+  // Fullscreen support
+  const fsBtn = document.getElementById('btn-fullscreen');
+  const viewport = document.getElementById('game-viewport-container');
+  if (fsBtn && viewport) {
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        viewport.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    });
+  }
+</script>

@@ -1,0 +1,16 @@
+{
+  "name": "pokoly",
+  "version": "1.0.0",
+  "description": "High-volume, zero-marginal-cost web game studio and portal",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/tailwind": "^6.0.2",
+    "astro": "^7.4.8",
+    "tailwindcss": "^3.4.19"
+  }
+}

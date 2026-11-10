@@ -1,0 +1,353 @@
+---
+// Klondike Solitaire Classic
+---
+
+<div id="solitaire-app" class="flex flex-col items-center justify-center p-3 select-none w-full max-w-4xl">
+  <!-- Stats & Controls Bar -->
+  <div class="mb-4 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/90 px-4 py-2.5 text-xs">
+    <div class="flex items-center gap-4">
+      <div>Moves: <span id="sol-moves" class="font-mono font-bold text-brand-neon">0</span></div>
+      <div>Score: <span id="sol-score" class="font-mono font-bold text-amber-400">0</span></div>
+      <div>Time: <span id="sol-time" class="font-mono text-gray-300">00:00</span></div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="sol-undo-btn" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors">
+        ↶ Undo
+      </button>
+      <button id="sol-new-btn" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors">
+        New Deal
+      </button>
+    </div>
+  </div>
+
+  <!-- Board Area -->
+  <div class="w-full rounded-2xl border-2 border-brand-border bg-emerald-950/70 p-4 shadow-2xl relative min-h-[460px]">
+    <!-- Top Row: Stock & Waste on Left, 4 Foundations on Right -->
+    <div class="flex items-center justify-between pb-6">
+      <div class="flex items-center gap-3">
+        <!-- Stock Pile -->
+        <div id="stock-pile" class="flex h-24 w-16 sm:h-28 sm:w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-emerald-700 bg-emerald-900 shadow-md transition-transform hover:scale-105">
+          <span class="text-xl">🎴</span>
+        </div>
+        <!-- Waste Pile -->
+        <div id="waste-pile" class="flex h-24 w-16 sm:h-28 sm:w-20 items-center justify-center rounded-lg border-2 border-emerald-800/60 bg-emerald-900/30">
+        </div>
+      </div>
+
+      <!-- 4 Foundations -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="foundation-0" data-f="0" class="foundation flex h-24 w-16 sm:h-28 sm:w-20 items-center justify-center rounded-lg border-2 border-dashed border-emerald-600/50 text-emerald-600 font-bold text-lg">♠</div>
+        <div id="foundation-1" data-f="1" class="foundation flex h-24 w-16 sm:h-28 sm:w-20 items-center justify-center rounded-lg border-2 border-dashed border-emerald-600/50 text-emerald-600 font-bold text-lg">♥</div>
+        <div id="foundation-2" data-f="2" class="foundation flex h-24 w-16 sm:h-28 sm:w-20 items-center justify-center rounded-lg border-2 border-dashed border-emerald-600/50 text-emerald-600 font-bold text-lg">♦</div>
+        <div id="foundation-3" data-f="3" class="foundation flex h-24 w-16 sm:h-28 sm:w-20 items-center justify-center rounded-lg border-2 border-dashed border-emerald-600/50 text-emerald-600 font-bold text-lg">♣</div>
+      </div>
+    </div>
+
+    <!-- 7 Tableau Columns -->
+    <div class="grid grid-cols-7 gap-1.5 sm:gap-3 pt-2">
+      <div id="col-0" data-col="0" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+      <div id="col-1" data-col="1" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+      <div id="col-2" data-col="2" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+      <div id="col-3" data-col="3" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+      <div id="col-4" data-col="4" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+      <div id="col-5" data-col="5" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+      <div id="col-6" data-col="6" class="tableau-col min-h-[220px] rounded-lg border border-dashed border-emerald-700/30 relative"></div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="sol-win-modal" class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-brand-dark/95 backdrop-blur-md text-center opacity-0 pointer-events-none transition-opacity">
+      <span class="text-5xl animate-bounce">🏆</span>
+      <h3 class="font-display text-3xl font-extrabold text-white mt-2">Victory! All Foundations Cleared</h3>
+      <p class="mt-1 text-xs text-gray-300">You mastered Klondike Solitaire!</p>
+      <button id="sol-play-again" class="mt-4 rounded-xl bg-brand-accent px-6 py-2.5 font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform">
+        Deal Again
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  type Suit = 'spades' | 'hearts' | 'diamonds' | 'clubs';
+  const SUITS: Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
+  const SUIT_ICONS: Record<Suit, string> = { spades: '♠', hearts: '♥', diamonds: '♦', clubs: '♣' };
+  const SUIT_COLORS: Record<Suit, string> = { spades: 'black', hearts: 'red', diamonds: 'red', clubs: 'black' };
+  const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+  interface Card {
+    id: string;
+    suit: Suit;
+    rank: number; // 1 to 13
+    label: string;
+    faceUp: boolean;
+  }
+
+  let stock: Card[] = [];
+  let waste: Card[] = [];
+  let foundations: Card[][] = [[], [], [], []];
+  let tableau: Card[][] = [[], [], [], [], [], [], []];
+  let moves = 0;
+  let score = 0;
+  let timerSeconds = 0;
+  let timerInterval: any = null;
+
+  const movesEl = document.getElementById('sol-moves')!;
+  const scoreEl = document.getElementById('sol-score')!;
+  const timeEl = document.getElementById('sol-time')!;
+  const stockEl = document.getElementById('stock-pile')!;
+  const wasteEl = document.getElementById('waste-pile')!;
+  const winModal = document.getElementById('sol-win-modal')!;
+
+  function createDeck(): Card[] {
+    const deck: Card[] = [];
+    SUITS.forEach(s => {
+      RANKS.forEach((r, idx) => {
+        deck.push({
+          id: `${s}-${idx + 1}`,
+          suit: s,
+          rank: idx + 1,
+          label: r,
+          faceUp: false,
+        });
+      });
+    });
+    // Shuffle
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function renderCard(card: Card, isTop = false): HTMLElement {
+    const el = document.createElement('div');
+    el.className = `w-16 h-24 sm:w-20 sm:h-28 rounded-lg shadow-md border flex flex-col justify-between p-1.5 font-bold cursor-pointer transition-transform ${
+      card.faceUp
+        ? 'bg-white ' + (SUIT_COLORS[card.suit] === 'red' ? 'text-red-600 border-red-200' : 'text-gray-950 border-gray-300')
+        : 'bg-gradient-to-br from-indigo-900 to-indigo-950 border-indigo-700'
+    }`;
+
+    if (card.faceUp) {
+      el.innerHTML = `
+        <div class="flex items-center justify-between text-xs sm:text-sm leading-none">
+          <span>${card.label}</span>
+          <span>${SUIT_ICONS[card.suit]}</span>
+        </div>
+        <div class="text-center text-lg sm:text-2xl">${SUIT_ICONS[card.suit]}</div>
+        <div class="flex items-center justify-between text-xs sm:text-sm leading-none rotate-180">
+          <span>${card.label}</span>
+          <span>${SUIT_ICONS[card.suit]}</span>
+        </div>
+      `;
+    } else {
+      el.innerHTML = `<div class="w-full h-full border border-indigo-800/40 rounded flex items-center justify-center text-indigo-400 text-lg">✦</div>`;
+    }
+
+    return el;
+  }
+
+  function renderBoard() {
+    // Waste
+    wasteEl.innerHTML = '';
+    if (waste.length > 0) {
+      const topWaste = waste[waste.length - 1];
+      const cardEl = renderCard(topWaste, true);
+      cardEl.addEventListener('click', () => tryAutoMoveWaste());
+      wasteEl.appendChild(cardEl);
+    }
+
+    // Stock indicator
+    stockEl.innerHTML = stock.length > 0 ? '<span class="text-xl">🎴</span>' : '<span class="text-sm text-emerald-600">↻</span>';
+
+    // Foundations
+    for (let f = 0; f < 4; f++) {
+      const fEl = document.getElementById(`foundation-${f}`)!;
+      fEl.innerHTML = '';
+      if (foundations[f].length > 0) {
+        const topF = foundations[f][foundations[f].length - 1];
+        fEl.appendChild(renderCard(topF, true));
+      } else {
+        fEl.textContent = SUIT_ICONS[SUITS[f]];
+      }
+    }
+
+    // Tableau
+    for (let c = 0; c < 7; c++) {
+      const colEl = document.getElementById(`col-${c}`)!;
+      colEl.innerHTML = '';
+      tableau[c].forEach((card, idx) => {
+        const cardEl = renderCard(card, idx === tableau[c].length - 1);
+        cardEl.style.position = 'absolute';
+        cardEl.style.top = `${idx * 24}px`;
+        cardEl.style.zIndex = `${idx + 1}`;
+
+        if (card.faceUp) {
+          cardEl.addEventListener('click', () => tryAutoMoveTableau(c, idx));
+        }
+
+        colEl.appendChild(cardEl);
+      });
+    }
+
+    movesEl.textContent = moves.toString();
+    scoreEl.textContent = score.toString();
+
+    // Check Victory
+    const totalFound = foundations.reduce((sum, f) => sum + f.length, 0);
+    if (totalFound === 52) {
+      clearInterval(timerInterval);
+      sound.victory();
+      winModal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+  }
+
+  function tryAutoMoveWaste() {
+    if (waste.length === 0) return;
+    const card = waste[waste.length - 1];
+
+    // Try foundations first
+    for (let f = 0; f < 4; f++) {
+      const topF = foundations[f][foundations[f].length - 1];
+      if ((!topF && card.rank === 1 && card.suit === SUITS[f]) || (topF && topF.suit === card.suit && card.rank === topF.rank + 1)) {
+        foundations[f].push(waste.pop()!);
+        score += 15;
+        moves++;
+        sound.blip();
+        renderBoard();
+        return;
+      }
+    }
+
+    // Try tableau
+    for (let c = 0; c < 7; c++) {
+      const col = tableau[c];
+      const topCard = col[col.length - 1];
+      if (!topCard && card.rank === 13) {
+        col.push(waste.pop()!);
+        score += 5;
+        moves++;
+        sound.blip();
+        renderBoard();
+        return;
+      } else if (topCard && topCard.faceUp && SUIT_COLORS[topCard.suit] !== SUIT_COLORS[card.suit] && topCard.rank === card.rank + 1) {
+        col.push(waste.pop()!);
+        score += 5;
+        moves++;
+        sound.blip();
+        renderBoard();
+        return;
+      }
+    }
+  }
+
+  function tryAutoMoveTableau(sourceCol: number, cardIdx: number) {
+    const col = tableau[sourceCol];
+    const card = col[cardIdx];
+
+    // Only allow single card auto-moves to foundation if it's the top card
+    if (cardIdx === col.length - 1) {
+      for (let f = 0; f < 4; f++) {
+        const topF = foundations[f][foundations[f].length - 1];
+        if ((!topF && card.rank === 1 && card.suit === SUITS[f]) || (topF && topF.suit === card.suit && card.rank === topF.rank + 1)) {
+          foundations[f].push(col.pop()!);
+          if (col.length > 0 && !col[col.length - 1].faceUp) {
+            col[col.length - 1].faceUp = true;
+            score += 5;
+          }
+          score += 10;
+          moves++;
+          sound.blip();
+          renderBoard();
+          return;
+        }
+      }
+    }
+
+    // Move stack to another tableau column
+    for (let c = 0; c < 7; c++) {
+      if (c === sourceCol) continue;
+      const targetCol = tableau[c];
+      const targetTop = targetCol[targetCol.length - 1];
+
+      if (!targetTop && card.rank === 13) {
+        const moving = col.splice(cardIdx);
+        targetCol.push(...moving);
+        if (col.length > 0 && !col[col.length - 1].faceUp) {
+          col[col.length - 1].faceUp = true;
+          score += 5;
+        }
+        moves++;
+        sound.click();
+        renderBoard();
+        return;
+      } else if (targetTop && targetTop.faceUp && SUIT_COLORS[targetTop.suit] !== SUIT_COLORS[card.suit] && targetTop.rank === card.rank + 1) {
+        const moving = col.splice(cardIdx);
+        targetCol.push(...moving);
+        if (col.length > 0 && !col[col.length - 1].faceUp) {
+          col[col.length - 1].faceUp = true;
+          score += 5;
+        }
+        moves++;
+        sound.click();
+        renderBoard();
+        return;
+      }
+    }
+  }
+
+  function drawFromStock() {
+    if (stock.length > 0) {
+      const drawn = stock.pop()!;
+      drawn.faceUp = true;
+      waste.push(drawn);
+      moves++;
+      sound.click();
+    } else {
+      // Recycle waste into stock
+      stock = waste.reverse().map(c => { c.faceUp = false; return c; });
+      waste = [];
+      sound.blip();
+    }
+    renderBoard();
+  }
+
+  function newDeal() {
+    const deck = createDeck();
+    stock = [];
+    waste = [];
+    foundations = [[], [], [], []];
+    tableau = [[], [], [], [], [], [], []];
+    moves = 0;
+    score = 0;
+    timerSeconds = 0;
+    winModal.classList.add('opacity-0', 'pointer-events-none');
+
+    // Deal tableau
+    for (let c = 0; c < 7; c++) {
+      for (let r = 0; r <= c; r++) {
+        const card = deck.pop()!;
+        if (r === c) card.faceUp = true;
+        tableau[c].push(card);
+      }
+    }
+    stock = deck;
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+      const s = (timerSeconds % 60).toString().padStart(2, '0');
+      timeEl.textContent = `${m}:${s}`;
+    }, 1000);
+
+    renderBoard();
+  }
+
+  stockEl.addEventListener('click', drawFromStock);
+  document.getElementById('sol-new-btn')?.addEventListener('click', newDeal);
+  document.getElementById('sol-play-again')?.addEventListener('click', newDeal);
+  document.getElementById('btn-restart-game')?.addEventListener('click', newDeal);
+
+  newDeal();
+</script>

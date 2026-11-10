@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 80" width="100%" height="100%">
+  <defs>
+    <!-- Icon Gradients -->
+    <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#141a2e" />
+      <stop offset="100%" stop-color="#0a0d17" />
+    </linearGradient>
+    <linearGradient id="logoBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5ff" stop-opacity="0.7" />
+      <stop offset="50%" stop-color="#818cf8" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ff007a" stop-opacity="0.6" />
+    </linearGradient>
+    <linearGradient id="logoStem" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00f5ff" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <linearGradient id="logoLoop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#ff007a" />
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="85%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <linearGradient id="dotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff007a" />
+      <stop offset="100%" stop-color="#f43f5e" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left Icon Emblem (64x64 scaled down inside 80 height) -->
+  <g transform="translate(8, 8) scale(0.5333)">
+    <!-- Container -->
+    <rect x="3" y="3" width="114" height="114" rx="26" fill="url(#logoBgGrad)" stroke="url(#logoBorder)" stroke-width="2.5" />
+    <!-- Loop -->
+    <path d="M 44 26 C 68 26 88 33 88 48 C 88 63 68 70 46 70 Z" fill="url(#logoLoop)" />
+    <!-- Loop hole -->
+    <rect x="48" y="37" width="22" height="22" rx="7" fill="#0c101c" />
+    <!-- Vertical stem -->
+    <path d="M 28 26 L 46 26 L 46 94 L 28 94 Z" fill="url(#logoStem)" />
+    <!-- Specular highlight -->
+    <path d="M 28 26 L 31 26 L 31 94 L 28 94 Z" fill="#ffffff" opacity="0.6" />
+    <!-- Play arrow -->
+    <polygon points="53,40 53,56 66,48" fill="#00f5ff" />
+    <!-- Sparkle star -->
+    <polygon points="88,24 89.5,28.5 94,30 89.5,31.5 88,36 86.5,31.5 82,30 86.5,28.5" fill="#38bdf8" />
+  </g>
+
+  <!-- Brand Typography -->
+  <g transform="translate(84, 0)">
+    <!-- Wordmark: POKOLY -->
+    <text x="0" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', 'Segoe UI', sans-serif" font-weight="900" font-size="34" letter-spacing="-0.5" fill="url(#textGrad)">POKOLY</text>
+    
+    <!-- Accent Dot / Domain suffix -->
+    <text x="144" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Montserrat', 'Inter', 'Segoe UI', sans-serif" font-weight="800" font-size="24" fill="url(#dotGrad)">.COM</text>
+
+    <!-- Subtitle badge: INSTANT BROWSER GAMES -->
+    <text x="2" y="66" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="700" font-size="9" letter-spacing="2.8" fill="#94a3b8">FREE INSTANT BROWSER GAMES</text>
+    
+    <!-- Small electric pulse indicator -->
+    <circle cx="218" cy="63" r="2.5" fill="#00f5ff" />
+  </g>
+</svg>

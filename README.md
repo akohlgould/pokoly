@@ -21,7 +21,7 @@ Pokoly is designed to maximize unit economics for browser gaming:
 | Game | Subdomain | Category | Highlights |
 | :--- | :--- | :--- | :--- |
 | **Word Guess** | `wordle.pokoly.com` | Word Puzzle | Daily & Unlimited modes, streak tracker, share grid |
-| **Cosmic Fruit Merge** | `suika.pokoly.com` | 2D Physics Drop | Addictive circle Verlet physics, chain combo mergers |
+| **Cosmic Fruit Merge** | `suika.pokoly.com` | 2D Physics Drop | Smooth circle Verlet physics, chain combo mergers |
 | **2048 Neon** | `2048.pokoly.com` | Number Puzzle | Cyber neon theme, touch swipe + arrow keys, high score |
 | **Klondike Solitaire** | `solitaire.pokoly.com` | Card Game | 52 cards, foundation & tableau auto-moves, move/time stats |
 | **Cyber Snake** | `snake.pokoly.com` | Arcade Reflex | 60 FPS canvas loop, speed progression, particle bursts |

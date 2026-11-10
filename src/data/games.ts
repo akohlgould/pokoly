@@ -117,7 +117,7 @@ export const GAMES: GameMeta[] = [
   rating: 4.9,
   playCount: "2.8M",
   color: "#f43f5e",
-  badge: "Addictive Rogue",
+  badge: "Endless Fun",
   releaseDate: "2026-03-01",
   keywords: [
     "balatro web free",
@@ -680,7 +680,7 @@ export const GAMES: GameMeta[] = [
       'merge fruits free online',
       'casual drop puzzle'
     ],
-    description: 'Experience the addictive Japanese Watermelon Game (Suika) in your browser! Drop cherries, strawberries, oranges, and melons into the box. Watch them roll, bounce, and fuse into larger fruits until you craft the mythical Watermelon.',
+    description: 'Experience the beloved Japanese Watermelon Game (Suika) in your browser! Drop cherries, strawberries, oranges, and melons into the box. Watch them roll, bounce, and fuse into larger fruits until you craft the mythical Watermelon.',
     controls: [
       { key: 'Mouse Move / Touch Drag', action: 'Position the drop pointer left and right' },
       { key: 'Left Click / Touch Release', action: 'Drop the current fruit into the container' },
@@ -1058,7 +1058,7 @@ export const GAMES: GameMeta[] = [
 export const CATEGORIES = [
   { id: 'all', name: 'All Games', icon: '🎮', description: 'Explore our complete library of free online browser games' },
   { id: 'word', name: 'Word Puzzles', icon: '📝', description: 'Brain-teasing vocabulary, daily challenges, and word deduction games' },
-  { id: 'physics', name: 'Physics & Drop', icon: '🍉', description: 'Addictive merging, gravity drops, and bouncing simulation puzzles' },
+  { id: 'physics', name: 'Physics & Drop', icon: '🍉', description: 'Engaging merging, gravity drops, and bouncing simulation puzzles' },
   { id: 'puzzle', name: 'Logic Puzzles', icon: '🧩', description: 'Math, spatial reasoning, and deduction games that sharpen your mind' },
   { id: 'card', name: 'Card & Solitaire', icon: '🃏', description: 'Timeless single-player card classics, Klondike, and patience games' },
   { id: 'arcade', name: 'Arcade & Reflex', icon: '⚡', description: 'High-octane retro reflex tests, speed challenges, and modern arcade classics' },

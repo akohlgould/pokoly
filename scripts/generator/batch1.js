@@ -1415,7 +1415,7 @@ export const BATCH_1 = [
       rating: 4.9,
       playCount: '2.8M',
       color: '#f43f5e',
-      badge: 'Addictive Rogue',
+      badge: 'Endless Fun',
       releaseDate: '2026-03-01',
       keywords: ['balatro web free', 'poker roguelike online', 'poker deckbuilder browser', 'balatro alternative free'],
       description: 'NanoBalatro brings the viral poker deckbuilding sensation to your browser. Score Chips and Multipliers to defeat bosses.',

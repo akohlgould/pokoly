@@ -1,0 +1,590 @@
+---
+// GravitySplice: 4-Quadrant Gravitational Spatial Puzzle
+---
+
+<div id="gravity-splice-container" class="relative flex flex-col items-center justify-center p-2 select-none max-w-4xl mx-auto w-full font-mono">
+  <!-- HUD Header -->
+  <div class="mb-3 flex w-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-500/30 bg-[#080a18]/95 px-4 py-2.5 text-xs shadow-xl">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="text-indigo-400">🌌</span>
+        <span class="text-gray-400">Sector:</span>
+        <span id="gs-level" class="font-bold text-indigo-400">Chamber 1</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-amber-400">✦</span>
+        <span class="text-gray-400">Cores:</span>
+        <span id="gs-cores" class="font-bold text-amber-400">0 / 3</span>
+      </div>
+    </div>
+
+    <!-- Slingshot Shots Remaining / Par -->
+    <div class="flex items-center gap-3">
+      <div>Launches: <span id="gs-shots" class="font-bold text-cyan-400">0</span></div>
+      <div>Par: <span id="gs-par" class="font-bold text-gray-300">3</span></div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="gs-reset-ball-btn" class="rounded-xl border border-indigo-500/40 bg-indigo-950/40 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-900/60 transition-colors">
+        Recall Sphere
+      </button>
+      <button id="gs-reset-level-btn" class="rounded-xl border border-gray-700 bg-gray-900 px-2.5 py-1 text-xs text-gray-400 hover:text-white transition-colors">
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas Viewport -->
+  <div class="relative w-full overflow-hidden rounded-3xl border border-indigo-500/40 bg-[#050611] shadow-2xl shadow-indigo-950/50">
+    <canvas id="gs-canvas" width="800" height="500" class="w-full h-auto block cursor-crosshair"></canvas>
+
+    <!-- Quadrant Gravitational Labels -->
+    <div class="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 text-[10px] text-indigo-400/60 uppercase tracking-widest">
+      <div class="flex justify-between">
+        <span id="gs-label-q1" class="rounded-lg bg-black/40 px-2 py-0.5 backdrop-blur-sm border border-indigo-500/20">Q1: Gravity ↓</span>
+        <span id="gs-label-q2" class="rounded-lg bg-black/40 px-2 py-0.5 backdrop-blur-sm border border-indigo-500/20">Q2: Gravity ←</span>
+      </div>
+      <div class="flex justify-between">
+        <span id="gs-label-q3" class="rounded-lg bg-black/40 px-2 py-0.5 backdrop-blur-sm border border-indigo-500/20">Q3: Gravity →</span>
+        <span id="gs-label-q4" class="rounded-lg bg-black/40 px-2 py-0.5 backdrop-blur-sm border border-indigo-500/20">Q4: Gravity ↑</span>
+      </div>
+    </div>
+
+    <!-- On-screen Guide Banner -->
+    <div class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-indigo-500/40 bg-black/75 px-4 py-1 text-[11px] text-indigo-300 backdrop-blur-md">
+      Drag backward from sphere to aim slingshot • Cross quadrant borders to curve trajectory
+    </div>
+  </div>
+
+  <!-- Victory / Level Complete Modal -->
+  <div id="gs-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-indigo-500/50 bg-[#080b1e] p-6 max-w-sm w-full text-center shadow-2xl shadow-indigo-500/20">
+      <span id="gs-modal-icon" class="text-5xl">🌀</span>
+      <h3 id="gs-modal-title" class="text-2xl font-black text-white mt-3 font-display">Splice Chamber Solved!</h3>
+      <p id="gs-modal-msg" class="text-xs text-gray-300 mt-2 leading-relaxed">Sphere successfully grav-surfed across all four quadrants and stabilized the wormhole.</p>
+      <div id="gs-modal-score" class="mt-3 text-sm font-mono text-indigo-400 font-bold">+260 XP Earned</div>
+      <button id="gs-modal-btn" class="mt-5 w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 transition-transform">
+        Next Gravity Chamber →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('gs-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const levelEl = document.getElementById('gs-level')!;
+  const coresEl = document.getElementById('gs-cores')!;
+  const shotsEl = document.getElementById('gs-shots')!;
+  const parEl = document.getElementById('gs-par')!;
+  const resetBallBtn = document.getElementById('gs-reset-ball-btn')!;
+  const resetLevelBtn = document.getElementById('gs-reset-level-btn')!;
+
+  const labelQ1 = document.getElementById('gs-label-q1')!;
+  const labelQ2 = document.getElementById('gs-label-q2')!;
+  const labelQ3 = document.getElementById('gs-label-q3')!;
+  const labelQ4 = document.getElementById('gs-label-q4')!;
+
+  const modal = document.getElementById('gs-modal')!;
+  const modalIcon = document.getElementById('gs-modal-icon')!;
+  const modalTitle = document.getElementById('gs-modal-title')!;
+  const modalMsg = document.getElementById('gs-modal-msg')!;
+  const modalScore = document.getElementById('gs-modal-score')!;
+  const modalBtn = document.getElementById('gs-modal-btn')!;
+
+  let currentChamber = 1;
+  let score = 0;
+  let shotsFired = 0;
+  let coresCollected = 0;
+  let totalCores = 3;
+  let isGameOver = false;
+  let isChamberWon = false;
+
+  // Ball physics
+  const ball = {
+    x: 100,
+    y: 100,
+    vx: 0,
+    vy: 0,
+    radius: 10,
+    startX: 100,
+    startY: 100,
+    isFlying: false,
+    trail: [] as { x: number; y: number; alpha: number }[]
+  };
+
+  // Dragging slingshot
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let currentDragX = 0;
+  let currentDragY = 0;
+
+  // Gravitational Vectors for 4 quadrants [NW, NE, SW, SE]
+  interface GravVector {
+    gx: number;
+    gy: number;
+    name: string;
+    arrow: string;
+  }
+
+  let quadGrav: GravVector[] = [
+    { gx: 0, gy: 0.18, name: 'Gravity ↓', arrow: '↓' }, // Q1 Top-Left
+    { gx: -0.18, gy: 0, name: 'Gravity ←', arrow: '←' }, // Q2 Top-Right
+    { gx: 0.18, gy: 0, name: 'Gravity →', arrow: '→' },  // Q3 Bottom-Left
+    { gx: 0, gy: -0.18, name: 'Gravity ↑', arrow: '↑' }  // Q4 Bottom-Right
+  ];
+
+  // Obstacle walls
+  interface Wall {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }
+  let walls: Wall[] = [];
+
+  // Energy Cores to collect
+  interface Core {
+    x: number;
+    y: number;
+    radius: number;
+    collected: boolean;
+  }
+  let cores: Core[] = [];
+
+  // Goal Receptacle
+  interface Goal {
+    x: number;
+    y: number;
+    radius: number;
+  }
+  let goal: Goal = { x: 700, y: 400, radius: 24 };
+
+  // Background Stream particles
+  interface StreamParticle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    quad: number;
+  }
+  let streamParticles: StreamParticle[] = [];
+
+  function initStreamParticles() {
+    streamParticles = [];
+    for (let i = 0; i < 48; i++) {
+      const q = Math.floor(Math.random() * 4);
+      let x = 0, y = 0;
+      if (q === 0) { x = Math.random() * 400; y = Math.random() * 250; }
+      else if (q === 1) { x = 400 + Math.random() * 400; y = Math.random() * 250; }
+      else if (q === 2) { x = Math.random() * 400; y = 250 + Math.random() * 250; }
+      else { x = 400 + Math.random() * 400; y = 250 + Math.random() * 250; }
+
+      streamParticles.push({ x, y, vx: 0, vy: 0, quad: q });
+    }
+  }
+
+  function initChamber(chamber: number) {
+    isGameOver = false;
+    isChamberWon = false;
+    currentChamber = chamber;
+    modal.classList.add('hidden');
+    shotsFired = 0;
+    coresCollected = 0;
+
+    levelEl.textContent = `Chamber ${chamber}`;
+    coresEl.textContent = `0 / ${totalCores}`;
+    shotsEl.textContent = '0';
+    parEl.textContent = chamber <= 2 ? '3' : '4';
+
+    // Different gravity direction configurations per chamber
+    if (chamber === 1) {
+      quadGrav = [
+        { gx: 0, gy: 0.18, name: 'Gravity ↓', arrow: '↓' },
+        { gx: -0.18, gy: 0, name: 'Gravity ←', arrow: '←' },
+        { gx: 0.18, gy: 0, name: 'Gravity →', arrow: '→' },
+        { gx: 0, gy: -0.18, name: 'Gravity ↑', arrow: '↑' }
+      ];
+    } else if (chamber === 2) {
+      quadGrav = [
+        { gx: 0.18, gy: 0, name: 'Gravity →', arrow: '→' },
+        { gx: 0, gy: 0.18, name: 'Gravity ↓', arrow: '↓' },
+        { gx: 0, gy: -0.18, name: 'Gravity ↑', arrow: '↑' },
+        { gx: -0.18, gy: 0, name: 'Gravity ←', arrow: '←' }
+      ];
+    } else {
+      // Swirling vortex quadrant config
+      quadGrav = [
+        { gx: 0.22, gy: 0, name: 'Gravity →', arrow: '→' },
+        { gx: 0, gy: 0.22, name: 'Gravity ↓', arrow: '↓' },
+        { gx: 0, gy: -0.22, name: 'Gravity ↑', arrow: '↑' },
+        { gx: -0.22, gy: 0, name: 'Gravity ←', arrow: '←' }
+      ];
+    }
+
+    labelQ1.textContent = `Q1: ${quadGrav[0].name}`;
+    labelQ2.textContent = `Q2: ${quadGrav[1].name}`;
+    labelQ3.textContent = `Q3: ${quadGrav[2].name}`;
+    labelQ4.textContent = `Q4: ${quadGrav[3].name}`;
+
+    ball.startX = 80;
+    ball.startY = 80;
+    resetBall();
+
+    // Spawn 3 cores across quadrants
+    cores = [
+      { x: 280, y: 180, radius: 10, collected: false },
+      { x: 550, y: 120, radius: 10, collected: false },
+      { x: 250, y: 380, radius: 10, collected: false }
+    ];
+
+    goal = {
+      x: 680,
+      y: 380,
+      radius: 26
+    };
+
+    // Barriers
+    walls = [
+      // Center crosshair divider blocks
+      { x: 396, y: 50, w: 8, h: 100 },
+      { x: 396, y: 350, w: 8, h: 100 },
+      { x: 100, y: 246, w: 100, h: 8 },
+      { x: 600, y: 246, w: 100, h: 8 }
+    ];
+
+    initStreamParticles();
+    player.trackGamePlay('gravitysplice');
+  }
+
+  function resetBall() {
+    ball.x = ball.startX;
+    ball.y = ball.startY;
+    ball.vx = 0;
+    ball.vy = 0;
+    ball.isFlying = false;
+    ball.trail = [];
+  }
+
+  function getQuadrant(x: number, y: number): number {
+    const isRight = x >= 400;
+    const isBottom = y >= 250;
+    if (!isRight && !isBottom) return 0; // Top-Left
+    if (isRight && !isBottom) return 1;  // Top-Right
+    if (!isRight && isBottom) return 2;  // Bottom-Left
+    return 3;                           // Bottom-Right
+  }
+
+  // Pointer slingshot
+  canvas.addEventListener('pointerdown', (e) => {
+    if (isGameOver || isChamberWon || ball.isFlying) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const px = (e.clientX - rect.left) * scaleX;
+    const py = (e.clientY - rect.top) * scaleY;
+
+    if (Math.hypot(px - ball.x, py - ball.y) < 40) {
+      isDragging = true;
+      dragStartX = ball.x;
+      dragStartY = ball.y;
+      currentDragX = px;
+      currentDragY = py;
+      sound.click();
+    }
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    currentDragX = (e.clientX - rect.left) * scaleX;
+    currentDragY = (e.clientY - rect.top) * scaleY;
+  });
+
+  window.addEventListener('pointerup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // Launch ball opposite to drag vector
+    const dx = dragStartX - currentDragX;
+    const dy = dragStartY - currentDragY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist > 10) {
+      const power = Math.min(dist * 0.12, 14);
+      ball.vx = (dx / dist) * power;
+      ball.vy = (dy / dist) * power;
+      ball.isFlying = true;
+      shotsFired++;
+      shotsEl.textContent = shotsFired.toString();
+      sound.playTone(320, 'sine', 0.15, 0.2);
+    }
+  });
+
+  function update() {
+    if (isGameOver || isChamberWon) return;
+
+    // Update Stream Particles in their quadrants
+    streamParticles.forEach(p => {
+      const q = getQuadrant(p.x, p.y);
+      p.x += quadGrav[q].gx * 14;
+      p.y += quadGrav[q].gy * 14;
+
+      // Wrap boundaries within quadrant
+      if (q === 0 && p.y > 250) p.y = 0;
+      if (q === 1 && p.x < 400) p.x = 800;
+      if (q === 2 && p.x > 400) p.x = 0;
+      if (q === 3 && p.y < 250) p.y = 500;
+    });
+
+    if (ball.isFlying) {
+      // Apply gravity of current quadrant
+      const q = getQuadrant(ball.x, ball.y);
+      ball.vx += quadGrav[q].gx;
+      ball.vy += quadGrav[q].gy;
+
+      // Move
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+
+      // Trail
+      ball.trail.push({ x: ball.x, y: ball.y, alpha: 1.0 });
+
+      // Wall collisions (screen edges)
+      if (ball.x < ball.radius) {
+        ball.x = ball.radius;
+        ball.vx = -ball.vx * 0.75;
+        sound.blip();
+      } else if (ball.x > canvas.width - ball.radius) {
+        ball.x = canvas.width - ball.radius;
+        ball.vx = -ball.vx * 0.75;
+        sound.blip();
+      }
+
+      if (ball.y < ball.radius) {
+        ball.y = ball.radius;
+        ball.vy = -ball.vy * 0.75;
+        sound.blip();
+      } else if (ball.y > canvas.height - ball.radius) {
+        ball.y = canvas.height - ball.radius;
+        ball.vy = -ball.vy * 0.75;
+        sound.blip();
+      }
+
+      // Internal obstacle collisions
+      walls.forEach(w => {
+        if (
+          ball.x + ball.radius > w.x &&
+          ball.x - ball.radius < w.x + w.w &&
+          ball.y + ball.radius > w.y &&
+          ball.y - ball.radius < w.y + w.h
+        ) {
+          ball.vx = -ball.vx * 0.8;
+          ball.vy = -ball.vy * 0.8;
+          sound.blip();
+        }
+      });
+
+      // Core pickups
+      cores.forEach(c => {
+        if (!c.collected && Math.hypot(c.x - ball.x, c.y - ball.y) < c.radius + ball.radius) {
+          c.collected = true;
+          coresCollected++;
+          score += 150;
+          coresEl.textContent = `${coresCollected} / ${totalCores}`;
+          sound.score();
+        }
+      });
+
+      // Goal detection
+      const distToGoal = Math.hypot(goal.x - ball.x, goal.y - ball.y);
+      if (distToGoal < goal.radius && coresCollected >= totalCores) {
+        winChamber();
+      }
+    }
+
+    // Fade trail
+    for (let i = ball.trail.length - 1; i >= 0; i--) {
+      ball.trail[i].alpha -= 0.03;
+      if (ball.trail[i].alpha <= 0) ball.trail.splice(i, 1);
+    }
+  }
+
+  function render() {
+    ctx.fillStyle = '#050611';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Quadrant Crosshair Dividers
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+
+    // Vertical Center
+    ctx.beginPath();
+    ctx.moveTo(400, 0);
+    ctx.lineTo(400, 500);
+    ctx.stroke();
+
+    // Horizontal Center
+    ctx.beginPath();
+    ctx.moveTo(0, 250);
+    ctx.lineTo(800, 250);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw Background Gravity Stream Motes
+    streamParticles.forEach(p => {
+      ctx.fillStyle = 'rgba(129, 140, 248, 0.25)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw Center Gravity Singularity Intersection Node
+    ctx.save();
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.4)';
+    ctx.beginPath();
+    ctx.arc(400, 250, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#818cf8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw Walls
+    ctx.fillStyle = '#1e1b4b';
+    ctx.strokeStyle = '#4338ca';
+    ctx.lineWidth = 2;
+    walls.forEach(w => {
+      ctx.fillRect(w.x, w.y, w.w, w.h);
+      ctx.strokeRect(w.x, w.y, w.w, w.h);
+    });
+
+    // Draw Goal Wormhole
+    ctx.save();
+    const ready = coresCollected >= totalCores;
+    ctx.beginPath();
+    ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+    ctx.fillStyle = ready ? 'rgba(6, 182, 212, 0.2)' : 'rgba(99, 102, 241, 0.15)';
+    ctx.strokeStyle = ready ? '#22d3ee' : '#6366f1';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = ready ? '#06b6d4' : '#4f46e5';
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.stroke();
+
+    // Center Swirl
+    ctx.fillStyle = ready ? '#a5f3fc' : '#c7d2fe';
+    ctx.beginPath();
+    ctx.arc(goal.x, goal.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Draw Cores
+    cores.forEach(c => {
+      if (c.collected) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#fbbf24';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Draw Ball Trail
+    ball.trail.forEach(t => {
+      ctx.fillStyle = `rgba(168, 85, 247, ${t.alpha * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, ball.radius * t.alpha, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw Slingshot Aim Line
+    if (isDragging) {
+      ctx.save();
+      ctx.strokeStyle = '#22d3ee';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+
+      // Pullback band
+      ctx.beginPath();
+      ctx.moveTo(ball.x, ball.y);
+      ctx.lineTo(currentDragX, currentDragY);
+      ctx.stroke();
+
+      // Trajectory forecast line
+      const fx = ball.x + (dragStartX - currentDragX);
+      const fy = ball.y + (dragStartY - currentDragY);
+      ctx.strokeStyle = '#a855f7';
+      ctx.beginPath();
+      ctx.moveTo(ball.x, ball.y);
+      ctx.lineTo(fx, fy);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Draw Ball
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 16;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function winChamber() {
+    isChamberWon = true;
+    sound.victory();
+    launchConfetti();
+    player.addScore('gravitysplice', score);
+    player.addXP(260);
+
+    modalIcon.textContent = '🌌';
+    modalTitle.textContent = `Chamber ${currentChamber} Solved!`;
+    modalMsg.textContent = `Launches used: ${shotsFired}. Gravitational slipstreams mastered!`;
+    modalScore.textContent = `+260 XP • Total Points: ${score}`;
+    modalBtn.textContent = 'Next Chamber →';
+    modal.classList.remove('hidden');
+  }
+
+  modalBtn.addEventListener('click', () => {
+    if (isChamberWon) {
+      currentChamber++;
+      initChamber(currentChamber);
+    } else {
+      initChamber(currentChamber);
+    }
+  });
+
+  resetBallBtn.addEventListener('click', () => {
+    sound.click();
+    resetBall();
+  });
+
+  resetLevelBtn.addEventListener('click', () => {
+    sound.click();
+    initChamber(currentChamber);
+  });
+
+  initChamber(1);
+  loop();
+</script>

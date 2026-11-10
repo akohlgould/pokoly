@@ -42,3 +42,4 @@ export const AD_SLOTS = {
     id: 'pokoly-slot-gameover-break'
   }
 };
+

@@ -32,3 +32,4 @@ export function triggerAdBreak(placement: string, onDone: () => void) {
   // Fallback / default
   onDone();
 }
+

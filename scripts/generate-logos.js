@@ -405,3 +405,4 @@ allSlugs.forEach(slug => {
 });
 
 console.log('🎉 All game logos generated successfully!');
+

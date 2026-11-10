@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0a0c1a" />
+      <!-- Blue Checkbox Box -->
+      <rect x="24" y="24" width="72" height="72" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="3" />
+      <path d="M42 60 L54 72 L78 46" fill="none" stroke="#3b82f6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Robot Eye -->
+      <circle cx="82" cy="36" r="6" fill="#ef4444" />
+    </svg>

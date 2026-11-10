@@ -1461,6 +1461,125 @@ const LOGOS = {
       <!-- Hydrothermal Beacon Blip -->
       <circle cx="90" cy="36" r="5" fill="#06b6d4" />
     </svg>
+  `,
+
+  'trolley-paradox': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0a0a16" />
+      <!-- Forking Tracks -->
+      <path d="M15 60 H45 L85 28 H105" stroke="#f59e0b" stroke-width="4" fill="none" />
+      <path d="M45 60 L85 92 H105" stroke="#f59e0b" stroke-width="4" fill="none" />
+      <!-- Superposition Loop Ring -->
+      <circle cx="65" cy="60" r="22" stroke="#c084fc" stroke-width="2.5" stroke-dasharray="4,4" fill="none" />
+      <!-- Trolley Cart -->
+      <rect x="25" y="52" width="20" height="16" rx="4" fill="#e11d48" />
+    </svg>
+  `,
+
+  'karma-collapse': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#080914" />
+      <!-- Balance Scale Bar -->
+      <line x1="20" y1="68" x2="100" y2="52" stroke="#ea580c" stroke-width="5" stroke-linecap="round" />
+      <polygon points="60,60 52,95 68,95" fill="#334155" />
+      <!-- Upvote Balloon -->
+      <circle cx="32" cy="42" r="12" fill="#ea580c" />
+      <text x="32" y="46" font-family="sans-serif" font-weight="900" font-size="12" fill="#ffffff" text-anchor="middle">▲</text>
+      <!-- Downvote Anvil -->
+      <rect x="80" y="62" width="18" height="14" rx="2" fill="#4f46e5" />
+      <text x="89" y="74" font-family="sans-serif" font-weight="900" font-size="12" fill="#ffffff" text-anchor="middle">▼</text>
+    </svg>
+  `,
+
+  'place-battler': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#080a14" />
+      <!-- 4x4 Pixel Art Heart Motif -->
+      <rect x="36" y="36" width="12" height="12" fill="#ff4500" />
+      <rect x="48" y="36" width="12" height="12" fill="#ffffff" />
+      <rect x="60" y="36" width="12" height="12" fill="#ffffff" />
+      <rect x="72" y="36" width="12" height="12" fill="#ff4500" />
+      <rect x="36" y="48" width="48" height="12" fill="#ff4500" />
+      <rect x="42" y="60" width="36" height="12" fill="#ff4500" />
+      <rect x="48" y="72" width="24" height="12" fill="#ff4500" />
+      <rect x="54" y="84" width="12" height="12" fill="#ff4500" />
+      <!-- The Void Pixel Creep -->
+      <rect x="18" y="18" width="12" height="12" fill="#000000" stroke="#334155" />
+      <rect x="90" y="90" width="12" height="12" fill="#000000" stroke="#334155" />
+    </svg>
+  `,
+
+  'captcha-apocalypse': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0a0c1a" />
+      <!-- Blue Checkbox Box -->
+      <rect x="24" y="24" width="72" height="72" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="3" />
+      <path d="M42 60 L54 72 L78 46" fill="none" stroke="#3b82f6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Robot Eye -->
+      <circle cx="82" cy="36" r="6" fill="#ef4444" />
+    </svg>
+  `,
+
+  'oddly-satisfying-press': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0d0808" />
+      <!-- Steel Piston -->
+      <rect x="36" y="15" width="48" height="38" fill="#475569" stroke="#64748b" stroke-width="2" />
+      <!-- Squished Rubber Duck Body -->
+      <ellipse cx="60" cy="78" rx="38" ry="14" fill="#facc15" stroke="#eab308" stroke-width="2" />
+      <!-- Bottom Anvil -->
+      <rect x="20" y="88" width="80" height="20" rx="4" fill="#1e293b" stroke="#475569" stroke-width="2" />
+      <!-- Splatter Sparks -->
+      <circle cx="22" cy="76" r="3" fill="#facc15" />
+      <circle cx="98" cy="76" r="3" fill="#facc15" />
+    </svg>
+  `,
+
+  'regex-labyrinth': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#040906" />
+      <!-- Terminal Window -->
+      <rect x="18" y="22" width="84" height="76" rx="8" fill="#08140c" stroke="#10b981" stroke-width="2" />
+      <!-- Regex Text -->
+      <text x="30" y="48" font-family="monospace" font-weight="900" font-size="14" fill="#34d399">/.*[a-z]/</text>
+      <!-- Bug Glyph -->
+      <circle cx="60" cy="74" r="8" fill="#ef4444" />
+      <line x1="52" y1="70" x2="44" y2="66" stroke="#ef4444" stroke-width="2" />
+      <line x1="68" y1="70" x2="76" y2="66" stroke="#ef4444" stroke-width="2" />
+      <line x1="52" y1="78" x2="44" y2="82" stroke="#ef4444" stroke-width="2" />
+      <line x1="68" y1="78" x2="76" y2="82" stroke="#ef4444" stroke-width="2" />
+    </svg>
+  `,
+
+  'data-weaver': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#040812" />
+      <!-- Gaussian Normal Bell Curve -->
+      <path d="M15 95 C45 95 48 25 60 25 C72 25 75 95 105 95" fill="rgba(6, 182, 212, 0.25)" stroke="#06b6d4" stroke-width="3" />
+      <!-- Scatter Points -->
+      <circle cx="60" cy="32" r="3.5" fill="#34d399" />
+      <circle cx="50" cy="52" r="3" fill="#34d399" />
+      <circle cx="70" cy="54" r="3" fill="#34d399" />
+      <circle cx="38" cy="80" r="2.5" fill="#38bdf8" />
+      <circle cx="82" cy="78" r="2.5" fill="#38bdf8" />
+      <text x="60" y="110" font-family="monospace" font-size="9" font-weight="bold" fill="#38bdf8" text-anchor="middle">R² = 0.99</text>
+    </svg>
+  `,
+
+  'wiki-wormhole': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#070814" />
+      <!-- Hyperlink Constellation -->
+      <line x1="30" y1="60" x2="60" y2="35" stroke="#6366f1" stroke-width="2" />
+      <line x1="30" y1="60" x2="60" y2="85" stroke="#6366f1" stroke-width="2" />
+      <line x1="60" y1="35" x2="90" y2="60" stroke="#8b5cf6" stroke-width="2.5" />
+      <line x1="60" y1="85" x2="90" y2="60" stroke="#8b5cf6" stroke-width="2.5" />
+      <!-- Nodes: Banana -> Physics -> Quantum -->
+      <circle cx="30" cy="60" r="8" fill="#facc15" />
+      <circle cx="60" cy="35" r="7" fill="#38bdf8" />
+      <circle cx="60" cy="85" r="7" fill="#38bdf8" />
+      <circle cx="90" cy="60" r="10" fill="#a855f7" stroke="#ffffff" stroke-width="2" />
+    </svg>
   `
 };
 

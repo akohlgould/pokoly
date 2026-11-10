@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0d0808" />
+      <!-- Steel Piston -->
+      <rect x="36" y="15" width="48" height="38" fill="#475569" stroke="#64748b" stroke-width="2" />
+      <!-- Squished Rubber Duck Body -->
+      <ellipse cx="60" cy="78" rx="38" ry="14" fill="#facc15" stroke="#eab308" stroke-width="2" />
+      <!-- Bottom Anvil -->
+      <rect x="20" y="88" width="80" height="20" rx="4" fill="#1e293b" stroke="#475569" stroke-width="2" />
+      <!-- Splatter Sparks -->
+      <circle cx="22" cy="76" r="3" fill="#facc15" />
+      <circle cx="98" cy="76" r="3" fill="#facc15" />
+    </svg>

@@ -94,6 +94,15 @@ import NeuralSwarm from '../../games/NeuralSwarm.astro';
 import PrismDuel from '../../games/PrismDuel.astro';
 import EchoDiver from '../../games/EchoDiver.astro';
 
+import TrolleyParadox from '../../games/TrolleyParadox.astro';
+import KarmaCollapse from '../../games/KarmaCollapse.astro';
+import PlaceBattler from '../../games/PlaceBattler.astro';
+import CaptchaApocalypse from '../../games/CaptchaApocalypse.astro';
+import SquishLab from '../../games/SquishLab.astro';
+import RegexLabyrinth from '../../games/RegexLabyrinth.astro';
+import DataWeaver from '../../games/DataWeaver.astro';
+import WikiWormhole from '../../games/WikiWormhole.astro';
+
 export function getStaticPaths() {
   return GAMES.map(game => ({
     params: { id: game.slug },
@@ -216,4 +225,13 @@ const { game } = Astro.props;
   {(game.id === 'neural-swarm' || game.slug === 'neural-swarm' || game.id === 'neural-swarm' || game.id === 'NeuralSwarm') && <NeuralSwarm />}
   {(game.id === 'prism-duel' || game.slug === 'prism-duel' || game.id === 'prismduel' || game.id === 'PrismDuel') && <PrismDuel />}
   {(game.id === 'echo-diver' || game.slug === 'echo-diver' || game.id === 'echodiver' || game.id === 'EchoDiver') && <EchoDiver />}
+
+  {(game.id === 'trolley-paradox' || game.slug === 'trolley-paradox' || game.id === 'trolleyparadox' || game.id === 'TrolleyParadox') && <TrolleyParadox />}
+  {(game.id === 'karma-collapse' || game.slug === 'karma-collapse' || game.id === 'karmacollapse' || game.id === 'KarmaCollapse') && <KarmaCollapse />}
+  {(game.id === 'place-battler' || game.slug === 'place-battler' || game.id === 'placebattler' || game.id === 'PlaceBattler') && <PlaceBattler />}
+  {(game.id === 'captcha-apocalypse' || game.slug === 'captcha-apocalypse' || game.id === 'captchaapocalypse' || game.id === 'CaptchaApocalypse') && <CaptchaApocalypse />}
+  {(game.id === 'oddly-satisfying-press' || game.slug === 'oddly-satisfying-press' || game.id === 'squishlab' || game.id === 'SquishLab') && <SquishLab />}
+  {(game.id === 'regex-labyrinth' || game.slug === 'regex-labyrinth' || game.id === 'regexlabyrinth' || game.id === 'RegexLabyrinth') && <RegexLabyrinth />}
+  {(game.id === 'data-weaver' || game.slug === 'data-weaver' || game.id === 'dataweaver' || game.id === 'DataWeaver') && <DataWeaver />}
+  {(game.id === 'wiki-wormhole' || game.slug === 'wiki-wormhole' || game.id === 'wikiwormhole' || game.id === 'WikiWormhole') && <WikiWormhole />}
 </GameLayout>

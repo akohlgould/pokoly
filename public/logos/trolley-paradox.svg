@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0a0a16" />
+      <!-- Forking Tracks -->
+      <path d="M15 60 H45 L85 28 H105" stroke="#f59e0b" stroke-width="4" fill="none" />
+      <path d="M45 60 L85 92 H105" stroke="#f59e0b" stroke-width="4" fill="none" />
+      <!-- Superposition Loop Ring -->
+      <circle cx="65" cy="60" r="22" stroke="#c084fc" stroke-width="2.5" stroke-dasharray="4,4" fill="none" />
+      <!-- Trolley Cart -->
+      <rect x="25" y="52" width="20" height="16" rx="4" fill="#e11d48" />
+    </svg>

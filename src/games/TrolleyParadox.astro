@@ -1,0 +1,254 @@
+---
+// TrolleyParadox.astro - Quantum Ethics & Timeline Splitting Puzzle
+---
+
+<div id="trolley-container" class="relative w-full max-w-4xl mx-auto bg-[#0a0a14] rounded-2xl overflow-hidden border border-amber-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(245,158,11,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0f0f22]/95 border-b border-amber-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+        🚃
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-amber-400 via-orange-300 to-rose-400 bg-clip-text text-transparent font-black">TROLLEY PARADOX</span>
+          <span class="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 rounded-md border border-amber-500/40">QUANTUM ETHICS</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">TIMELINE SUPERPOSITION &bull; PROBABILITY FLUX</div>
+      </div>
+    </div>
+
+    <!-- Center Metric: Ethical Entropy -->
+    <div class="flex items-center gap-4 bg-[#0c0c20] px-4 py-1.5 rounded-xl border border-amber-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">LIVES SAVED:</span>
+        <span id="tp-saved" class="font-bold text-emerald-400 font-mono ml-1 text-sm">0/5</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">PARADOX COHERENCE:</span>
+        <span id="tp-coherence" class="font-bold text-amber-400 font-mono ml-1 text-sm">100%</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button id="tp-lever-btn" class="px-3 py-1.5 bg-amber-950/60 hover:bg-amber-900/70 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md">
+        PULL LEVER [SPACE]
+      </button>
+      <button id="tp-split-btn" class="px-3 py-1.5 bg-purple-950/60 hover:bg-purple-900/70 text-purple-300 border border-purple-500/40 rounded-xl text-xs font-bold transition-all active:scale-95">
+        QUANTUM SPLIT [Q]
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas -->
+  <div class="relative w-full h-[460px] sm:h-[500px] bg-[#06060e] overflow-hidden flex items-center justify-center">
+    <canvas id="tp-canvas" class="w-full h-full block touch-none"></canvas>
+
+    <div class="absolute top-4 left-4 max-w-sm pointer-events-none bg-[#0a0a1c]/85 backdrop-blur-md p-3 rounded-xl border border-amber-500/20 text-[11px] text-slate-300 shadow-lg">
+      <span class="text-amber-400 font-bold">ETHICAL CRISIS:</span>
+      <span class="text-white ml-1">The runaway trolley is approaching a track fork! Pull the lever or activate Quantum Split to tunnel both timelines into a zero-casualty paradox loop!</span>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="tp-victory-modal" class="absolute inset-0 bg-[#06060e]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#121226] border border-amber-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(245,158,11,0.3)]">
+        <span class="text-4xl animate-bounce">⚖️</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">PARADOX RESOLVED!</h2>
+        <p class="text-xs text-slate-300 mb-4">You outsmarted the trolley problem by putting the tracks into quantum superposition. Everyone survives!</p>
+        
+        <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#080816] p-3 rounded-xl border border-amber-500/20">
+          <div>ETHICS SCORE: <span class="text-emerald-400 font-bold text-sm">MAXIMUM</span></div>
+          <div>REWARD: <span class="text-amber-400 font-bold text-sm">+250 XP</span></div>
+        </div>
+
+        <button id="tp-next-btn" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+          NEXT DILEMMA &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('tp-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const savedEl = document.getElementById('tp-saved')!;
+  const coherenceEl = document.getElementById('tp-coherence')!;
+  const leverBtn = document.getElementById('tp-lever-btn')!;
+  const splitBtn = document.getElementById('tp-split-btn')!;
+  const victoryModal = document.getElementById('tp-victory-modal')!;
+  const nextBtn = document.getElementById('tp-next-btn')!;
+
+  let trolleyX = 40;
+  let trolleyY = 250;
+  let trackState: 'upper' | 'lower' | 'superposition' = 'lower';
+  let isWon = false;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function init() {
+    const { height } = getLogicalSize();
+    trolleyX = 40;
+    trolleyY = height / 2;
+    trackState = 'lower';
+    isWon = false;
+    savedEl.textContent = '0/5';
+    coherenceEl.textContent = '100%';
+    victoryModal.classList.add('hidden');
+  }
+
+  function toggleLever() {
+    if (trackState === 'lower') trackState = 'upper';
+    else if (trackState === 'upper') trackState = 'lower';
+    sound.click();
+  }
+
+  function triggerSplit() {
+    trackState = 'superposition';
+    coherenceEl.textContent = "SUPERPOSITION";
+    coherenceEl.className = "font-bold text-purple-400 font-mono ml-1 text-sm animate-pulse";
+    sound.playTone(550, 'triangle', 0.25, 0.2);
+  }
+
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.fillStyle = '#060712';
+    ctx.fillRect(0, 0, width, height);
+
+    const midY = height / 2;
+    const forkX = width * 0.4;
+    const topY = height * 0.28;
+    const botY = height * 0.72;
+
+    // Draw Main Track
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(forkX, midY);
+    ctx.stroke();
+
+    // Upper Track (1 philosopher tied up)
+    ctx.strokeStyle = trackState === 'upper' || trackState === 'superposition' ? '#38bdf8' : '#334155';
+    ctx.beginPath();
+    ctx.moveTo(forkX, midY);
+    ctx.lineTo(forkX + 60, topY);
+    ctx.lineTo(width, topY);
+    ctx.stroke();
+
+    // Lower Track (5 people tied up)
+    ctx.strokeStyle = trackState === 'lower' || trackState === 'superposition' ? '#f59e0b' : '#334155';
+    ctx.beginPath();
+    ctx.moveTo(forkX, midY);
+    ctx.lineTo(forkX + 60, botY);
+    ctx.lineTo(width, botY);
+    ctx.stroke();
+
+    // Loop Track when superposition activated!
+    if (trackState === 'superposition') {
+      ctx.strokeStyle = '#a855f7';
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.arc(forkX + 120, midY, 65, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Move Trolley
+    if (!isWon) {
+      trolleyX += 3.2;
+      if (trolleyX < forkX) {
+        trolleyY = midY;
+      } else {
+        if (trackState === 'upper') {
+          trolleyY += (topY - trolleyY) * 0.1;
+        } else if (trackState === 'lower') {
+          trolleyY += (botY - trolleyY) * 0.1;
+        } else {
+          // Superposition Loop: Trolley orbits harmlessly in quantum loop!
+          const angle = (Date.now() * 0.005);
+          trolleyX = forkX + 120 + Math.cos(angle) * 65;
+          trolleyY = midY + Math.sin(angle) * 65;
+
+          savedEl.textContent = '5/5 (ALL SAVED)';
+          isWon = true;
+          sound.victory();
+          launchConfetti();
+          player.addXp(250);
+          victoryModal.classList.remove('hidden');
+        }
+      }
+
+      if (trolleyX >= width - 40 && trackState !== 'superposition') {
+        // Crashed into victims! Reset
+        sound.playTone(150, 'sawtooth', 0.3, 0.2);
+        init();
+      }
+    }
+
+    // Draw Figures on Tracks
+    // Upper figure (1 person)
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath(); ctx.arc(width - 90, topY, 8, 0, Math.PI * 2); ctx.fill();
+
+    // Lower figures (5 people)
+    ctx.fillStyle = '#f59e0b';
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath(); ctx.arc(width - 150 + i * 22, botY, 8, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Draw Trolley Tram
+    ctx.save();
+    ctx.translate(trolleyX, trolleyY);
+    ctx.fillStyle = trackState === 'superposition' ? '#c084fc' : '#e11d48';
+    ctx.beginPath();
+    ctx.roundRect(-24, -14, 48, 28, 6);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Headlights
+    ctx.fillStyle = '#fef08a';
+    ctx.fillRect(20, -10, 4, 8);
+    ctx.fillRect(20, 2, 4, 8);
+
+    ctx.restore();
+
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ') toggleLever();
+    else if (e.key === 'q' || e.key === 'Q') triggerSplit();
+  });
+
+  leverBtn.addEventListener('click', toggleLever);
+  splitBtn.addEventListener('click', triggerSplit);
+  nextBtn.addEventListener('click', init);
+  window.addEventListener('resize', resize);
+
+  resize();
+  init();
+  requestAnimationFrame(tick);
+</script>

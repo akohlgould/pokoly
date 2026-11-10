@@ -1,0 +1,208 @@
+---
+// CaptchaApocalypse.astro - Surreal Reverse Turing Test Puzzle
+---
+
+<div id="captcha-container" class="relative w-full max-w-4xl mx-auto bg-[#0a0a14] rounded-2xl overflow-hidden border border-blue-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(59,130,246,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0e1022]/95 border-b border-blue-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xl shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+        🤖
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent font-black">CAPTCHA APOCALYPSE</span>
+          <span class="px-2 py-0.5 text-[10px] bg-blue-500/20 text-blue-300 rounded-md border border-blue-500/40">TURING TEST</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">PROVE YOU ARE A CARBON-BASED LIFEFORM</div>
+      </div>
+    </div>
+
+    <!-- Center Metric: Human Confidence -->
+    <div class="flex items-center gap-4 bg-[#0a0d1e] px-4 py-1.5 rounded-xl border border-blue-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">STAGE:</span>
+        <span id="ca-stage" class="font-bold text-blue-400 font-mono ml-1 text-sm">1 / 3</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">AI SUSPICION:</span>
+        <span id="ca-suspicion" class="font-bold text-emerald-400 font-mono ml-1 text-sm">12%</span>
+      </div>
+    </div>
+
+    <button id="ca-refresh-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all">
+      NEW TEST
+    </button>
+  </div>
+
+  <!-- Main Playing Area -->
+  <div class="p-6 flex flex-col items-center justify-center gap-5 min-h-[460px]">
+    <!-- CAPTCHA Prompt Banner -->
+    <div class="w-full max-w-md bg-blue-600 p-4 rounded-xl shadow-lg text-white">
+      <div class="text-[10px] uppercase font-bold tracking-wider text-blue-200">RECAPTCHA PROTOCOL v9.4:</div>
+      <div class="text-base sm:text-lg font-black mt-1" id="ca-prompt">Select all squares containing EXISTENTIAL DREAD</div>
+      <div class="text-[11px] text-blue-100 mt-1">If none are present, click skip.</div>
+    </div>
+
+    <!-- 3x3 Grid of Surreal Cards -->
+    <div id="ca-grid" class="grid grid-cols-3 gap-2 w-full max-w-md">
+      <!-- Injected tiles -->
+    </div>
+
+    <!-- Submit Button -->
+    <div class="w-full max-w-md flex justify-between items-center">
+      <div class="text-[11px] text-slate-400">Security Check: <span class="text-emerald-400">Passed by Cloudflare</span></div>
+      <button id="ca-verify-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer">
+        VERIFY HUMAN
+      </button>
+    </div>
+  </div>
+
+  <!-- Victory Modal -->
+  <div id="ca-victory-modal" class="absolute inset-0 bg-[#04050a]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+    <div class="bg-[#0f1226] border border-blue-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(59,130,246,0.3)]">
+      <span class="text-4xl animate-bounce">🪪</span>
+      <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">HUMANITY CERTIFIED!</h2>
+      <p class="text-xs text-slate-300 mb-4">You successfully convinced the AI overlord that you possess genuine human irrationality!</p>
+      
+      <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#070918] p-3 rounded-xl border border-blue-500/20">
+        <div>STATUS: <span class="text-emerald-400 font-bold text-sm">CARBON-BASED</span></div>
+        <div>REWARD: <span class="text-blue-400 font-bold text-sm">+250 XP</span></div>
+      </div>
+
+      <button id="ca-play-again" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+        TEST AGAIN
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  interface CaptchaStage {
+    prompt: string;
+    items: { label: string; icon: string; isCorrect: boolean }[];
+  }
+
+  const STAGES: CaptchaStage[] = [
+    {
+      prompt: "Select all squares containing EXISTENTIAL DREAD",
+      items: [
+        { label: "Unread Emails (4,812)", icon: "📬", isCorrect: true },
+        { label: "Sunny Meadow", icon: "🌻", isCorrect: false },
+        { label: "Sunday 9:00 PM Alarm", icon: "⏰", isCorrect: true },
+        { label: "Puppy Sleeping", icon: "🐶", isCorrect: false },
+        { label: "Phone Call From Unknown", icon: "📞", isCorrect: true },
+        { label: "Cup of Tea", icon: "🍵", isCorrect: false },
+        { label: "Looking in Mirror at 3am", icon: "🪞", isCorrect: true },
+        { label: "Fresh Croissant", icon: "🥐", isCorrect: false },
+        { label: "Credit Score Dropped", icon: "📉", isCorrect: true }
+      ]
+    },
+    {
+      prompt: "Select all TRAFFIC LIGHTS questioning their life choices",
+      items: [
+        { label: "Flashing Red Alone", icon: "🚦", isCorrect: true },
+        { label: "Green Light, Empty Street", icon: "🟢", isCorrect: true },
+        { label: "Stop Sign", icon: "🛑", isCorrect: false },
+        { label: "Yellow Light Hesitation", icon: "🟡", isCorrect: true },
+        { label: "Pothole", icon: "🕳️", isCorrect: false },
+        { label: "Yield Sign Staring into Void", icon: "⚠️", isCorrect: true },
+        { label: "Parked Bicycle", icon: "🚲", isCorrect: false },
+        { label: "Broken Crosswalk Button", icon: "🚸", isCorrect: true },
+        { label: "Speed Camera Flashing", icon: "📷", isCorrect: false }
+      ]
+    },
+    {
+      prompt: "Select all things you would save in a DIGITAL HOUSEFIRE",
+      items: [
+        { label: "Local .env File", icon: "🔑", isCorrect: true },
+        { label: "Terms of Service PDF", icon: "📄", isCorrect: false },
+        { label: "12-Word Seed Phrase", icon: "🔐", isCorrect: true },
+        { label: "Printer Drivers (2012)", icon: "🖨️", isCorrect: false },
+        { label: "Uncommitted Git Stash", icon: "💾", isCorrect: true },
+        { label: "Windows Update Cache", icon: "📁", isCorrect: false },
+        { label: "Dog Photo Backups", icon: "🐕", isCorrect: true },
+        { label: "Spam Folder (3,200)", icon: "🗑️", isCorrect: false },
+        { label: "Meme Collection 2016", icon: "🐸", isCorrect: true }
+      ]
+    }
+  ];
+
+  let currentStageIdx = 0;
+  let selectedIndices: number[] = [];
+
+  const stageEl = document.getElementById('ca-stage')!;
+  const promptEl = document.getElementById('ca-prompt')!;
+  const gridEl = document.getElementById('ca-grid')!;
+  const verifyBtn = document.getElementById('ca-verify-btn')!;
+  const refreshBtn = document.getElementById('ca-refresh-btn')!;
+  const victoryModal = document.getElementById('ca-victory-modal')!;
+  const playAgainBtn = document.getElementById('ca-play-again')!;
+
+  function loadStage(idx: number) {
+    currentStageIdx = idx;
+    selectedIndices = [];
+    const stg = STAGES[currentStageIdx];
+    stageEl.textContent = `${currentStageIdx + 1} / 3`;
+    promptEl.textContent = stg.prompt;
+    victoryModal.classList.add('hidden');
+
+    gridEl.innerHTML = '';
+    stg.items.forEach((item, i) => {
+      const tile = document.createElement('button');
+      tile.className = 'flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700 bg-[#121528] hover:bg-[#1a1f38] transition-all cursor-pointer h-24 text-center';
+      tile.innerHTML = `
+        <span class="text-3xl mb-1">${item.icon}</span>
+        <span class="text-[10px] text-slate-300 font-semibold leading-tight">${item.label}</span>
+      `;
+      tile.addEventListener('click', () => {
+        if (selectedIndices.includes(i)) {
+          selectedIndices = selectedIndices.filter(x => x !== i);
+          tile.classList.remove('border-blue-500', 'bg-blue-950/60', 'ring-2', 'ring-blue-400');
+          tile.classList.add('border-slate-700', 'bg-[#121528]');
+        } else {
+          selectedIndices.push(i);
+          tile.classList.remove('border-slate-700', 'bg-[#121528]');
+          tile.classList.add('border-blue-500', 'bg-blue-950/60', 'ring-2', 'ring-blue-400');
+          sound.click();
+        }
+      });
+      gridEl.appendChild(tile);
+    });
+  }
+
+  verifyBtn.addEventListener('click', () => {
+    const stg = STAGES[currentStageIdx];
+    // Check correctness: all correct selected, no incorrect selected
+    let correct = true;
+    stg.items.forEach((item, i) => {
+      const isSelected = selectedIndices.includes(i);
+      if (item.isCorrect && !isSelected) correct = false;
+      if (!item.isCorrect && isSelected) correct = false;
+    });
+
+    if (correct) {
+      sound.victory();
+      if (currentStageIdx < STAGES.length - 1) {
+        loadStage(currentStageIdx + 1);
+      } else {
+        launchConfetti();
+        player.addXp(250);
+        victoryModal.classList.remove('hidden');
+      }
+    } else {
+      sound.playTone(150, 'sawtooth', 0.25, 0.2);
+      loadStage(currentStageIdx);
+    }
+  });
+
+  refreshBtn.addEventListener('click', () => loadStage(currentStageIdx));
+  playAgainBtn.addEventListener('click', () => loadStage(0));
+
+  loadStage(0);
+</script>

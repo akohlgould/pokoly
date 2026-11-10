@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#040812" />
+      <!-- Gaussian Normal Bell Curve -->
+      <path d="M15 95 C45 95 48 25 60 25 C72 25 75 95 105 95" fill="rgba(6, 182, 212, 0.25)" stroke="#06b6d4" stroke-width="3" />
+      <!-- Scatter Points -->
+      <circle cx="60" cy="32" r="3.5" fill="#34d399" />
+      <circle cx="50" cy="52" r="3" fill="#34d399" />
+      <circle cx="70" cy="54" r="3" fill="#34d399" />
+      <circle cx="38" cy="80" r="2.5" fill="#38bdf8" />
+      <circle cx="82" cy="78" r="2.5" fill="#38bdf8" />
+      <text x="60" y="110" font-family="monospace" font-size="9" font-weight="bold" fill="#38bdf8" text-anchor="middle">R² = 0.99</text>
+    </svg>

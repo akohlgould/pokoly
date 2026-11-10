@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="ch-laser" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#ef4444" />
+        </linearGradient>
+        <filter id="ch-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#090d16" />
+      <!-- Vault Dial Ring -->
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="8,5" />
+      <!-- Laser Grid -->
+      <line x1="20" y1="60" x2="100" y2="60" stroke="#ef4444" stroke-width="2" opacity="0.6" stroke-dasharray="4,4" />
+      <!-- Ghost Synchronicity Rings (Cyan, Pink, Amber) -->
+      <circle cx="44" cy="54" r="14" fill="#06b6d4" opacity="0.5" />
+      <circle cx="76" cy="54" r="14" fill="#ec4899" opacity="0.5" />
+      <!-- Infiltrator Core -->
+      <circle cx="60" cy="68" r="15" fill="url(#ch-laser)" filter="url(#ch-glow)" />
+      <!-- Rewind Arrow -->
+      <path d="M54 62 L66 68 L54 74 Z" fill="#ffffff" />
+      <circle cx="60" cy="22" r="4" fill="#f59e0b" />
+    </svg>

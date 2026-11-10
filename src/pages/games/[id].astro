@@ -26,6 +26,16 @@ import Pegdungeon from '../../games/Pegdungeon.astro';
 import SpeedTyping from '../../games/SpeedTyping.astro';
 import Sudoku from '../../games/Sudoku.astro';
 import FlappyCyber from '../../games/FlappyCyber.astro';
+import ChronoWave from '../../games/ChronoWave.astro';
+import QuantumWeave from '../../games/QuantumWeave.astro';
+import GravityForge from '../../games/GravityForge.astro';
+import Synthia from '../../games/Synthia.astro';
+import MorphoFlora from '../../games/MorphoFlora.astro';
+import PrismPulse from '../../games/PrismPulse.astro';
+import ClockworkHeist from '../../games/ClockworkHeist.astro';
+import GeoThermal from '../../games/GeoThermal.astro';
+import NeuroLink from '../../games/NeuroLink.astro';
+import TectonicDrift from '../../games/TectonicDrift.astro';
 
 export function getStaticPaths() {
   return GAMES.map(game => ({
@@ -65,4 +75,14 @@ const { game } = Astro.props;
   {game.id === 'speed-typing' && <SpeedTyping />}
   {game.id === 'sudoku' && <Sudoku />}
   {game.id === 'flappy-cyber' && <FlappyCyber />} 
+  {game.id === 'chronowave' && <ChronoWave />} 
+  {game.id === 'quantumweave' && <QuantumWeave />} 
+  {game.id === 'gravityforge' && <GravityForge />} 
+  {game.id === 'synthia' && <Synthia />} 
+  {game.id === 'morphoflora' && <MorphoFlora />} 
+  {game.id === 'prismpulse' && <PrismPulse />} 
+  {game.id === 'clockworkheist' && <ClockworkHeist />} 
+  {game.id === 'geothermal' && <GeoThermal />} 
+  {game.id === 'neurolink' && <NeuroLink />} 
+  {game.id === 'tectonicdrift' && <TectonicDrift />} 
 </GameLayout>

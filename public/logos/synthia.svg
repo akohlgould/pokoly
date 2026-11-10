@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sy-rack" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e1b4b" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+        <filter id="sy-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#sy-rack)" />
+      <!-- Oscilloscope Screen -->
+      <rect x="20" y="20" width="80" height="42" rx="8" fill="#022c22" stroke="#059669" stroke-width="1.5" />
+      <path d="M26 41 Q36 22 46 41 T66 41 T86 41 T94 41" fill="none" stroke="#10b981" stroke-width="2.5" filter="url(#sy-glow)" stroke-linecap="round" />
+      <!-- Patch Cable Jacks -->
+      <circle cx="34" cy="84" r="7" fill="#334155" stroke="#64748b" stroke-width="2" />
+      <circle cx="34" cy="84" r="3" fill="#020617" />
+      <circle cx="86" cy="84" r="7" fill="#334155" stroke="#64748b" stroke-width="2" />
+      <circle cx="86" cy="84" r="3" fill="#020617" />
+      <!-- Patch Cable Cord -->
+      <path d="M34 84 C34 114 86 114 86 84" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" />
+    </svg>

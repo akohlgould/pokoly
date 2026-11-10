@@ -1051,6 +1051,415 @@ export const GAMES: GameMeta[] = [
         answer: 'Yes! Tap anywhere on mobile screens to flap with zero input lag.'
       }
     ]
+  },
+  {
+    id: 'chronowave',
+    slug: 'chronowave',
+    subdomain: 'chronowave',
+    title: 'ChronoWave: Sonar Resonance',
+    tagline: 'Synthesize acoustic interference patterns to tune resonant mineral crystals!',
+    category: 'physics',
+    rating: 4.9,
+    playCount: '480K',
+    color: '#06b6d4',
+    badge: 'Acoustic Physics',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'acoustic resonance puzzle',
+      'sound wave interference game',
+      'frequency matching game',
+      'sonar physics puzzle',
+      'online physics sound game'
+    ],
+    description: 'Master the physics of harmonic wave interference. Emit pulses across Bass, Mid, and Treble frequencies, adjusting phase velocities to align wave crests with deep-sea resonant crystals.',
+    controls: [
+      { key: 'Frequency Sliders', action: 'Tune Bass, Mid, and Treble pulse rates' },
+      { key: 'Click / Tap Emitter', action: 'Transmit acoustic sonar pulse' },
+      { key: 'Spacebar', action: 'Trigger harmonic pulse burst' }
+    ],
+    instructions: [
+      'Adjust frequency frequencies to control wave propagation and wavelength.',
+      'Fire sound pulses to match the resonant natural frequency of target crystals.',
+      'Achieve constructive interference to charge crystals before energy decays.'
+    ],
+    strategies: [
+      'Notice the color of the target crystals to determine whether Bass (red), Mid (blue), or Treble (green) harmonic frequencies resonate best.',
+      'Overlapping multiple pulses creates constructive interference amplitude spikes.'
+    ],
+    faqs: [
+      {
+        question: 'Does ChronoWave use real acoustic equations?',
+        answer: 'Yes! Wave propagation simulates sinusoidal wave velocity, wavelength, and Doppler interference.'
+      }
+    ]
+  },
+  {
+    id: 'quantumweave',
+    slug: 'quantumweave',
+    subdomain: 'quantumweave',
+    title: 'QuantumWeave: Spin Matrix',
+    tagline: 'Route entangled laser beams through counter-rotating quantum mirrors to energize logic gates!',
+    category: 'puzzle',
+    rating: 4.9,
+    playCount: '620K',
+    color: '#ec4899',
+    badge: 'Quantum Logic',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'quantum laser puzzle',
+      'entangled optics game',
+      'mirror laser routing game',
+      'quantum logic puzzle',
+      'laser beam reflection game'
+    ],
+    description: 'Enter the quantum optical substrate where paired mirrors share entangled spin states. Rotating one mirror causes its entangled partner to mirror its rotation in reverse polarity.',
+    controls: [
+      { key: 'Click / Tap Mirror', action: 'Rotate quantum mirror (affects entangled pair)' },
+      { key: 'R Key', action: 'Reset quantum coherence' }
+    ],
+    instructions: [
+      'Click mirrors to rotate their optical angle in 45-degree increments.',
+      'Entangled mirrors rotate in reverse polarity when clicked.',
+      'Route both alpha and beta laser beams simultaneously into quantum logic receivers.'
+    ],
+    strategies: [
+      'Look for the glowing quantum entanglement links to see which mirrors are bound together.',
+      'Plan moves in pairs so adjusting one mirror brings its partner into the desired alignment.'
+    ],
+    faqs: [
+      {
+        question: 'What happens if a laser beam hits a wall?',
+        answer: 'The beam is absorbed. You must rotate mirrors so the laser reflects safely to its receiver.'
+      }
+    ]
+  },
+  {
+    id: 'gravityforge',
+    slug: 'gravityforge',
+    subdomain: 'gravityforge',
+    title: 'GravityForge: Orbital Slingshot',
+    tagline: 'Place gravitational singularities to slingshot stardust comets into accretion rings!',
+    category: 'physics',
+    rating: 4.8,
+    playCount: '750K',
+    color: '#f59e0b',
+    badge: 'Orbital Mechanics',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'orbital mechanics game',
+      'gravity slingshot simulator',
+      'n-body gravitational puzzle',
+      'accretion disk comet game',
+      'space physics game online'
+    ],
+    description: 'Harness gravitational attraction in an N-body celestial simulation. Place gravitational wells and adjust launch trajectories to curve comets around obstacles and feed the central protostar.',
+    controls: [
+      { key: 'Click / Tap & Drag', action: 'Aim comet launch trajectory & speed' },
+      { key: 'Place Gravity Well', action: 'Click canvas to drop gravitational singularity' },
+      { key: 'Spacebar', action: 'Launch stardust comet' }
+    ],
+    instructions: [
+      'Position gravity wells to bend the trajectory of incoming comets.',
+      'Launch comets through cosmic dust fields to gather mass.',
+      'Sling comets safely into the central protostar accretion ring to complete the stage.'
+    ],
+    strategies: [
+      'Use hyperbolic slingshot curves to bend comets around asteroid belts without colliding.',
+      'Placing gravity wells closer to the launch path creates tighter gravitational curves.'
+    ],
+    faqs: [
+      {
+        question: 'Does the game use Newtonian inverse-square gravity?',
+        answer: 'Yes! The comet physics simulates inverse-square gravitational force vectors from all bodies.'
+      }
+    ]
+  },
+  {
+    id: 'synthia',
+    slug: 'synthia',
+    subdomain: 'synthia',
+    title: 'Synthia: Modular Wireframe',
+    tagline: 'Patch virtual Eurorack synthesizer cables and sculpt sound waves to match cyber target frequencies!',
+    category: 'puzzle',
+    rating: 4.9,
+    playCount: '530K',
+    color: '#10b981',
+    badge: 'Modular Synth',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'modular synth puzzle',
+      'eurorack audio game',
+      'patch cord synthesizer game',
+      'oscilloscope audio puzzle',
+      'web audio frequency matching'
+    ],
+    description: 'An interactive Eurorack modular synthesizer hacking puzzle. Connect VCO oscillators, VCF resonance filters, and LFO modulation cables with live Web Audio synthesis to match target sound waves.',
+    controls: [
+      { key: 'Click & Drag Cable', action: 'Patch cable between input and output jacks' },
+      { key: 'Knob Drag / Scroll', action: 'Adjust frequency, cutoff, and resonance knobs' },
+      { key: 'Spacebar', action: 'Trigger audio test probe' }
+    ],
+    instructions: [
+      'Analyze the target audio waveform on the master oscilloscope.',
+      'Route audio patch cords from sound generators (VCO) through filters (VCF) and amplifiers.',
+      'Adjust cutoff and resonance knobs until your synthesized wave matches the target frequency.'
+    ],
+    strategies: [
+      'Look at the oscilloscope curve: square waves create sharp buzzy edges, sine waves create smooth curves.',
+      'Filter cutoff eliminates high harmonic frequencies to round off harsh peaks.'
+    ],
+    faqs: [
+      {
+        question: 'Do the synthesizers make actual sounds?',
+        answer: 'Yes! Real-time sound synthesis is generated using the browser Web Audio API.'
+      }
+    ]
+  },
+  {
+    id: 'morphoflora',
+    slug: 'morphoflora',
+    subdomain: 'morphoflora',
+    title: 'MorphoFlora: Hex Bio-Dome',
+    tagline: 'Cross-pollinate genetic traits across hexagonal biomes to cleanse toxic spore blight!',
+    category: 'puzzle',
+    rating: 4.8,
+    playCount: '410K',
+    color: '#10b981',
+    badge: 'Genetics Sim',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'hex grid cellular automata',
+      'botanical genetics puzzle',
+      'cross pollination game',
+      'spore cleansing bio puzzle',
+      'hexagonal plant puzzle online'
+    ],
+    description: 'Cultivate hybrid botanicals in a hexagonal cellular ecosystem. Breed complementary genetic alleles (Crimson, Azure, Amber) to cross-pollinate adjacent biomes and neutralize toxic spore blights.',
+    controls: [
+      { key: 'Click / Tap Hex Tile', action: 'Plant seed or trigger cross-pollination' },
+      { key: 'Number Keys 1-3', action: 'Select genetic flora strain' },
+      { key: 'Spacebar', action: 'Trigger generational growth pulse' }
+    ],
+    instructions: [
+      'Select flower strains with desired genetic resistance traits.',
+      'Plant flowers on fertile hex tiles surrounding toxic blight clusters.',
+      'Cross-pollinated flowers breed dominant traits that radiate purifying bio-luminescence.'
+    ],
+    strategies: [
+      'Surrounding a toxic tile with two opposing flower types triggers hybrid vigor that cleanses blight twice as fast.',
+      'Prioritize bottleneck tiles to prevent fungal spore spread.'
+    ],
+    faqs: [
+      {
+        question: 'Is MorphoFlora a turn-based or real-time game?',
+        answer: 'It is turn-based with generational cycles, giving you plenty of time to formulate breeding strategies.'
+      }
+    ]
+  },
+  {
+    id: 'prismpulse',
+    slug: 'prismpulse',
+    subdomain: 'prismpulse',
+    title: 'PrismPulse: Optical Raytrace',
+    tagline: 'Split white laser light with crystalline prisms and direct dual spectra into optical receptors!',
+    category: 'physics',
+    rating: 4.9,
+    playCount: '890K',
+    color: '#38bdf8',
+    badge: 'Optical Raytracer',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'optical prism puzzle',
+      'light ray refraction game',
+      'color spectrum laser game',
+      'subtractive color optics game',
+      'mirror prism raytracing game'
+    ],
+    description: 'An optical physics puzzle featuring light refraction and raytracing. Split incoming white laser beams into constituent red, green, and blue spectra, positioning mirrors and prisms to charge optical sensors.',
+    controls: [
+      { key: 'Click & Drag Prisms', action: 'Move or rotate prisms and mirrors' },
+      { key: 'R Key', action: 'Rotate selected optical component' },
+      { key: 'Click Emitter', action: 'Fire laser beam' }
+    ],
+    instructions: [
+      'Position triangular glass prisms to refract white light into color spectra.',
+      'Use angled mirrors to route split color beams around optical blockers.',
+      'Match each colored beam to its corresponding color receptor to energize the matrix.'
+    ],
+    strategies: [
+      'Remember Snell law of refraction: light bends towards the normal when entering glass, and away when exiting.',
+      'Prisms split light at different angles depending on wavelength (red bends least, violet bends most).'
+    ],
+    faqs: [
+      {
+        question: 'Can beams cross each other?',
+        answer: 'Yes! Light beams pass straight through each other without interference, just like real photons.'
+      }
+    ]
+  },
+  {
+    id: 'clockworkheist',
+    slug: 'clockworkheist',
+    subdomain: 'clockworkheist',
+    title: 'Clockwork Heist: Ghost Protocol',
+    tagline: 'Rewind time and cooperate with past timeline ghosts to breach vault lasers and secure the core!',
+    category: 'puzzle',
+    rating: 4.9,
+    playCount: '710K',
+    color: '#f59e0b',
+    badge: 'Chrono Co-op',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'time rewind puzzle game',
+      'single player co-op ghost game',
+      'temporal infiltration stealth',
+      'past self co-op puzzle',
+      'timeline recording heist game'
+    ],
+    description: 'A mind-bending single-player co-op stealth infiltration game. Record timelines, rewind the clock, and play alongside the real-time ghosts of your past runs to hold switches and bypass laser security.',
+    controls: [
+      { key: 'WASD / Arrow Keys', action: 'Move infiltrator operative' },
+      { key: 'Click / Tap & Drag', action: 'Direct touch movement' },
+      { key: 'R Key / Rewind Button', action: 'Commit run & spawn past ghost' }
+    ],
+    instructions: [
+      'In Loop 1, move to a security switch and hold it down before time expires.',
+      'Hit Rewind to record your ghost. In Loop 2, your past ghost will execute the same path!',
+      'Sprint through the lowered laser gate while your past ghost holds the switch, grab the core, and extract!'
+    ],
+    strategies: [
+      'Stand still on switches for 4-5 seconds during early loops to give subsequent operatives ample time to pass.',
+      'Coordinate extraction so the operative carrying the core reaches the green landing zone safely.'
+    ],
+    faqs: [
+      {
+        question: 'How many ghost loops can you create?',
+        answer: 'Each vault allows up to 3 synchronized timeline loops to solve the heist.'
+      }
+    ]
+  },
+  {
+    id: 'geothermal',
+    slug: 'geothermal',
+    subdomain: 'geothermal',
+    title: 'GeoThermal: Subterranean Matrix',
+    tagline: 'Rotate magma conduit valves, inject coolants, and power clean steam turbines before thermal meltdown!',
+    category: 'physics',
+    rating: 4.8,
+    playCount: '580K',
+    color: '#f97316',
+    badge: 'Thermodynamics',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'geothermal pipe puzzle',
+      'fluid heat pressure simulation',
+      'magma conduit game',
+      'steam turbine clean energy game',
+      'thermodynamic grid puzzle'
+    ],
+    description: 'Harness geothermal energy from deep subterranean magma veins. Rotate pressurized valve conduits, manage thermodynamic expansion, and inject coolant charges to generate clean megawatt power without triggering a volcanic blowout.',
+    controls: [
+      { key: 'Click / Tap Conduit Nodes', action: 'Rotate pipe junction 90 degrees' },
+      { key: 'Coolant Button / C Key', action: 'Inject emergency cryo-coolant charge' },
+      { key: 'Spacebar', action: 'Toggle high-pressure steam venting' }
+    ],
+    instructions: [
+      'Rotate pipe nodes to form uninterrupted flow from magma sources to right-side turbines.',
+      'Avoid dead ends that create extreme pressure build-up and core wear.',
+      'Produce target Megawatt output while keeping core stability above 0%.'
+    ],
+    strategies: [
+      'Distribute flow evenly across multiple turbines to prevent a single conduit from overheating.',
+      'Save your emergency coolant charges for sudden pressure spikes.'
+    ],
+    faqs: [
+      {
+        question: 'What causes core stability to drop?',
+        answer: 'Pipes with heat exceeding 90% build up friction and wear down the subterranean containment grid.'
+      }
+    ]
+  },
+  {
+    id: 'neurolink',
+    slug: 'neurolink',
+    subdomain: 'neurolink',
+    title: 'NeuroLink: Synaptic Router',
+    tagline: 'Route high-speed action potentials across axonal switch junctions to matching receptor terminals!',
+    category: 'arcade',
+    rating: 4.9,
+    playCount: '820K',
+    color: '#6366f1',
+    badge: 'Neuro-Reflex',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'synaptic switch reflex game',
+      'neurotransmitter routing game',
+      'action potential puzzle',
+      'brain lobe circuit game',
+      'fast-paced track switcher online'
+    ],
+    description: 'An electrifying neuro-reflex arcade challenge. As action potentials of Acetylcholine (cyan), Serotonin (pink), and Dopamine (gold) surge down myelin axons, flip synaptic switches to route each pulse to its designated cortex terminal.',
+    controls: [
+      { key: 'Click / Tap Junctions', action: 'Toggle axonal switch branch' },
+      { key: 'Number Keys 1-4', action: 'Directly toggle corresponding junction switch' },
+      { key: 'Spacebar', action: 'Hyper-speed pulse surge' }
+    ],
+    instructions: [
+      'Observe incoming action potential colors surging from the left cortex.',
+      'Click or tap junction nodes to direct impulses along upper or lower axon pathways.',
+      'Match neurotransmitters to the correct receptor terminals (Motor, Limbic, Prefrontal) to build combos.'
+    ],
+    strategies: [
+      'Keep track of the second stage switches early so you only need to make quick final-second adjustments.',
+      'Consecutive successful deliveries multiply your score combo exponentially.'
+    ],
+    faqs: [
+      {
+        question: 'What happens if a neurotransmitter hits the wrong terminal?',
+        answer: 'A mismatch triggers excitotoxicity and drops your synapse integrity by 20%.'
+      }
+    ]
+  },
+  {
+    id: 'tectonicdrift',
+    slug: 'tectonicdrift',
+    subdomain: 'tectonicdrift',
+    title: 'Tectonic Drift: Pangaea Reforged',
+    tagline: 'Slide continental plates across oceanic mantle currents to match fossil strata and fuse Pangaea!',
+    category: 'puzzle',
+    rating: 4.8,
+    playCount: '490K',
+    color: '#059669',
+    badge: 'Plate Tectonics',
+    releaseDate: '2026-03-09',
+    keywords: [
+      'plate tectonics puzzle',
+      'continental drift jigsaw game',
+      'pangaea fossil matching game',
+      'geology continental reconstruction',
+      'earth lithosphere puzzle'
+    ],
+    description: 'Reconstruct Earth supercontinent in this geological plate-sliding puzzle. Drift continental cratons across magma convection currents, matching prehistoric fossil strata (Ferns, Ammonites, Trilobites) along coastlines to fuse Pangaea.',
+    controls: [
+      { key: 'Click & Drag Plates', action: 'Slide continental cratons across oceanic mantle' },
+      { key: 'Snap into Pangaea Zone', action: 'Release plate near matching geological slot' },
+      { key: 'R Key', action: 'Reset mantle convection' }
+    ],
+    instructions: [
+      'Inspect the perimeter borders of each continental craton for fossil markers.',
+      'Drag plates into position on the central Pangaea grid.',
+      'Matching adjacent fossils locks plates together, building mountain ridges and advancing eras.'
+    ],
+    strategies: [
+      'Start with the corner cratons (Laurentia and Siberia) which have fewer shared borders.',
+      'Track your remaining seismic shifts to avoid running out of mantle convection energy.'
+    ],
+    faqs: [
+      {
+        question: 'Are the fossil biomes based on real paleontology?',
+        answer: 'Yes! Glossopteris ferns and ammonite distributions were real historical evidence for continental drift.'
+      }
+    ]
   }
 ];
 

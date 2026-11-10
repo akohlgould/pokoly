@@ -1,0 +1,324 @@
+---
+// ChronoWave: Doppler Echo
+---
+
+<div id="chronowave-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div>Crystals: <span id="cw-shattered" class="font-mono font-bold text-brand-neon">0/3</span></div>
+    <div>Pulses Left: <span id="cw-pulses" class="font-mono font-bold text-amber-400">8</span></div>
+    <div>Harmonic Resonance: <span id="cw-resonance" class="font-mono font-bold text-white">0%</span></div>
+  </div>
+
+  <!-- Sonar Ocean/Cave Canvas -->
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="cw-canvas" width="360" height="380" class="block cursor-pointer touch-none"></canvas>
+
+    <!-- Wave Type Selector Float Overlay -->
+    <div class="absolute bottom-3 inset-x-3 flex items-center justify-center gap-2 bg-brand-dark/80 backdrop-blur-md p-2 rounded-xl border border-brand-border/60">
+      <button class="cw-freq-btn flex-1 py-1.5 rounded-lg border border-cyan-500/60 bg-cyan-950/40 text-cyan-300 font-mono text-[11px] font-bold active:scale-95 transition-all" data-freq="bass">
+        BASS (Slow)
+      </button>
+      <button class="cw-freq-btn flex-1 py-1.5 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-mono text-[11px] font-bold active:scale-95 transition-all" data-freq="mid">
+        MID (Med)
+      </button>
+      <button class="cw-freq-btn flex-1 py-1.5 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-mono text-[11px] font-bold active:scale-95 transition-all" data-freq="treble">
+        TREBLE (Fast)
+      </button>
+    </div>
+
+    <!-- Victory Overlay -->
+    <div id="cw-modal" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span class="text-5xl animate-bounce">💎</span>
+      <h3 class="text-2xl font-black text-white mt-2">Harmonic Resonance Hit!</h3>
+      <p class="text-xs text-gray-300 mt-1">All acoustic crystals shattered through constructive interference!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="cw-modal-btn" class="mt-4 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Next Cavern Depth →
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center">
+    Tap anywhere in the sonar pool to emit acoustic waves. Time sequential pulses so their wave crests intersect at crystal targets!
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('cw-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const shatteredEl = document.getElementById('cw-shattered')!;
+  const pulsesEl = document.getElementById('cw-pulses')!;
+  const resonanceEl = document.getElementById('cw-resonance')!;
+  const modal = document.getElementById('cw-modal')!;
+  const modalBtn = document.getElementById('cw-modal-btn')!;
+
+  interface Wave {
+    x: number;
+    y: number;
+    radius: number;
+    speed: number;
+    color: string;
+    freq: 'bass' | 'mid' | 'treble';
+    alpha: number;
+  }
+
+  interface Crystal {
+    x: number;
+    y: number;
+    targetInterference: number; // requires 2 wave crests simultaneously
+    currentIntensity: number;
+    shattered: boolean;
+  }
+
+  interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    alpha: number;
+  }
+
+  let selectedFreq: 'bass' | 'mid' | 'treble' = 'bass';
+  let pulsesRemaining = 8;
+  let waves: Wave[] = [];
+  let crystals: Crystal[] = [];
+  let particles: Particle[] = [];
+  let isGameOver = false;
+
+  const FREQ_CONFIG = {
+    bass: { speed: 1.8, color: '#06b6d4', width: 6 },
+    mid: { speed: 3.2, color: '#f59e0b', width: 4 },
+    treble: { speed: 5.2, color: '#a855f7', width: 2.5 }
+  };
+
+  function initCavern() {
+    isGameOver = false;
+    pulsesRemaining = 8;
+    waves = [];
+    particles = [];
+    modal.classList.add('hidden');
+    pulsesEl.textContent = pulsesRemaining.toString();
+
+    // Position 3 resonant crystals
+    crystals = [
+      { x: 90, y: 100, targetInterference: 2, currentIntensity: 0, shattered: false },
+      { x: 270, y: 120, targetInterference: 2, currentIntensity: 0, shattered: false },
+      { x: 180, y: 260, targetInterference: 2, currentIntensity: 0, shattered: false }
+    ];
+
+    updateStats();
+    player.trackGamePlay('chronowave');
+  }
+
+  function updateStats() {
+    const broken = crystals.filter(c => c.shattered).length;
+    shatteredEl.textContent = `${broken}/3`;
+    const maxRes = Math.round(Math.max(0, ...crystals.map(c => c.currentIntensity * 50)));
+    resonanceEl.textContent = `${Math.min(100, maxRes)}%`;
+  }
+
+  function emitPulse(x: number, y: number) {
+    if (pulsesRemaining <= 0 || isGameOver) return;
+    sound.score();
+    pulsesRemaining--;
+    pulsesEl.textContent = pulsesRemaining.toString();
+
+    const cfg = FREQ_CONFIG[selectedFreq];
+    waves.push({
+      x,
+      y,
+      radius: 4,
+      speed: cfg.speed,
+      color: cfg.color,
+      freq: selectedFreq,
+      alpha: 1
+    });
+
+    // Pulse emitter shockwave spark
+    for (let i = 0; i < 8; i++) {
+      particles.push({
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3,
+        color: cfg.color,
+        alpha: 1
+      });
+    }
+  }
+
+  function loop() {
+    // Update waves
+    waves.forEach(w => {
+      w.radius += w.speed;
+      w.alpha = Math.max(0, 1 - w.radius / 360);
+    });
+    waves = waves.filter(w => w.alpha > 0);
+
+    // Evaluate interference at crystal nodes
+    crystals.forEach(c => {
+      if (c.shattered) return;
+      let crestHits = 0;
+      waves.forEach(w => {
+        const d = Math.hypot(c.x - w.x, c.y - w.y);
+        // Did a wave crest hit this crystal within tolerance?
+        if (Math.abs(d - w.radius) < 8) {
+          crestHits++;
+        }
+      });
+
+      c.currentIntensity = crestHits;
+
+      // Constructive interference check (2 or more distinct wave crests colliding on node)
+      if (crestHits >= c.targetInterference) {
+        c.shattered = true;
+        sound.victory();
+
+        // Crystal shatter explosion
+        for (let i = 0; i < 20; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spd = Math.random() * 4 + 2;
+          particles.push({
+            x: c.x,
+            y: c.y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            color: '#38bdf8',
+            alpha: 1
+          });
+        }
+      }
+    });
+
+    updateStats();
+
+    // Check Win
+    if (crystals.every(c => c.shattered) && !isGameOver) {
+      isGameOver = true;
+      sound.victory();
+      launchConfetti();
+      player.addXP(250, 'Acoustic Doppler Resonance Solved');
+      modal.classList.remove('hidden');
+    }
+
+    // Update particles
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= 0.03;
+    });
+    particles = particles.filter(p => p.alpha > 0);
+
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#05070e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Sonar concentric distance radar rings
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+    ctx.lineWidth = 1;
+    for (let r = 50; r < 360; r += 50) {
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Draw Expanding Waves
+    waves.forEach(w => {
+      ctx.save();
+      ctx.globalAlpha = w.alpha;
+      ctx.strokeStyle = w.color;
+      ctx.lineWidth = FREQ_CONFIG[w.freq].width;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Draw Resonant Crystals
+    crystals.forEach(c => {
+      if (c.shattered) {
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        return;
+      }
+
+      // Crystal glow
+      const isResonating = c.currentIntensity > 0;
+      ctx.fillStyle = isResonating ? '#f59e0b' : '#38bdf8';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+
+      // Draw Diamond Crystal Shape
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y - 12);
+      ctx.lineTo(c.x + 10, c.y);
+      ctx.lineTo(c.x, c.y + 12);
+      ctx.lineTo(c.x - 10, c.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Resonance wave aura
+      if (isResonating) {
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 18, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+
+    // Draw Particles
+    particles.forEach(p => {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Freq selector buttons
+  document.querySelectorAll('.cw-freq-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      sound.click();
+      selectedFreq = (e.currentTarget as HTMLElement).dataset.freq as any;
+      document.querySelectorAll('.cw-freq-btn').forEach(b => {
+        b.className = 'cw-freq-btn flex-1 py-1.5 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-mono text-[11px] font-bold active:scale-95 transition-all';
+      });
+      (e.currentTarget as HTMLElement).className = 'cw-freq-btn flex-1 py-1.5 rounded-lg border border-cyan-500/60 bg-cyan-950/40 text-cyan-300 font-mono text-[11px] font-bold active:scale-95 transition-all';
+    });
+  });
+
+  // Tap to emit pulse
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    emitPulse(e.clientX - rect.left, e.clientY - rect.top);
+  });
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      emitPulse(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+    }
+  }, { passive: false });
+
+  modalBtn.addEventListener('click', initCavern);
+
+  initCavern();
+  loop();
+</script>

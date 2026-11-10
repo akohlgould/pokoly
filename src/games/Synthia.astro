@@ -1,0 +1,287 @@
+---
+// Synthia: Modular Rhythm Cyber
+---
+
+<div id="synthia-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs font-mono">
+    <div>Firewall: <span class="text-rose-400 font-bold">CYBER-CORE 09</span></div>
+    <div>Signal Match: <span id="syn-match" class="text-brand-neon font-black">0%</span></div>
+    <div>Patches: <span id="syn-cables" class="text-white font-bold">0/3</span></div>
+  </div>
+
+  <!-- Real-time Oscilloscope Waveform Display -->
+  <div class="relative w-full rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl p-2 mb-3">
+    <div class="flex items-center justify-between text-[10px] font-mono text-gray-400 px-2 pb-1">
+      <span>TARGET WAVEFORM (Gold)</span>
+      <span>CURRENT SYNTHESIS (Neon)</span>
+    </div>
+    <canvas id="syn-oscilloscope" width="360" height="120" class="block bg-black/90 rounded-xl"></canvas>
+  </div>
+
+  <!-- Modular Patch Bay Grid -->
+  <div class="grid grid-cols-2 gap-2.5 w-full">
+    <!-- Module 1: VCO Oscillator -->
+    <div class="rounded-xl border border-brand-border bg-brand-card/90 p-3 flex flex-col justify-between text-xs">
+      <div class="flex items-center justify-between font-mono font-bold text-white">
+        <span>VCO 1</span>
+        <span class="text-[9px] text-brand-neon">SQUARE</span>
+      </div>
+      <div class="mt-2 flex items-center justify-between">
+        <span class="text-[10px] text-gray-400 font-mono">Audio Out</span>
+        <button class="syn-jack h-7 w-7 rounded-full bg-brand-dark border-2 border-brand-neon flex items-center justify-center font-mono text-[9px] font-bold text-brand-neon hover:scale-110 active:scale-95" data-jack="vco-out" data-type="out">
+          OUT
+        </button>
+      </div>
+    </div>
+
+    <!-- Module 2: Resonant Filter -->
+    <div class="rounded-xl border border-brand-border bg-brand-card/90 p-3 flex flex-col justify-between text-xs">
+      <div class="flex items-center justify-between font-mono font-bold text-white">
+        <span>VCF FILTER</span>
+        <span class="text-[9px] text-rose-400">LOWPASS</span>
+      </div>
+      <div class="mt-2 flex items-center justify-between">
+        <button class="syn-jack h-7 w-7 rounded-full bg-brand-dark border-2 border-rose-500 flex items-center justify-center font-mono text-[9px] font-bold text-rose-400 hover:scale-110 active:scale-95" data-jack="vcf-in" data-type="in">
+          IN
+        </button>
+        <button class="syn-jack h-7 w-7 rounded-full bg-brand-dark border-2 border-rose-500 flex items-center justify-center font-mono text-[9px] font-bold text-rose-400 hover:scale-110 active:scale-95" data-jack="vcf-out" data-type="out">
+          OUT
+        </button>
+      </div>
+    </div>
+
+    <!-- Module 3: LFO Rate Modulator -->
+    <div class="rounded-xl border border-brand-border bg-brand-card/90 p-3 flex flex-col justify-between text-xs">
+      <div class="flex items-center justify-between font-mono font-bold text-white">
+        <span>LFO MOD</span>
+        <span class="text-[9px] text-amber-400">4.5 Hz</span>
+      </div>
+      <div class="mt-2 flex items-center justify-between">
+        <span class="text-[10px] text-gray-400 font-mono">CV Mod</span>
+        <button class="syn-jack h-7 w-7 rounded-full bg-brand-dark border-2 border-amber-500 flex items-center justify-center font-mono text-[9px] font-bold text-amber-400 hover:scale-110 active:scale-95" data-jack="lfo-out" data-type="out">
+          OUT
+        </button>
+      </div>
+    </div>
+
+    <!-- Module 4: Output Amp (Master) -->
+    <div class="rounded-xl border border-brand-border bg-brand-card/90 p-3 flex flex-col justify-between text-xs">
+      <div class="flex items-center justify-between font-mono font-bold text-white">
+        <span>MASTER VCA</span>
+        <span class="text-[9px] text-emerald-400">FIREWALL</span>
+      </div>
+      <div class="mt-2 flex items-center justify-between">
+        <button class="syn-jack h-7 w-7 rounded-full bg-brand-dark border-2 border-emerald-500 flex items-center justify-center font-mono text-[9px] font-bold text-emerald-400 hover:scale-110 active:scale-95" data-jack="master-in" data-type="in">
+          IN
+        </button>
+        <span class="text-[10px] text-emerald-400 font-mono font-bold">READY</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 flex gap-2 w-full">
+    <button id="syn-clear-patches" class="flex-1 rounded-xl border border-brand-border bg-brand-card py-2 text-xs font-semibold text-gray-300 hover:text-white transition-colors">
+      Unplug All Cables
+    </button>
+  </div>
+
+  <!-- Victory Overlay Modal -->
+  <div id="syn-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 font-mono">
+    <div class="rounded-3xl border-2 border-brand-neon bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span class="text-5xl animate-bounce">🎛️</span>
+      <h3 class="text-2xl font-black text-brand-neon mt-2">FIREWALL BREACHED!</h3>
+      <p class="text-xs text-gray-300 mt-1">Harmonic synth frequency matched at 100%! Cyber core audio stream decoded.</p>
+      <div class="mt-2 text-xs text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="syn-modal-btn" class="mt-4 w-full rounded-2xl bg-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Next Cyber Node →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const oscCanvas = document.getElementById('syn-oscilloscope') as HTMLCanvasElement;
+  const ctx = oscCanvas.getContext('2d')!;
+  const matchEl = document.getElementById('syn-match')!;
+  const cablesEl = document.getElementById('syn-cables')!;
+  const clearBtn = document.getElementById('syn-clear-patches')!;
+  const modal = document.getElementById('syn-modal')!;
+  const modalBtn = document.getElementById('syn-modal-btn')!;
+
+  interface Connection {
+    from: string;
+    to: string;
+  }
+
+  let activeSourceJack: string | null = null;
+  let connections: Connection[] = [];
+  let isGameOver = false;
+  let phase = 0;
+
+  // Web Audio Context for live procedural sound
+  let audioCtx: AudioContext | null = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+  }
+
+  function initSynth() {
+    isGameOver = false;
+    connections = [];
+    activeSourceJack = null;
+    modal.classList.add('hidden');
+    cablesEl.textContent = '0/3';
+    matchEl.textContent = '0%';
+    renderJackStates();
+    player.trackGamePlay('synthia');
+  }
+
+  function handleJackClick(jackId: string, type: string) {
+    initAudio();
+    sound.click();
+
+    if (type === 'out') {
+      activeSourceJack = jackId;
+      renderJackStates();
+    } else if (type === 'in' && activeSourceJack) {
+      // Create connection
+      if (!connections.some(c => c.from === activeSourceJack && c.to === jackId)) {
+        connections.push({ from: activeSourceJack, to: jackId });
+        sound.score();
+
+        // Play brief beep
+        if (audioCtx) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.frequency.setValueAtTime(320 + connections.length * 150, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.3);
+        }
+      }
+      activeSourceJack = null;
+      renderJackStates();
+      evaluateMatch();
+    }
+  }
+
+  function renderJackStates() {
+    document.querySelectorAll('.syn-jack').forEach(btn => {
+      const id = (btn as HTMLElement).dataset.jack;
+      if (id === activeSourceJack) {
+        btn.classList.add('animate-ping', 'brightness-150');
+      } else {
+        btn.classList.remove('animate-ping', 'brightness-150');
+      }
+    });
+    cablesEl.textContent = `${connections.length}/3`;
+  }
+
+  function evaluateMatch() {
+    // Target combination requires: VCO -> VCF -> Master, and LFO -> VCF
+    const hasVcoToVcf = connections.some(c => c.from === 'vco-out' && c.to === 'vcf-in');
+    const hasVcfToMaster = connections.some(c => c.from === 'vcf-out' && c.to === 'master-in');
+    const hasLfoToVcf = connections.some(c => c.from === 'lfo-out' && c.to === 'vcf-in');
+
+    let match = 0;
+    if (hasVcoToVcf) match += 35;
+    if (hasVcfToMaster) match += 40;
+    if (hasLfoToVcf) match += 25;
+
+    matchEl.textContent = `${match}%`;
+
+    if (match >= 100 && !isGameOver) {
+      isGameOver = true;
+      sound.victory();
+      launchConfetti();
+      player.addXP(250, 'Synthia Modular Synthesizer Firewall Hack');
+      setTimeout(() => {
+        modal.classList.remove('hidden');
+      }, 500);
+    }
+  }
+
+  function loop() {
+    phase += 0.08;
+    drawOscilloscope();
+    requestAnimationFrame(loop);
+  }
+
+  function drawOscilloscope() {
+    ctx.fillStyle = '#05070e';
+    ctx.fillRect(0, 0, oscCanvas.width, oscCanvas.height);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.1)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < oscCanvas.width; x += 30) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, oscCanvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < oscCanvas.height; y += 30) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(oscCanvas.width, y);
+      ctx.stroke();
+    }
+
+    // 1. Target Waveform (Gold reference)
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x < oscCanvas.width; x++) {
+      const y = oscCanvas.height / 2 + Math.sin(x * 0.05 + phase) * 35 * Math.sin(x * 0.01 + phase * 0.5);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // 2. Synthesized Waveform (Neon)
+    const match = parseInt(matchEl.textContent || '0', 10);
+    if (match > 0) {
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      for (let x = 0; x < oscCanvas.width; x++) {
+        const factor = match / 100;
+        const wave = Math.sin(x * 0.05 + phase) * (20 + 15 * factor) * Math.sin(x * 0.01 * factor + phase * 0.5);
+        const y = oscCanvas.height / 2 + wave;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  document.querySelectorAll('.syn-jack').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const el = e.currentTarget as HTMLElement;
+      handleJackClick(el.dataset.jack!, el.dataset.type!);
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    sound.click();
+    initSynth();
+  });
+
+  modalBtn.addEventListener('click', initSynth);
+
+  initSynth();
+  loop();
+</script>

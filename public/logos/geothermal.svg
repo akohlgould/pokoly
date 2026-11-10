@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="gt-magma" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f97316" />
+          <stop offset="100%" stop-color="#dc2626" />
+        </linearGradient>
+        <filter id="gt-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f97316" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#140a06" />
+      <!-- High Pressure Pipes -->
+      <path d="M22 60 H54 V26 H98" fill="none" stroke="#44403c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M22 60 H54 V26 H98" fill="none" stroke="url(#gt-magma)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#gt-glow)" />
+      <!-- Coolant Water Drops -->
+      <circle cx="38" cy="88" r="7" fill="#06b6d4" />
+      <path d="M38 78 L43 86 H33 Z" fill="#06b6d4" />
+      <!-- Geothermal Turbine Blades -->
+      <circle cx="96" cy="26" r="14" fill="#1c1917" stroke="#34d399" stroke-width="2" />
+      <line x1="96" y1="16" x2="96" y2="36" stroke="#34d399" stroke-width="2" />
+      <line x1="86" y1="26" x2="106" y2="26" stroke="#34d399" stroke-width="2" />
+    </svg>

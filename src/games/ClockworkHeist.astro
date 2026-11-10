@@ -1,0 +1,708 @@
+---
+// ClockworkHeist.astro - Temporal Rewind Vault Infiltration Co-op Puzzle
+---
+<div class="relative w-full h-[650px] bg-slate-950 rounded-2xl overflow-hidden border border-amber-500/30 flex flex-col select-none font-mono">
+  <!-- HUD Header -->
+  <div class="h-14 bg-slate-900/90 border-b border-amber-500/20 px-4 flex items-center justify-between text-xs sm:text-sm text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">
+        ⏳
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2">
+          <span>CLOCKWORK HEIST</span>
+          <span id="level-badge" class="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 rounded border border-amber-500/40">VAULT 1</span>
+        </div>
+        <div class="text-[10px] text-slate-400">TEMPORAL GHOST SYNC PROTOCOL</div>
+      </div>
+    </div>
+
+    <!-- Timeline / Loop indicator -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+        <span class="text-slate-400 text-[11px]">LOOP:</span>
+        <div id="loop-indicators" class="flex gap-1">
+          <span class="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+          <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+          <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+        </div>
+      </div>
+
+      <div class="bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded-full flex items-center gap-2">
+        <span class="text-amber-400 font-bold text-sm" id="time-left">15.0s</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button id="rewind-btn" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold transition-all flex items-center gap-1 active:scale-95">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"></path></svg>
+        <span>REWIND (R)</span>
+      </button>
+      <button id="reset-vault-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 rounded-lg text-xs transition-all">
+        RESET
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Stage -->
+  <div class="relative flex-1 bg-[#090d16] overflow-hidden flex items-center justify-center">
+    <canvas id="game-canvas" class="w-full h-full cursor-crosshair"></canvas>
+
+    <!-- Overlay Instructions / Ghost Timeline bar -->
+    <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between pointer-events-none text-xs">
+      <div class="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 shadow-lg pointer-events-auto">
+        <span class="text-amber-400 font-bold">CONTROLS:</span> WASD / Arrow Keys or Click/Drag to Move &bull; Step on switches to deactivate lasers
+      </div>
+      <div class="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 shadow-lg flex items-center gap-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span id="infiltrator-label" class="text-cyan-300 font-bold">OPERATIVE ALPHA (CURRENT)</span>
+      </div>
+    </div>
+
+    <!-- Victory / Mission Completed Modal -->
+    <div id="victory-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-slate-900 border border-amber-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.2)]">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+          🏆
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">HEIST SUCCESSFUL!</h2>
+        <p class="text-xs sm:text-sm text-slate-300 mb-4" id="victory-desc">The Quantum Core was secured using temporal synchronicity!</p>
+        <div class="flex justify-center gap-4 text-xs text-amber-400 font-bold mb-6 bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <div>LOOPS USED: <span id="stat-loops" class="text-white">1</span>/3</div>
+          <div>TIME REMAINING: <span id="stat-time" class="text-white">4.8s</span></div>
+          <div>XP EARNED: <span class="text-emerald-400">+150 XP</span></div>
+        </div>
+        <div class="flex gap-3 justify-center">
+          <button id="next-level-btn" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg transition-all active:scale-95">
+            NEXT VAULT &rarr;
+          </button>
+          <button id="replay-btn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm rounded-xl border border-slate-600 transition-all">
+            RETRY
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const timeLeftEl = document.getElementById('time-left')!;
+  const rewindBtn = document.getElementById('rewind-btn')!;
+  const resetVaultBtn = document.getElementById('reset-vault-btn')!;
+  const levelBadge = document.getElementById('level-badge')!;
+  const loopIndicators = document.getElementById('loop-indicators')!;
+  const infiltratorLabel = document.getElementById('infiltrator-label')!;
+  const victoryModal = document.getElementById('victory-modal')!;
+  const victoryDesc = document.getElementById('victory-desc')!;
+  const nextLevelBtn = document.getElementById('next-level-btn')!;
+  const replayBtn = document.getElementById('replay-btn')!;
+  const statLoops = document.getElementById('stat-loops')!;
+  const statTime = document.getElementById('stat-time')!;
+
+  const LOOP_DURATION = 14.0; // 14 seconds per loop
+  const MAX_LOOPS = 3;
+
+  const OPERATIVE_NAMES = ['ALPHA (CYAN)', 'BETA (MAGENTA)', 'GAMMA (AMBER)'];
+  const OPERATIVE_COLORS = ['#06b6d4', '#ec4899', '#f59e0b'];
+
+  interface LevelDef {
+    name: string;
+    description: string;
+    spawn: { x: number; y: number };
+    core: { x: number; y: number; secured: boolean };
+    exit: { x: number; y: number; r: number };
+    walls: { x: number; y: number; w: number; h: number }[];
+    switches: { id: string; x: number; y: number; r: number; active: boolean; color: string }[];
+    lasers: { x1: number; y1: number; x2: number; y2: number; switchId: string; active: boolean }[];
+  }
+
+  const LEVELS: LevelDef[] = [
+    {
+      name: 'VAULT 1: SPLIT SECONDS',
+      description: 'Step on the switch to drop the laser barrier, then rewind so your past ghost holds it while you sprint to the Core!',
+      spawn: { x: 80, y: 300 },
+      core: { x: 500, y: 300, secured: false },
+      exit: { x: 80, y: 300, r: 35 },
+      walls: [
+        { x: 380, y: 0, w: 20, h: 220 },
+        { x: 380, y: 380, w: 20, h: 220 },
+      ],
+      switches: [
+        { id: 's1', x: 220, y: 150, r: 24, active: false, color: '#06b6d4' }
+      ],
+      lasers: [
+        { x1: 390, y1: 220, x2: 390, y2: 380, switchId: 's1', active: true }
+      ]
+    },
+    {
+      name: 'VAULT 2: TWO-PHASE RELAY',
+      description: 'Two separate security gates block the quantum payload. Synchronize two ghosts to hold both gate relays simultaneously!',
+      spawn: { x: 80, y: 120 },
+      core: { x: 700, y: 500, secured: false },
+      exit: { x: 80, y: 120, r: 35 },
+      walls: [
+        { x: 280, y: 0, w: 20, h: 360 },
+        { x: 520, y: 240, w: 20, h: 360 },
+      ],
+      switches: [
+        { id: 's1', x: 120, y: 480, r: 24, active: false, color: '#06b6d4' },
+        { id: 's2', x: 380, y: 100, r: 24, active: false, color: '#ec4899' }
+      ],
+      lasers: [
+        { x1: 290, y1: 360, x2: 290, y2: 600, switchId: 's1', active: true },
+        { x1: 530, y1: 0, x2: 530, y2: 240, switchId: 's2', active: true }
+      ]
+    },
+    {
+      name: 'VAULT 3: THE CHRONO TRINITY',
+      description: 'A fortified matrix vault. Three interlocking force fields require all three operatives moving in perfect temporal tandem!',
+      spawn: { x: 80, y: 300 },
+      core: { x: 720, y: 300, secured: false },
+      exit: { x: 80, y: 300, r: 35 },
+      walls: [
+        { x: 240, y: 0, w: 20, h: 200 },
+        { x: 240, y: 400, w: 20, h: 200 },
+        { x: 480, y: 150, w: 20, h: 300 },
+      ],
+      switches: [
+        { id: 's1', x: 140, y: 100, r: 24, active: false, color: '#06b6d4' },
+        { id: 's2', x: 360, y: 500, r: 24, active: false, color: '#ec4899' },
+        { id: 's3', x: 360, y: 100, r: 24, active: false, color: '#f59e0b' }
+      ],
+      lasers: [
+        { x1: 250, y1: 200, x2: 250, y2: 400, switchId: 's1', active: true },
+        { x1: 490, y1: 0, x2: 490, y2: 150, switchId: 's2', active: true },
+        { x1: 490, y1: 450, x2: 490, y2: 600, switchId: 's3', active: true }
+      ]
+    }
+  ];
+
+  let currentLevelIdx = 0;
+  let currentLoop = 0; // 0, 1, 2
+  let loopTimer = LOOP_DURATION;
+  let isRunning = false;
+  let hasWon = false;
+
+  interface PositionSample {
+    x: number;
+    y: number;
+    hasCore: boolean;
+  }
+
+  // Recorded paths: ghostPaths[loopIndex] = Array of { x, y, hasCore } sampled every ~16ms
+  let ghostPaths: PositionSample[][] = [];
+  let currentRecording: PositionSample[] = [];
+
+  let playerPos = { x: 80, y: 300, vx: 0, vy: 0, r: 12, hasCore: false };
+  let activeKeys: Record<string, boolean> = {};
+  let targetPos: { x: number; y: number } | null = null;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+
+  function loadLevel(idx: number) {
+    currentLevelIdx = idx % LEVELS.length;
+    currentLoop = 0;
+    ghostPaths = [];
+    currentRecording = [];
+    hasWon = false;
+    victoryModal.classList.add('hidden');
+
+    const lvl = LEVELS[currentLevelIdx];
+    lvl.core.secured = false;
+    playerPos.x = lvl.spawn.x;
+    playerPos.y = lvl.spawn.y;
+    playerPos.vx = 0;
+    playerPos.vy = 0;
+    playerPos.hasCore = false;
+    targetPos = null;
+
+    levelBadge.textContent = `VAULT ${currentLevelIdx + 1}`;
+    startLoop(0);
+  }
+
+  function startLoop(loopIdx: number) {
+    currentLoop = loopIdx;
+    loopTimer = LOOP_DURATION;
+    currentRecording = [];
+
+    const lvl = LEVELS[currentLevelIdx];
+    // If the core was secured in a previous loop by a ghost, keep core secured state
+    // but current player starts without core unless they pick it up
+    playerPos.x = lvl.spawn.x;
+    playerPos.y = lvl.spawn.y;
+    playerPos.vx = 0;
+    playerPos.vy = 0;
+    playerPos.hasCore = false;
+    targetPos = null;
+
+    updateHUD();
+    sound.click();
+  }
+
+  function rewindLoop() {
+    if (hasWon) return;
+    // Commit current recording
+    ghostPaths[currentLoop] = [...currentRecording];
+
+    if (currentLoop < MAX_LOOPS - 1) {
+      sound.rewind();
+      startLoop(currentLoop + 1);
+    } else {
+      // Out of loops: restart from loop 0
+      sound.fail();
+      ghostPaths = [];
+      startLoop(0);
+    }
+  }
+
+  function updateHUD() {
+    timeLeftEl.textContent = `${Math.max(0, loopTimer).toFixed(1)}s`;
+    
+    // Update loop dots
+    const dots = loopIndicators.children;
+    for (let i = 0; i < dots.length; i++) {
+      const dot = dots[i] as HTMLElement;
+      if (i === currentLoop) {
+        dot.className = `w-3 h-3 rounded-full shadow-lg ${
+          i === 0 ? 'bg-cyan-400 shadow-[0_0_8px_#22d3ee]' : 
+          i === 1 ? 'bg-pink-500 shadow-[0_0_8px_#ec4899]' : 
+          'bg-amber-400 shadow-[0_0_8px_#f59e0b]'
+        }`;
+      } else if (i < currentLoop) {
+        dot.className = 'w-3 h-3 rounded-full bg-slate-400 opacity-60';
+      } else {
+        dot.className = 'w-3 h-3 rounded-full bg-slate-700';
+      }
+    }
+
+    infiltratorLabel.textContent = `OPERATIVE ${OPERATIVE_NAMES[currentLoop]}`;
+    infiltratorLabel.style.color = OPERATIVE_COLORS[currentLoop];
+  }
+
+  // Input listeners
+  window.addEventListener('keydown', (e) => {
+    activeKeys[e.key.toLowerCase()] = true;
+    if (e.key.toLowerCase() === 'r') {
+      rewindLoop();
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    activeKeys[e.key.toLowerCase()] = false;
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    targetPos = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (e.buttons > 0) {
+      const rect = canvas.getBoundingClientRect();
+      targetPos = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+  });
+
+  rewindBtn.addEventListener('click', rewindLoop);
+  resetVaultBtn.addEventListener('click', () => {
+    sound.click();
+    loadLevel(currentLevelIdx);
+  });
+
+  nextLevelBtn.addEventListener('click', () => {
+    sound.click();
+    loadLevel(currentLevelIdx + 1);
+  });
+  replayBtn.addEventListener('click', () => {
+    sound.click();
+    loadLevel(currentLevelIdx);
+  });
+
+  // Collision utility
+  function lineIntersectsCircle(x1: number, y1: number, x2: number, y2: number, cx: number, cy: number, r: number): boolean {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    if (len === 0) return Math.hypot(cx - x1, cy - y1) <= r;
+    const u = Math.max(0, Math.min(1, ((cx - x1) * dx + (cy - y1) * dy) / (len * len)));
+    const px = x1 + u * dx;
+    const py = y1 + u * dy;
+    return Math.hypot(cx - px, cy - py) <= r;
+  }
+
+  let lastTime = performance.now();
+  function gameLoop(now: number) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+
+    if (!hasWon) {
+      loopTimer -= dt;
+      if (loopTimer <= 0) {
+        rewindLoop();
+      }
+      updateHUD();
+
+      // Update Player Movement
+      const speed = 190;
+      let mx = 0;
+      let my = 0;
+
+      if (activeKeys['w'] || activeKeys['arrowup']) my -= 1;
+      if (activeKeys['s'] || activeKeys['arrowdown']) my += 1;
+      if (activeKeys['a'] || activeKeys['arrowleft']) mx -= 1;
+      if (activeKeys['d'] || activeKeys['arrowright']) mx += 1;
+
+      if (targetPos) {
+        const dx = targetPos.x - playerPos.x;
+        const dy = targetPos.y - playerPos.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 8) {
+          mx = dx / dist;
+          my = dy / dist;
+        } else {
+          targetPos = null;
+        }
+      }
+
+      if (mx !== 0 && my !== 0) {
+        const l = Math.hypot(mx, my);
+        mx /= l;
+        my /= l;
+      }
+
+      const nextX = playerPos.x + mx * speed * dt;
+      const nextY = playerPos.y + my * speed * dt;
+
+      // Wall bounds & collision
+      const lvl = LEVELS[currentLevelIdx];
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+
+      let collides = false;
+      for (const wall of lvl.walls) {
+        if (nextX + playerPos.r > wall.x && nextX - playerPos.r < wall.x + wall.w &&
+            nextY + playerPos.r > wall.y && nextY - playerPos.r < wall.y + wall.h) {
+          collides = true;
+          break;
+        }
+      }
+
+      if (!collides && nextX >= playerPos.r && nextX <= w - playerPos.r) {
+        playerPos.x = nextX;
+      }
+      if (!collides && nextY >= playerPos.r && nextY <= h - playerPos.r) {
+        playerPos.y = nextY;
+      }
+
+      // Record sample
+      currentRecording.push({
+        x: playerPos.x,
+        y: playerPos.y,
+        hasCore: playerPos.hasCore
+      });
+
+      // Sample ghost positions at current frame
+      const frameIdx = currentRecording.length - 1;
+      const activeGhosts: PositionSample[] = [];
+      for (let g = 0; g < currentLoop; g++) {
+        if (ghostPaths[g] && ghostPaths[g][frameIdx]) {
+          activeGhosts.push(ghostPaths[g][frameIdx]);
+        }
+      }
+
+      // Check switch presses from ANY active entity (Player or Ghosts)
+      const allEntities = [{ x: playerPos.x, y: playerPos.y }, ...activeGhosts];
+      for (const sw of lvl.switches) {
+        let pressed = false;
+        for (const ent of allEntities) {
+          if (Math.hypot(ent.x - sw.x, ent.y - sw.y) <= sw.r + 10) {
+            pressed = true;
+            break;
+          }
+        }
+        if (pressed && !sw.active) {
+          sound.hit();
+        }
+        sw.active = pressed;
+      }
+
+      // Update laser states
+      for (const laser of lvl.lasers) {
+        const sw = lvl.switches.find(s => s.id === laser.switchId);
+        laser.active = !(sw && sw.active);
+      }
+
+      // Check laser collisions for current player
+      for (const laser of lvl.lasers) {
+        if (laser.active && lineIntersectsCircle(laser.x1, laser.y1, laser.x2, laser.y2, playerPos.x, playerPos.y, playerPos.r)) {
+          // Zap!
+          sound.fail();
+          playerPos.x = lvl.spawn.x;
+          playerPos.y = lvl.spawn.y;
+          targetPos = null;
+          break;
+        }
+      }
+
+      // Check Core pickup (by player or by ghost)
+      let anyoneHasCore = playerPos.hasCore;
+      for (const gh of activeGhosts) {
+        if (gh.hasCore) anyoneHasCore = true;
+      }
+
+      if (!anyoneHasCore && !lvl.core.secured) {
+        if (Math.hypot(playerPos.x - lvl.core.x, playerPos.y - lvl.core.y) <= 28) {
+          playerPos.hasCore = true;
+          sound.score();
+        }
+      }
+
+      // Check Extraction / Victory
+      if (playerPos.hasCore || anyoneHasCore) {
+        // If an operative reached extraction
+        if (Math.hypot(playerPos.x - lvl.exit.x, playerPos.y - lvl.exit.y) <= lvl.exit.r && playerPos.hasCore) {
+          triggerVictory();
+        }
+        for (const gh of activeGhosts) {
+          if (gh.hasCore && Math.hypot(gh.x - lvl.exit.x, gh.y - lvl.exit.y) <= lvl.exit.r) {
+            triggerVictory();
+          }
+        }
+      }
+    }
+
+    // Render Canvas
+    render(now);
+    requestAnimationFrame(gameLoop);
+  }
+
+  function triggerVictory() {
+    if (hasWon) return;
+    hasWon = true;
+    sound.powerup();
+    launchConfetti();
+    player.addXP(150);
+
+    statLoops.textContent = `${currentLoop + 1}`;
+    statTime.textContent = `${loopTimer.toFixed(1)}s`;
+    victoryDesc.textContent = `Operative synchronicity achieved in Vault ${currentLevelIdx + 1}! All security lattices bypassed.`;
+    victoryModal.classList.remove('hidden');
+  }
+
+  function render(time: number) {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark grid pattern
+    ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+    ctx.lineWidth = 1;
+    const gridSize = 40;
+    for (let x = 0; x < w; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y < h; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    const lvl = LEVELS[currentLevelIdx];
+    if (!lvl) return;
+
+    // Draw Extraction Zone
+    ctx.beginPath();
+    ctx.arc(lvl.exit.x, lvl.exit.y, lvl.exit.r + Math.sin(time / 200) * 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('EXTRACTION', lvl.exit.x, lvl.exit.y + 4);
+
+    // Draw Switches
+    for (const sw of lvl.switches) {
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+      ctx.fillStyle = sw.active ? 'rgba(56, 189, 248, 0.4)' : 'rgba(30, 41, 59, 0.8)';
+      ctx.fill();
+      ctx.strokeStyle = sw.color;
+      ctx.lineWidth = sw.active ? 4 : 2;
+      ctx.stroke();
+
+      // Glowing center
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.r * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = sw.active ? '#38bdf8' : sw.color;
+      ctx.fill();
+    }
+
+    // Draw Walls
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    for (const wall of lvl.walls) {
+      ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+      ctx.strokeRect(wall.x, wall.y, wall.w, wall.h);
+    }
+
+    // Draw Lasers
+    for (const laser of lvl.lasers) {
+      if (laser.active) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(laser.x1, laser.y1);
+        ctx.lineTo(laser.x2, laser.y2);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+        ctx.lineWidth = 8;
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ef4444';
+        ctx.shadowBlur = 12;
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // Disabled dashed line
+        ctx.beginPath();
+        ctx.moveTo(laser.x1, laser.y1);
+        ctx.lineTo(laser.x2, laser.y2);
+        ctx.strokeStyle = 'rgba(100, 116, 139, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    // Draw Quantum Core
+    let isCarried = playerPos.hasCore;
+    const frameIdx = currentRecording.length - 1;
+    for (let g = 0; g < currentLoop; g++) {
+      if (ghostPaths[g] && ghostPaths[g][frameIdx]?.hasCore) {
+        isCarried = true;
+      }
+    }
+
+    if (!isCarried) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(lvl.core.x, lvl.core.y, 14 + Math.sin(time / 150) * 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+      ctx.fill();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Spinning diamond
+      ctx.translate(lvl.core.x, lvl.core.y);
+      ctx.rotate(time / 400);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(-6, -6, 12, 12);
+      ctx.restore();
+    }
+
+    // Draw Ghosts
+    for (let g = 0; g < currentLoop; g++) {
+      const path = ghostPaths[g];
+      if (!path) continue;
+
+      // Draw faint ghost path
+      ctx.beginPath();
+      for (let i = 0; i < path.length; i += 4) {
+        const pt = path[i];
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = `${OPERATIVE_COLORS[g]}22`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Ghost Operative
+      const curPt = path[frameIdx] || path[path.length - 1];
+      if (curPt) {
+        ctx.save();
+        ctx.globalAlpha = 0.65 + Math.sin(time / 100) * 0.15;
+        ctx.beginPath();
+        ctx.arc(curPt.x, curPt.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = OPERATIVE_COLORS[g];
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Ghost label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`GHOST ${g + 1}`, curPt.x, curPt.y - 16);
+
+        if (curPt.hasCore) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(curPt.x, curPt.y, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    // Draw Current Player
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(playerPos.x, playerPos.y, playerPos.r, 0, Math.PI * 2);
+    ctx.fillStyle = OPERATIVE_COLORS[currentLoop];
+    ctx.shadowColor = OPERATIVE_COLORS[currentLoop];
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Player Direction Indicator / Aura
+    ctx.beginPath();
+    ctx.arc(playerPos.x, playerPos.y, playerPos.r + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = `${OPERATIVE_COLORS[currentLoop]}66`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    if (playerPos.hasCore) {
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(playerPos.x, playerPos.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  loadLevel(0);
+  requestAnimationFrame(gameLoop);
+</script>

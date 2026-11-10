@@ -1,0 +1,324 @@
+---
+// GravityForge: Orbital Slingshot
+---
+
+<div id="gf-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div>Star Mass: <span id="gf-mass" class="font-mono font-bold text-brand-gold">0/1000</span></div>
+    <div>Orbits Active: <span id="gf-orbits" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Comets: <span id="gf-comets" class="font-mono font-bold text-white">5</span></div>
+  </div>
+
+  <!-- Space Orbit Canvas -->
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="gf-canvas" width="360" height="380" class="block cursor-crosshair touch-none"></canvas>
+
+    <!-- Placement Tool Palette -->
+    <div class="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2 bg-brand-dark/85 backdrop-blur-md p-2 rounded-xl border border-brand-border/60 text-xs">
+      <button class="gf-tool-btn flex-1 py-1 rounded-lg border border-amber-500/60 bg-amber-950/40 text-amber-300 font-bold active:scale-95 text-[11px]" data-tool="comet">
+        ☄️ Launch Comet
+      </button>
+      <button class="gf-tool-btn flex-1 py-1 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-bold active:scale-95 text-[11px]" data-tool="gravity">
+        🪐 Place Gravity Well
+      </button>
+      <button id="gf-clear-wells" class="px-2.5 py-1 rounded-lg border border-brand-border bg-brand-card text-gray-400 text-[10px] hover:text-white">
+        Reset Wells
+      </button>
+    </div>
+
+    <!-- Star Fusion Complete Modal -->
+    <div id="gf-modal" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span class="text-5xl animate-bounce">🌟</span>
+      <h3 class="text-2xl font-black text-white mt-2">Protostar Ignited!</h3>
+      <p class="text-xs text-gray-300 mt-1">Sustained Lagrange resonance reached! Solar fusion achieved.</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="gf-modal-btn" class="mt-4 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Forge Next Nebula →
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center">
+    Place gravity wells to curve comets around cosmic dust rings into the central star forge.
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('gf-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const massEl = document.getElementById('gf-mass')!;
+  const orbitsEl = document.getElementById('gf-orbits')!;
+  const cometsEl = document.getElementById('gf-comets')!;
+  const modal = document.getElementById('gf-modal')!;
+  const modalBtn = document.getElementById('gf-modal-btn')!;
+  const clearWellsBtn = document.getElementById('gf-clear-wells')!;
+
+  interface GravityWell {
+    x: number;
+    y: number;
+    mass: number;
+    color: string;
+  }
+
+  interface Comet {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    trail: { x: number; y: number }[];
+    dustGathered: number;
+  }
+
+  interface DustRing {
+    x: number;
+    y: number;
+    r: number;
+    collected: boolean;
+  }
+
+  let activeTool: 'comet' | 'gravity' = 'comet';
+  let starMass = 0;
+  const TARGET_MASS = 1000;
+  let cometsLeft = 5;
+
+  let centralStar = { x: 180, y: 190, r: 18 };
+  let gravityWells: GravityWell[] = [];
+  let comets: Comet[] = [];
+  let dustRings: DustRing[] = [];
+  let isGameOver = false;
+
+  function initSector() {
+    isGameOver = false;
+    starMass = 0;
+    cometsLeft = 5;
+    gravityWells = [];
+    comets = [];
+    dustRings = [];
+    modal.classList.add('hidden');
+
+    massEl.textContent = `0/${TARGET_MASS}`;
+    cometsEl.textContent = cometsLeft.toString();
+    orbitsEl.textContent = '0';
+
+    // Place interstellar dust rings around space
+    for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2;
+      const dist = 70 + (i % 3) * 35;
+      dustRings.push({
+        x: centralStar.x + Math.cos(angle) * dist,
+        y: centralStar.y + Math.sin(angle) * dist,
+        r: 4,
+        collected: false
+      });
+    }
+
+    player.trackGamePlay('gravityforge');
+  }
+
+  function launchComet(startX: number, startY: number) {
+    if (cometsLeft <= 0 || isGameOver) return;
+    sound.click();
+    cometsLeft--;
+    cometsEl.textContent = cometsLeft.toString();
+
+    // Aim toward tangential orbital velocity
+    const angle = Math.atan2(startY - centralStar.y, startX - centralStar.x) + Math.PI / 2;
+    const speed = 3.6;
+
+    comets.push({
+      x: startX,
+      y: startY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      trail: [],
+      dustGathered: 0
+    });
+  }
+
+  function placeGravityWell(x: number, y: number) {
+    if (gravityWells.length >= 4 || isGameOver) return;
+    sound.score();
+    gravityWells.push({
+      x,
+      y,
+      mass: 850,
+      color: '#8b5cf6'
+    });
+  }
+
+  function loop() {
+    // Physics simulation
+    const G = 0.8;
+
+    comets.forEach(c => {
+      // Gravity toward central star
+      const dxStar = centralStar.x - c.x;
+      const dyStar = centralStar.y - c.y;
+      const distStar = Math.max(15, Math.hypot(dxStar, dyStar));
+      const fStar = (G * 1800) / (distStar * distStar);
+      c.vx += (dxStar / distStar) * fStar;
+      c.vy += (dyStar / distStar) * fStar;
+
+      // Gravity toward placed wells
+      gravityWells.forEach(w => {
+        const dxW = w.x - c.x;
+        const dyW = w.y - c.y;
+        const distW = Math.max(15, Math.hypot(dxW, dyW));
+        const fW = (G * w.mass) / (distW * distW);
+        c.vx += (dxW / distW) * fW;
+        c.vy += (dyW / distW) * fW;
+      });
+
+      // Update position
+      c.x += c.vx;
+      c.y += c.vy;
+
+      // Record trail
+      c.trail.push({ x: c.x, y: c.y });
+      if (c.trail.length > 30) c.trail.shift();
+
+      // Collect dust
+      dustRings.forEach(d => {
+        if (!d.collected && Math.hypot(d.x - c.x, d.y - c.y) < 14) {
+          d.collected = true;
+          c.dustGathered += 50;
+          sound.blip();
+        }
+      });
+
+      // Check plunge into central star forge
+      if (distStar < centralStar.r + 5) {
+        sound.victory();
+        starMass += c.dustGathered + 100;
+        massEl.textContent = `${Math.min(TARGET_MASS, starMass)}/${TARGET_MASS}`;
+        c.dustGathered = -999; // mark to remove
+
+        if (starMass >= TARGET_MASS && !isGameOver) {
+          triggerWin();
+        }
+      }
+    });
+
+    // Remove comets that crashed or flew off into deep void
+    comets = comets.filter(c => c.dustGathered >= 0 && c.x > -50 && c.x < canvas.width + 50 && c.y > -50 && c.y < canvas.height + 50);
+    orbitsEl.textContent = comets.length.toString();
+
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function triggerWin() {
+    isGameOver = true;
+    sound.victory();
+    launchConfetti();
+    player.addXP(250, 'Protostar Gravitational Slingshot Complete');
+    modal.classList.remove('hidden');
+  }
+
+  function draw() {
+    ctx.fillStyle = '#050711';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Gravity field contour ripples
+    gravityWells.forEach(w => {
+      ctx.strokeStyle = 'rgba(139, 92, 246, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, 45, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // Draw Dust Rings
+    dustRings.forEach(d => {
+      if (!d.collected) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    // Draw Central Protostar
+    const glow = ctx.createRadialGradient(centralStar.x, centralStar.y, 4, centralStar.x, centralStar.y, centralStar.r + 12);
+    glow.addColorStop(0, '#ffffff');
+    glow.addColorStop(0.5, '#f59e0b');
+    glow.addColorStop(1, 'rgba(239, 68, 68, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(centralStar.x, centralStar.y, centralStar.r + 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(centralStar.x, centralStar.y, centralStar.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw Gravity Wells
+    gravityWells.forEach(w => {
+      ctx.fillStyle = w.color;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+
+    // Draw Comets & Orbital Tails
+    comets.forEach(c => {
+      // Trail
+      if (c.trail.length > 1) {
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(c.trail[0].x, c.trail[0].y);
+        for (let i = 1; i < c.trail.length; i++) {
+          ctx.lineTo(c.trail[i].x, c.trail[i].y);
+        }
+        ctx.stroke();
+      }
+
+      // Comet Head
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // Tool toggle
+  document.querySelectorAll('.gf-tool-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      sound.click();
+      activeTool = (e.currentTarget as HTMLElement).dataset.tool as any;
+      document.querySelectorAll('.gf-tool-btn').forEach(b => {
+        b.className = 'gf-tool-btn flex-1 py-1 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-bold active:scale-95 text-[11px]';
+      });
+      (e.currentTarget as HTMLElement).className = 'gf-tool-btn flex-1 py-1 rounded-lg border border-amber-500/60 bg-amber-950/40 text-amber-300 font-bold active:scale-95 text-[11px]';
+    });
+  });
+
+  clearWellsBtn.addEventListener('click', () => {
+    sound.click();
+    gravityWells = [];
+  });
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (activeTool === 'comet') launchComet(x, y);
+    else placeGravityWell(x, y);
+  });
+
+  modalBtn.addEventListener('click', initSector);
+
+  initSector();
+  loop();
+</script>

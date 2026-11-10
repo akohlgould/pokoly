@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="td-land" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#059669" />
+          <stop offset="100%" stop-color="#047857" />
+        </linearGradient>
+        <filter id="td-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0b131f" />
+      <!-- Magma Oceanic Rifts -->
+      <path d="M60 16 Q54 60 62 104" stroke="#ea580c" stroke-width="3" fill="none" stroke-dasharray="5,4" />
+      <!-- West Plate (Laurentia) -->
+      <path d="M22 28 H52 V92 H22 Z" rx="6" fill="url(#td-land)" stroke="#10b981" stroke-width="2" filter="url(#td-glow)" />
+      <!-- East Plate (Gondwana) -->
+      <path d="M68 28 H98 V92 H68 Z" rx="6" fill="#0f766e" stroke="#14b8a6" stroke-width="2" />
+      <!-- Fossil Fern Icons on Coastlines -->
+      <circle cx="48" cy="48" r="3" fill="#fbbf24" />
+      <circle cx="72" cy="48" r="3" fill="#fbbf24" />
+      <circle cx="48" cy="72" r="3" fill="#38bdf8" />
+      <circle cx="72" cy="72" r="3" fill="#38bdf8" />
+    </svg>

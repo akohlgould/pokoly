@@ -1,0 +1,484 @@
+---
+// TectonicDrift.astro - Continental Plate Sliding & Biome Fossil Reconstruction Puzzle
+---
+<div class="relative w-full h-[650px] bg-slate-950 rounded-2xl border border-emerald-500/30 overflow-hidden flex flex-col select-none font-mono text-emerald-100">
+  <!-- HUD Header -->
+  <div class="h-14 bg-slate-900/90 border-b border-emerald-500/20 px-4 flex items-center justify-between text-xs sm:text-sm z-10 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
+        🌍
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2">
+          <span>TECTONIC DRIFT</span>
+          <span id="era-badge" class="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/40">PERMIAN ERA</span>
+        </div>
+        <div class="text-[10px] text-emerald-400/70">SUPERCONTINENT LITHOSPHERE RECONSTRUCTION</div>
+      </div>
+    </div>
+
+    <!-- Alignment Progress & Moves -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+        <span class="text-slate-400 text-[11px]">SUPERCONTINENT FUSION:</span>
+        <div class="w-20 h-2.5 bg-slate-700 rounded-full overflow-hidden">
+          <div id="fusion-bar" class="h-full bg-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <span id="fusion-pct" class="text-xs font-bold text-emerald-400">0%</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+        <span class="text-slate-400 text-[11px]">SEISMIC SHIFTS:</span>
+        <span id="shifts-left" class="text-amber-400 font-bold text-xs sm:text-sm">20</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button id="reset-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-xs transition-all">
+        RESET
+      </button>
+    </div>
+  </div>
+
+  <!-- Mantle Sea Stage -->
+  <div class="relative flex-1 bg-[#0b131f] overflow-hidden flex items-center justify-center">
+    <canvas id="tectonic-canvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+
+    <!-- Bottom Controls & Hints -->
+    <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between pointer-events-none text-xs">
+      <div class="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 shadow-lg pointer-events-auto">
+        <span class="text-emerald-400 font-bold">DRAG & SNAP CRATONS:</span> Slide continental plates across the oceanic mantle. Match fossil strata (🌿 Fern, 🐚 Ammonite, 🦖 Trilobite) along borders to fuse Pangaea!
+      </div>
+      <div class="bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 shadow-lg flex items-center gap-3">
+        <span class="text-emerald-300 font-bold">FOSSIL ALIGNMENTS: <span id="alignments-count" class="text-white">0 / 4</span></span>
+      </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="victory-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-slate-900/90 border border-emerald-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(16,185,129,0.25)]">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+          🌋
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">PANGAEA REFORGED!</h2>
+        <p class="text-xs sm:text-sm text-emerald-200 mb-4">All continental plates have converged into a unified supercontinent. Mountain ridges formed!</p>
+        <div class="flex justify-center gap-4 text-xs text-emerald-300 font-bold mb-6 bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <div>SHIFTS TAKEN: <span id="stat-shifts" class="text-white">12</span></div>
+          <div>BIOME HEALTH: <span class="text-emerald-400">100%</span></div>
+          <div>XP EARNED: <span class="text-emerald-400">+150 XP</span></div>
+        </div>
+        <div class="flex gap-3 justify-center">
+          <button id="next-era-btn" class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg transition-all active:scale-95">
+            NEXT ERA &rarr;
+          </button>
+          <button id="replay-btn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm rounded-xl border border-slate-600 transition-all">
+            REPLAY
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quake Exhaustion Modal -->
+    <div id="fail-modal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-slate-900 border border-red-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.25)]">
+        <div class="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-3xl mx-auto mb-4">
+          ❄️
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-red-400 mb-2">MANTLE COOLED!</h2>
+        <p class="text-xs sm:text-sm text-slate-300 mb-6">Thermal convection ceased before the supercontinent was reconnected. The plates have locked into frozen drift.</p>
+        <button id="retry-fail-btn" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg">
+          RE-IGNITE MANTLE
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('tectonic-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const eraBadge = document.getElementById('era-badge')!;
+  const fusionBar = document.getElementById('fusion-bar')!;
+  const fusionPct = document.getElementById('fusion-pct')!;
+  const shiftsLeftEl = document.getElementById('shifts-left')!;
+  const alignmentsCount = document.getElementById('alignments-count')!;
+  const resetBtn = document.getElementById('reset-btn')!;
+  const victoryModal = document.getElementById('victory-modal')!;
+  const failModal = document.getElementById('fail-modal')!;
+  const nextEraBtn = document.getElementById('next-era-btn')!;
+  const replayBtn = document.getElementById('replay-btn')!;
+  const retryFailBtn = document.getElementById('retry-fail-btn')!;
+  const statShifts = document.getElementById('stat-shifts')!;
+
+  interface Plate {
+    id: number;
+    name: string;
+    // Current coordinates on mantle
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    color: string;
+    // Edge fossil signatures: [Top, Right, Bottom, Left] ('fern', 'ammonite', 'trilobite', or null)
+    fossils: (string | null)[];
+    // Target grid slot (gx, gy) where it belongs in Pangaea
+    targetSlot: { col: number; row: number };
+    isLocked: boolean;
+  }
+
+  const ERAS = [
+    { name: 'PERMIAN ERA', maxShifts: 24 },
+    { name: 'TRIASSIC ERA', maxShifts: 20 },
+    { name: 'JURASSIC ERA', maxShifts: 16 }
+  ];
+
+  let currentEra = 0;
+  let remainingShifts = 24;
+  let isGameOver = false;
+  let plates: Plate[] = [];
+  let draggedPlate: Plate | null = null;
+  let dragOffset = { x: 0, y: 0 };
+
+  const GRID_COLS = 3;
+  const GRID_ROWS = 2;
+  const SLOT_SIZE = 140;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+
+  function getPangaeaOrigin() {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    return {
+      x: (w - GRID_COLS * SLOT_SIZE) / 2,
+      y: (h - GRID_ROWS * SLOT_SIZE) / 2
+    };
+  }
+
+  function initEra(eraIdx: number) {
+    currentEra = eraIdx % ERAS.length;
+    remainingShifts = ERAS[currentEra].maxShifts;
+    isGameOver = false;
+    draggedPlate = null;
+
+    eraBadge.textContent = ERAS[currentEra].name;
+    victoryModal.classList.add('hidden');
+    failModal.classList.add('hidden');
+
+    const origin = getPangaeaOrigin();
+
+    // 6 Continental plates that must be assembled into a 3x2 Pangaea
+    // We create matching fossil pairs on adjacent borders
+    // For a 3x2 grid:
+    // (0,0) - (1,0) - (2,0)
+    // (0,1) - (1,1) - (2,1)
+    plates = [
+      {
+        id: 0,
+        name: 'LAURENTIA',
+        x: 60,
+        y: 60,
+        w: SLOT_SIZE - 10,
+        h: SLOT_SIZE - 10,
+        color: '#047857',
+        fossils: [null, 'ammonite', 'fern', null],
+        targetSlot: { col: 0, row: 0 },
+        isLocked: false
+      },
+      {
+        id: 1,
+        name: 'BALTICA',
+        x: canvas.clientWidth - 190,
+        y: 60,
+        w: SLOT_SIZE - 10,
+        h: SLOT_SIZE - 10,
+        color: '#0f766e',
+        fossils: [null, 'trilobite', 'ammonite', 'ammonite'],
+        targetSlot: { col: 1, row: 0 },
+        isLocked: false
+      },
+      {
+        id: 2,
+        name: 'SIBERIA',
+        x: 60,
+        y: canvas.clientHeight - 190,
+        w: SLOT_SIZE - 10,
+        h: SLOT_SIZE - 10,
+        color: '#065f46',
+        fossils: [null, null, 'trilobite', 'trilobite'],
+        targetSlot: { col: 2, row: 0 },
+        isLocked: false
+      },
+      {
+        id: 3,
+        name: 'GONDWANA W.',
+        x: canvas.clientWidth - 190,
+        y: canvas.clientHeight - 190,
+        w: SLOT_SIZE - 10,
+        h: SLOT_SIZE - 10,
+        color: '#115e59',
+        fossils: ['fern', 'fern', null, null],
+        targetSlot: { col: 0, row: 1 },
+        isLocked: false
+      },
+      {
+        id: 4,
+        name: 'AFRICA CORE',
+        x: canvas.clientWidth / 2 - 70,
+        y: 30,
+        w: SLOT_SIZE - 10,
+        h: SLOT_SIZE - 10,
+        color: '#15803d',
+        fossils: ['ammonite', 'ammonite', null, 'fern'],
+        targetSlot: { col: 1, row: 1 },
+        isLocked: false
+      },
+      {
+        id: 5,
+        name: 'ANTARCTICA',
+        x: canvas.clientWidth / 2 - 70,
+        y: canvas.clientHeight - 170,
+        w: SLOT_SIZE - 10,
+        h: SLOT_SIZE - 10,
+        color: '#059669',
+        fossils: ['trilobite', null, null, 'ammonite'],
+        targetSlot: { col: 2, row: 1 },
+        isLocked: false
+      }
+    ];
+
+    updateUI();
+  }
+
+  function updateUI() {
+    shiftsLeftEl.textContent = remainingShifts.toString();
+    const lockedCount = plates.filter(p => p.isLocked).length;
+    const pct = Math.round((lockedCount / plates.length) * 100);
+
+    fusionBar.style.width = `${pct}%`;
+    fusionPct.textContent = `${pct}%`;
+    alignmentsCount.textContent = `${lockedCount} / ${plates.length}`;
+  }
+
+  // Pointer interactions for dragging
+  canvas.addEventListener('pointerdown', (e) => {
+    if (isGameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Check plates top to bottom
+    for (let i = plates.length - 1; i >= 0; i--) {
+      const p = plates[i];
+      if (p.isLocked) continue;
+
+      if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) {
+        draggedPlate = p;
+        dragOffset.x = x - p.x;
+        dragOffset.y = y - p.y;
+        sound.click();
+        // Bring to front
+        plates.splice(i, 1);
+        plates.push(p);
+        break;
+      }
+    }
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!draggedPlate || isGameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    draggedPlate.x = Math.max(10, Math.min(canvas.clientWidth - draggedPlate.w - 10, x - dragOffset.x));
+    draggedPlate.y = Math.max(10, Math.min(canvas.clientHeight - draggedPlate.h - 10, y - dragOffset.y));
+  });
+
+  window.addEventListener('pointerup', () => {
+    if (!draggedPlate || isGameOver) return;
+    const p = draggedPlate;
+    draggedPlate = null;
+
+    remainingShifts--;
+    updateUI();
+
+    // Check if close to target slot in Pangaea grid
+    const origin = getPangaeaOrigin();
+    const targetX = origin.x + p.targetSlot.col * SLOT_SIZE + 5;
+    const targetY = origin.y + p.targetSlot.row * SLOT_SIZE + 5;
+
+    const dist = Math.hypot(p.x - targetX, p.y - targetY);
+    if (dist < 45) {
+      // Snap and lock into place!
+      p.x = targetX;
+      p.y = targetY;
+      p.isLocked = true;
+      sound.powerup();
+      sound.hit();
+    } else {
+      sound.click();
+    }
+
+    updateUI();
+
+    // Check win condition: all plates locked
+    if (plates.every(plate => plate.isLocked)) {
+      triggerVictory();
+    } else if (remainingShifts <= 0) {
+      triggerFail();
+    }
+  });
+
+  function triggerVictory() {
+    isGameOver = true;
+    sound.powerup();
+    launchConfetti();
+    player.addXP(150);
+
+    statShifts.textContent = `${ERAS[currentEra].maxShifts - remainingShifts}`;
+    victoryModal.classList.remove('hidden');
+  }
+
+  function triggerFail() {
+    isGameOver = true;
+    sound.fail();
+    failModal.classList.remove('hidden');
+  }
+
+  resetBtn.addEventListener('click', () => {
+    sound.click();
+    initEra(currentEra);
+  });
+  nextEraBtn.addEventListener('click', () => {
+    sound.click();
+    initEra(currentEra + 1);
+  });
+  replayBtn.addEventListener('click', () => {
+    sound.click();
+    initEra(currentEra);
+  });
+  retryFailBtn.addEventListener('click', () => {
+    sound.click();
+    initEra(currentEra);
+  });
+
+  const FOSSIL_EMOJI: Record<string, string> = {
+    fern: '🌿',
+    ammonite: '🐚',
+    trilobite: '🦖'
+  };
+
+  let animTime = 0;
+  function render(time: number) {
+    animTime = time;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    // Oceanic mantle magma rift currents in background
+    ctx.strokeStyle = 'rgba(234, 88, 12, 0.12)';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      const waveY = (h / 7) * (i + 1) + Math.sin((time + i * 800) / 700) * 8;
+      ctx.moveTo(0, waveY);
+      ctx.lineTo(w, waveY);
+      ctx.stroke();
+    }
+
+    // Pangaea Target Grid Outline (reception zone)
+    const origin = getPangaeaOrigin();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    for (let r = 0; r < GRID_ROWS; r++) {
+      for (let c = 0; c < GRID_COLS; c++) {
+        const gx = origin.x + c * SLOT_SIZE;
+        const gy = origin.y + r * SLOT_SIZE;
+        ctx.strokeRect(gx + 4, gy + 4, SLOT_SIZE - 8, SLOT_SIZE - 8);
+      }
+    }
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Render Continental Plates
+    for (const p of plates) {
+      ctx.save();
+
+      if (p.isLocked) {
+        // Locked into Pangaea: mountain ridge boundary glow
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = p.color;
+      } else if (p === draggedPlate) {
+        ctx.shadowColor = '#fbbf24';
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = '#064e3b';
+      } else {
+        ctx.fillStyle = p.color;
+      }
+
+      // Plate Landmass Rect with rounded corners
+      ctx.beginPath();
+      ctx.roundRect(p.x, p.y, p.w, p.h, 12);
+      ctx.fill();
+      ctx.strokeStyle = p.isLocked ? '#34d399' : (p === draggedPlate ? '#fbbf24' : '#059669');
+      ctx.lineWidth = p.isLocked ? 3 : 2;
+      ctx.stroke();
+
+      // Topographic mountain ridges inside plate
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(p.x + 20, p.y + p.h / 2);
+      ctx.lineTo(p.x + p.w / 2, p.y + 25);
+      ctx.lineTo(p.x + p.w - 20, p.y + p.h / 2 + 10);
+      ctx.stroke();
+
+      // Plate Name
+      ctx.fillStyle = '#ecfdf5';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name, p.x + p.w / 2, p.y + p.h / 2 + 4);
+
+      // Fossil edge indicators
+      ctx.font = '12px sans-serif';
+      // Top fossil
+      if (p.fossils[0]) {
+        ctx.fillText(FOSSIL_EMOJI[p.fossils[0]], p.x + p.w / 2, p.y + 14);
+      }
+      // Right fossil
+      if (p.fossils[1]) {
+        ctx.fillText(FOSSIL_EMOJI[p.fossils[1]], p.x + p.w - 14, p.y + p.h / 2 + 4);
+      }
+      // Bottom fossil
+      if (p.fossils[2]) {
+        ctx.fillText(FOSSIL_EMOJI[p.fossils[2]], p.x + p.w / 2, p.y + p.h - 6);
+      }
+      // Left fossil
+      if (p.fossils[3]) {
+        ctx.fillText(FOSSIL_EMOJI[p.fossils[3]], p.x + 14, p.y + p.h / 2 + 4);
+      }
+
+      ctx.restore();
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  initEra(0);
+  requestAnimationFrame(render);
+</script>

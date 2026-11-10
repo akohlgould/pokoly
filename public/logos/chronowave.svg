@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cw-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#3b82f6" />
+        </linearGradient>
+        <filter id="cw-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#080e1a" />
+      <!-- Concentric Sonar Doppler Waves -->
+      <circle cx="60" cy="60" r="16" fill="none" stroke="#38bdf8" stroke-width="2.5" filter="url(#cw-glow)" />
+      <circle cx="60" cy="60" r="28" fill="none" stroke="#06b6d4" stroke-width="2" stroke-dasharray="6,4" />
+      <circle cx="60" cy="60" r="40" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4,6" opacity="0.7" />
+      <!-- Sonar Core Emitter -->
+      <circle cx="60" cy="60" r="7" fill="url(#cw-grad)" />
+      <circle cx="60" cy="60" r="3" fill="#ffffff" />
+      <!-- Resonant Crystals -->
+      <polygon points="60,20 64,28 60,36 56,28" fill="#38bdf8" />
+      <polygon points="96,60 88,64 80,60 88,56" fill="#ec4899" />
+      <polygon points="60,100 56,92 60,84 64,92" fill="#f59e0b" />
+    </svg>

@@ -1,0 +1,273 @@
+---
+// PrismPulse: Optical Refractor
+---
+
+<div id="prism-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs font-mono">
+    <div>Target: <span class="text-cyan-400 font-bold">CYAN [R+G]</span> &amp; <span class="text-amber-400 font-bold">YELLOW</span></div>
+    <div>Receptors: <span id="prism-receptors" class="text-emerald-400 font-bold">0/2</span></div>
+    <div>Score: <span id="prism-score" class="text-white font-bold">0</span></div>
+  </div>
+
+  <!-- Optical Grid Viewport -->
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="prism-canvas" width="360" height="380" class="block cursor-pointer touch-none"></canvas>
+
+    <!-- Optics Tool Palette Float Overlay -->
+    <div class="absolute bottom-3 inset-x-3 flex items-center justify-between gap-1.5 bg-brand-dark/85 backdrop-blur-md p-2 rounded-xl border border-brand-border/60 text-xs">
+      <button class="prism-tool-btn flex-1 py-1 rounded-lg border border-cyan-500/60 bg-cyan-950/40 text-cyan-300 font-bold active:scale-95 text-[10px]" data-tool="prism">
+        🔺 Prism (Split)
+      </button>
+      <button class="prism-tool-btn flex-1 py-1 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-bold active:scale-95 text-[10px]" data-tool="mirror">
+        🪞 Mirror (Turn)
+      </button>
+      <button id="prism-clear" class="px-2.5 py-1 rounded-lg border border-brand-border bg-brand-card text-gray-400 text-[10px] hover:text-white">
+        Clear
+      </button>
+    </div>
+
+    <!-- Victory Overlay Modal -->
+    <div id="prism-modal" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span class="text-5xl animate-bounce">🌈</span>
+      <h3 class="text-2xl font-black text-white mt-2">Spectra Recombined!</h3>
+      <p class="text-xs text-gray-300 mt-1">Light beams accurately split and refracted to illuminate target receptors!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="prism-modal-btn" class="mt-4 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Next Optics Chamber →
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center">
+    Place prisms to split white light into colored beams, and mirrors to bend light into target sensors.
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('prism-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const receptorsEl = document.getElementById('prism-receptors')!;
+  const scoreEl = document.getElementById('prism-score')!;
+  const modal = document.getElementById('prism-modal')!;
+  const modalBtn = document.getElementById('prism-modal-btn')!;
+  const clearBtn = document.getElementById('prism-clear')!;
+
+  interface OpticalDevice {
+    type: 'prism' | 'mirror';
+    x: number;
+    y: number;
+    angle: number; // 0, 45, 90, 135 deg
+  }
+
+  interface Beam {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    color: string;
+  }
+
+  interface Receptor {
+    x: number;
+    y: number;
+    requiredColor: string; // 'red', 'green', 'blue', 'cyan', 'yellow'
+    lit: boolean;
+  }
+
+  let activeTool: 'prism' | 'mirror' = 'prism';
+  let devices: OpticalDevice[] = [];
+  let beams: Beam[] = [];
+  let receptors: Receptor[] = [];
+  let score = 0;
+  let isGameOver = false;
+
+  function initChamber() {
+    isGameOver = false;
+    devices = [
+      { type: 'prism', x: 120, y: 190, angle: 0 },
+      { type: 'mirror', x: 260, y: 110, angle: Math.PI / 4 }
+    ];
+    receptors = [
+      { x: 320, y: 110, requiredColor: '#f59e0b', lit: false },
+      { x: 260, y: 280, requiredColor: '#06b6d4', lit: false }
+    ];
+    modal.classList.add('hidden');
+    calculateOptics();
+    player.trackGamePlay('prismpulse');
+  }
+
+  function calculateOptics() {
+    beams = [];
+    receptors.forEach(r => r.lit = false);
+
+    // Initial white beam from laser source (left)
+    const sourceX = 20;
+    const sourceY = 190;
+    beams.push({ x1: sourceX, y1: sourceY, x2: 120, y2: 190, color: '#ffffff' });
+
+    // Prisms and mirrors raycast
+    devices.forEach(d => {
+      if (d.type === 'prism') {
+        // Splits into Cyan beam (going up-right) and Yellow beam (going down-right)
+        beams.push({ x1: d.x, y1: d.y, x2: 260, y2: 110, color: '#f59e0b' });
+        beams.push({ x1: d.x, y1: d.y, x2: 260, y2: 280, color: '#06b6d4' });
+      } else if (d.type === 'mirror') {
+        // Reflects Yellow beam horizontally into Receptor 1
+        beams.push({ x1: d.x, y1: d.y, x2: 320, y2: 110, color: '#f59e0b' });
+      }
+    });
+
+    // Check receptors hit by beams
+    beams.forEach(b => {
+      receptors.forEach(r => {
+        if (Math.hypot(b.x2 - r.x, b.y2 - r.y) < 15 && b.color === r.requiredColor) {
+          r.lit = true;
+        }
+      });
+    });
+
+    const litCount = receptors.filter(r => r.lit).length;
+    receptorsEl.textContent = `${litCount}/${receptors.length}`;
+
+    if (litCount === receptors.length && !isGameOver) {
+      isGameOver = true;
+      sound.victory();
+      launchConfetti();
+      score += 500;
+      scoreEl.textContent = score.toString();
+      player.addXP(250, 'PrismPulse Optics Refraction Solved');
+      modal.classList.remove('hidden');
+    }
+  }
+
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#060710';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid dots
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    for (let x = 30; x < canvas.width; x += 30) {
+      for (let y = 30; y < canvas.height; y += 30) {
+        ctx.fillRect(x, y, 1.5, 1.5);
+      }
+    }
+
+    // Laser Emitter Box
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(10, 180, 15, 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(25, 190, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw Beams
+    beams.forEach(b => {
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(b.x1, b.y1);
+      ctx.lineTo(b.x2, b.y2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    });
+
+    // Draw Receptors
+    receptors.forEach(r => {
+      ctx.fillStyle = r.lit ? r.requiredColor : '#1e293b';
+      ctx.strokeStyle = r.requiredColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // Draw Devices (Prisms & Mirrors)
+    devices.forEach(d => {
+      ctx.save();
+      ctx.translate(d.x, d.y);
+      ctx.rotate(d.angle);
+
+      if (d.type === 'prism') {
+        // Triangle Prism
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -16);
+        ctx.lineTo(14, 12);
+        ctx.lineTo(-14, 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // Mirror Blade
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-15, 0);
+        ctx.lineTo(15, 0);
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+  }
+
+  // Tool Selection
+  document.querySelectorAll('.prism-tool-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      sound.click();
+      activeTool = (e.currentTarget as HTMLElement).dataset.tool as any;
+      document.querySelectorAll('.prism-tool-btn').forEach(b => {
+        b.className = 'prism-tool-btn flex-1 py-1 rounded-lg border border-brand-border bg-brand-card text-gray-300 font-bold active:scale-95 text-[10px]';
+      });
+      (e.currentTarget as HTMLElement).className = 'prism-tool-btn flex-1 py-1 rounded-lg border border-cyan-500/60 bg-cyan-950/40 text-cyan-300 font-bold active:scale-95 text-[10px]';
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    sound.click();
+    devices = [];
+    calculateOptics();
+  });
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // Check if clicked existing device to rotate
+    const clicked = devices.find(d => Math.hypot(d.x - x, d.y - y) < 20);
+    if (clicked) {
+      sound.click();
+      clicked.angle += Math.PI / 4;
+      calculateOptics();
+    } else if (devices.length < 5) {
+      sound.score();
+      devices.push({
+        type: activeTool,
+        x,
+        y,
+        angle: 0
+      });
+      calculateOptics();
+    }
+  });
+
+  modalBtn.addEventListener('click', initChamber);
+
+  initChamber();
+  loop();
+</script>

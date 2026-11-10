@@ -743,6 +743,264 @@ const LOGOS = {
       <circle cx="60" cy="98" r="3.5" fill="#10b981" />
       <circle cx="22" cy="60" r="3.5" fill="#06b6d4" />
     </svg>
+  `,
+
+  'chronowave': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cw-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#3b82f6" />
+        </linearGradient>
+        <filter id="cw-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#080e1a" />
+      <!-- Concentric Sonar Doppler Waves -->
+      <circle cx="60" cy="60" r="16" fill="none" stroke="#38bdf8" stroke-width="2.5" filter="url(#cw-glow)" />
+      <circle cx="60" cy="60" r="28" fill="none" stroke="#06b6d4" stroke-width="2" stroke-dasharray="6,4" />
+      <circle cx="60" cy="60" r="40" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4,6" opacity="0.7" />
+      <!-- Sonar Core Emitter -->
+      <circle cx="60" cy="60" r="7" fill="url(#cw-grad)" />
+      <circle cx="60" cy="60" r="3" fill="#ffffff" />
+      <!-- Resonant Crystals -->
+      <polygon points="60,20 64,28 60,36 56,28" fill="#38bdf8" />
+      <polygon points="96,60 88,64 80,60 88,56" fill="#ec4899" />
+      <polygon points="60,100 56,92 60,84 64,92" fill="#f59e0b" />
+    </svg>
+  `,
+
+  'quantumweave': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="qw-laser" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#a855f7" />
+          <stop offset="100%" stop-color="#ec4899" />
+        </linearGradient>
+        <filter id="qw-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="7" flood-color="#ec4899" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0c0717" />
+      <!-- Quantum Entanglement Rings -->
+      <circle cx="44" cy="50" r="22" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-dasharray="5,3" />
+      <circle cx="76" cy="70" r="22" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-dasharray="5,3" />
+      <!-- Intertwined Laser Weave -->
+      <line x1="22" y1="28" x2="44" y2="50" stroke="#c084fc" stroke-width="3" filter="url(#qw-glow)" />
+      <line x1="44" y1="50" x2="76" y2="70" stroke="#f472b6" stroke-width="3.5" filter="url(#qw-glow)" />
+      <line x1="76" y1="70" x2="98" y2="92" stroke="#c084fc" stroke-width="3" filter="url(#qw-glow)" />
+      <!-- Spin Nodes -->
+      <circle cx="44" cy="50" r="7" fill="#8b5cf6" />
+      <circle cx="44" cy="50" r="3" fill="#ffffff" />
+      <circle cx="76" cy="70" r="7" fill="#ec4899" />
+      <circle cx="76" cy="70" r="3" fill="#ffffff" />
+    </svg>
+  `,
+
+  'gravityforge': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="gf-star" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="35%" stop-color="#fde047" />
+          <stop offset="70%" stop-color="#ea580c" />
+          <stop offset="100%" stop-color="#7c2d12" />
+        </radialGradient>
+        <filter id="gf-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#f59e0b" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#090514" />
+      <!-- Gravitational Spacetime Curvature Orbits -->
+      <ellipse cx="60" cy="60" rx="44" ry="22" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" transform="rotate(-25 60 60)" />
+      <ellipse cx="60" cy="60" rx="44" ry="22" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.6" transform="rotate(35 60 60)" />
+      <!-- Central Protostar -->
+      <circle cx="60" cy="60" r="18" fill="url(#gf-star)" filter="url(#gf-glow)" />
+      <!-- Comet Slingshot Trail -->
+      <path d="M20 90 Q40 75 75 40" stroke="#38bdf8" stroke-width="2.5" fill="none" stroke-linecap="round" />
+      <circle cx="75" cy="40" r="4" fill="#ffffff" />
+    </svg>
+  `,
+
+  'synthia': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sy-rack" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e1b4b" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+        <filter id="sy-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#sy-rack)" />
+      <!-- Oscilloscope Screen -->
+      <rect x="20" y="20" width="80" height="42" rx="8" fill="#022c22" stroke="#059669" stroke-width="1.5" />
+      <path d="M26 41 Q36 22 46 41 T66 41 T86 41 T94 41" fill="none" stroke="#10b981" stroke-width="2.5" filter="url(#sy-glow)" stroke-linecap="round" />
+      <!-- Patch Cable Jacks -->
+      <circle cx="34" cy="84" r="7" fill="#334155" stroke="#64748b" stroke-width="2" />
+      <circle cx="34" cy="84" r="3" fill="#020617" />
+      <circle cx="86" cy="84" r="7" fill="#334155" stroke="#64748b" stroke-width="2" />
+      <circle cx="86" cy="84" r="3" fill="#020617" />
+      <!-- Patch Cable Cord -->
+      <path d="M34 84 C34 114 86 114 86 84" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" />
+    </svg>
+  `,
+
+  'morphoflora': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="mf-petal" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#34d399" />
+          <stop offset="100%" stop-color="#059669" />
+        </radialGradient>
+        <filter id="mf-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#34d399" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#061c14" />
+      <!-- Hexagonal Cell Lattices -->
+      <polygon points="60,20 86,35 86,65 60,80 34,65 34,35" fill="none" stroke="#10b981" stroke-width="2" opacity="0.4" />
+      <!-- Blooming Hybrid Petals -->
+      <circle cx="60" cy="44" r="14" fill="url(#mf-petal)" opacity="0.8" filter="url(#mf-glow)" />
+      <circle cx="74" cy="58" r="14" fill="#a855f7" opacity="0.8" />
+      <circle cx="68" cy="74" r="14" fill="#38bdf8" opacity="0.8" />
+      <circle cx="46" cy="68" r="14" fill="#f59e0b" opacity="0.8" />
+      <!-- Floral Pistil Core -->
+      <circle cx="60" cy="60" r="9" fill="#ffffff" />
+      <circle cx="60" cy="60" r="4" fill="#059669" />
+    </svg>
+  `,
+
+  'prismpulse': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="pp-ray" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="30%" stop-color="#ffffff" />
+          <stop offset="60%" stop-color="#38bdf8" />
+          <stop offset="80%" stop-color="#ec4899" />
+          <stop offset="100%" stop-color="#f59e0b" />
+        </linearGradient>
+        <filter id="pp-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ffffff" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#030712" />
+      <!-- Glass Optical Prism Triangle -->
+      <polygon points="60,26 94,84 26,84" fill="rgba(255,255,255,0.06)" stroke="#94a3b8" stroke-width="2.5" />
+      <!-- White Beam Entry -->
+      <line x1="10" y1="58" x2="48" y2="58" stroke="#ffffff" stroke-width="3" filter="url(#pp-glow)" />
+      <!-- Refracted Spectral Beams Out -->
+      <line x1="72" y1="58" x2="110" y2="40" stroke="#ef4444" stroke-width="2" />
+      <line x1="72" y1="62" x2="110" y2="58" stroke="#10b981" stroke-width="2" />
+      <line x1="72" y1="66" x2="110" y2="76" stroke="#3b82f6" stroke-width="2" />
+    </svg>
+  `,
+
+  'clockworkheist': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="ch-laser" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#ef4444" />
+        </linearGradient>
+        <filter id="ch-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#090d16" />
+      <!-- Vault Dial Ring -->
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="8,5" />
+      <!-- Laser Grid -->
+      <line x1="20" y1="60" x2="100" y2="60" stroke="#ef4444" stroke-width="2" opacity="0.6" stroke-dasharray="4,4" />
+      <!-- Ghost Synchronicity Rings (Cyan, Pink, Amber) -->
+      <circle cx="44" cy="54" r="14" fill="#06b6d4" opacity="0.5" />
+      <circle cx="76" cy="54" r="14" fill="#ec4899" opacity="0.5" />
+      <!-- Infiltrator Core -->
+      <circle cx="60" cy="68" r="15" fill="url(#ch-laser)" filter="url(#ch-glow)" />
+      <!-- Rewind Arrow -->
+      <path d="M54 62 L66 68 L54 74 Z" fill="#ffffff" />
+      <circle cx="60" cy="22" r="4" fill="#f59e0b" />
+    </svg>
+  `,
+
+  'geothermal': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="gt-magma" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f97316" />
+          <stop offset="100%" stop-color="#dc2626" />
+        </linearGradient>
+        <filter id="gt-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f97316" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#140a06" />
+      <!-- High Pressure Pipes -->
+      <path d="M22 60 H54 V26 H98" fill="none" stroke="#44403c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M22 60 H54 V26 H98" fill="none" stroke="url(#gt-magma)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#gt-glow)" />
+      <!-- Coolant Water Drops -->
+      <circle cx="38" cy="88" r="7" fill="#06b6d4" />
+      <path d="M38 78 L43 86 H33 Z" fill="#06b6d4" />
+      <!-- Geothermal Turbine Blades -->
+      <circle cx="96" cy="26" r="14" fill="#1c1917" stroke="#34d399" stroke-width="2" />
+      <line x1="96" y1="16" x2="96" y2="36" stroke="#34d399" stroke-width="2" />
+      <line x1="86" y1="26" x2="106" y2="26" stroke="#34d399" stroke-width="2" />
+    </svg>
+  `,
+
+  'neurolink': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="nl-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="50%" stop-color="#6366f1" />
+          <stop offset="100%" stop-color="#ec4899" />
+        </linearGradient>
+        <filter id="nl-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#6366f1" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#070913" />
+      <!-- Axon Synaptic Pathways -->
+      <path d="M20 60 C40 30 50 30 70 40 S90 28 102 28" fill="none" stroke="url(#nl-grad)" stroke-width="3" filter="url(#nl-glow)" />
+      <path d="M20 60 C40 90 50 90 70 80 S90 92 102 92" fill="none" stroke="#6366f1" stroke-width="2.5" opacity="0.6" />
+      <!-- Switch Junctions -->
+      <circle cx="50" cy="46" r="8" fill="#1e1b4b" stroke="#38bdf8" stroke-width="2" />
+      <circle cx="50" cy="74" r="8" fill="#1e1b4b" stroke="#ec4899" stroke-width="2" />
+      <!-- Synaptic Neurotransmitter Sparks -->
+      <circle cx="82" cy="38" r="5" fill="#f59e0b" />
+      <circle cx="82" cy="82" r="5" fill="#06b6d4" />
+      <circle cx="20" cy="60" r="6" fill="#ffffff" />
+    </svg>
+  `,
+
+  'tectonicdrift': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="td-land" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#059669" />
+          <stop offset="100%" stop-color="#047857" />
+        </linearGradient>
+        <filter id="td-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0b131f" />
+      <!-- Magma Oceanic Rifts -->
+      <path d="M60 16 Q54 60 62 104" stroke="#ea580c" stroke-width="3" fill="none" stroke-dasharray="5,4" />
+      <!-- West Plate (Laurentia) -->
+      <path d="M22 28 H52 V92 H22 Z" rx="6" fill="url(#td-land)" stroke="#10b981" stroke-width="2" filter="url(#td-glow)" />
+      <!-- East Plate (Gondwana) -->
+      <path d="M68 28 H98 V92 H68 Z" rx="6" fill="#0f766e" stroke="#14b8a6" stroke-width="2" />
+      <!-- Fossil Fern Icons on Coastlines -->
+      <circle cx="48" cy="48" r="3" fill="#fbbf24" />
+      <circle cx="72" cy="48" r="3" fill="#fbbf24" />
+      <circle cx="48" cy="72" r="3" fill="#38bdf8" />
+      <circle cx="72" cy="72" r="3" fill="#38bdf8" />
+    </svg>
   `
 };
 

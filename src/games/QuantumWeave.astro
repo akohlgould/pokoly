@@ -1,0 +1,287 @@
+---
+// QuantumWeave: Entangled Threads
+---
+
+<div id="qw-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div>Target: <span class="font-mono font-bold text-brand-neon">Quantum Gate [Q3]</span></div>
+    <div>Coherence: <span id="qw-coherence" class="font-mono font-bold text-emerald-400">100%</span></div>
+    <div>Moves: <span id="qw-moves" class="font-mono font-bold text-white">0</span></div>
+  </div>
+
+  <div class="w-full text-center text-xs text-gray-400 mb-2">
+    Rotating a node rotates its <span class="text-rose-400 font-bold">Entangled Twin</span> in reverse polarity. Guide the laser to the gate!
+  </div>
+
+  <!-- Quantum Grid Canvas Viewport -->
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="qw-canvas" width="360" height="380" class="block cursor-pointer touch-none"></canvas>
+
+    <!-- Victory Overlay Modal -->
+    <div id="qw-modal" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span class="text-5xl animate-bounce">⚛️</span>
+      <h3 class="text-2xl font-black text-white mt-2">Quantum Gate Unlocked!</h3>
+      <p class="text-xs text-gray-300 mt-1">Laser successfully routed through entangled spin states without decoherence!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="qw-modal-btn" class="mt-4 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Next Entanglement Circuit →
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center">
+    Tap nodes to rotate internal mirrors. Matched colored thread lines indicate entangled partner nodes.
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('qw-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const coherenceEl = document.getElementById('qw-coherence')!;
+  const movesEl = document.getElementById('qw-moves')!;
+  const modal = document.getElementById('qw-modal')!;
+  const modalBtn = document.getElementById('qw-modal-btn')!;
+
+  interface Node {
+    row: number;
+    col: number;
+    x: number;
+    y: number;
+    angle: number; // 0, 45, 90, 135 deg
+    pairId: number; // nodes with same pairId are entangled!
+    pairColor: string;
+  }
+
+  const GRID_SIZE = 4;
+  const CELL_SPACING = 75;
+  const OFFSET_X = 65;
+  const OFFSET_Y = 75;
+
+  let nodes: Node[] = [];
+  let moves = 0;
+  let coherence = 100;
+  let isGameOver = false;
+  let laserPath: { x: number; y: number }[] = [];
+  let pulseTimer = 0;
+
+  function initCircuit() {
+    isGameOver = false;
+    moves = 0;
+    coherence = 100;
+    laserPath = [];
+    modal.classList.add('hidden');
+    movesEl.textContent = '0';
+    coherenceEl.textContent = '100%';
+
+    nodes = [];
+    const colors = ['#ec4899', '#38bdf8', '#fbbf24', '#10b981', '#a855f7'];
+
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const pairId = Math.floor((r * GRID_SIZE + c) / 2);
+        nodes.push({
+          row: r,
+          col: c,
+          x: OFFSET_X + c * CELL_SPACING,
+          y: OFFSET_Y + r * CELL_SPACING,
+          angle: (Math.floor(Math.random() * 4)) * (Math.PI / 4),
+          pairId,
+          pairColor: colors[pairId % colors.length]
+        });
+      }
+    }
+
+    calculateLaserRoute();
+    player.trackGamePlay('quantumweave');
+  }
+
+  function rotateNode(node: Node) {
+    if (isGameOver) return;
+    sound.click();
+    moves++;
+    movesEl.textContent = moves.toString();
+
+    // Rotate this node 45 degrees clockwise
+    node.angle += Math.PI / 4;
+
+    // Find entangled twin and rotate counter-clockwise
+    const twin = nodes.find(n => n.pairId === node.pairId && n !== node);
+    if (twin) {
+      twin.angle -= Math.PI / 4;
+    }
+
+    calculateLaserRoute();
+  }
+
+  function calculateLaserRoute() {
+    laserPath = [{ x: 15, y: OFFSET_Y + CELL_SPACING }]; // Emitter start position
+    let curX = OFFSET_X;
+    let curY = OFFSET_Y + CELL_SPACING;
+    let dirX = 1;
+    let dirY = 0;
+
+    laserPath.push({ x: curX, y: curY });
+
+    for (let step = 0; step < 8; step++) {
+      // Find node at curX, curY
+      const node = nodes.find(n => Math.hypot(n.x - curX, n.y - curY) < 15);
+      if (node) {
+        // Reflect off mirror angle
+        const mirrorAngle = node.angle;
+        const normX = Math.cos(mirrorAngle + Math.PI / 2);
+        const normY = Math.sin(mirrorAngle + Math.PI / 2);
+
+        const dot = dirX * normX + dirY * normY;
+        dirX = dirX - 2 * dot * normX;
+        dirY = dirY - 2 * dot * normY;
+
+        // Normalize
+        const mag = Math.hypot(dirX, dirY);
+        dirX /= mag;
+        dirY /= mag;
+
+        curX += dirX * CELL_SPACING;
+        curY += dirY * CELL_SPACING;
+        laserPath.push({ x: curX, y: curY });
+      } else {
+        break;
+      }
+    }
+
+    // Target Gate is located at the right side of Row 2
+    const targetX = OFFSET_X + 3 * CELL_SPACING;
+    const targetY = OFFSET_Y + 2 * CELL_SPACING;
+    const lastPoint = laserPath[laserPath.length - 1];
+
+    if (lastPoint && Math.hypot(lastPoint.x - targetX, lastPoint.y - targetY) < 25) {
+      triggerWin();
+    }
+  }
+
+  function triggerWin() {
+    isGameOver = true;
+    sound.victory();
+    launchConfetti();
+    player.addXP(250, 'Quantum Entanglement Route Solved');
+    modal.classList.remove('hidden');
+  }
+
+  function loop() {
+    pulseTimer += 0.04;
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#060714';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Entanglement Filament Threads between partner nodes
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        if (nodes[i].pairId === nodes[j].pairId) {
+          ctx.strokeStyle = nodes[i].pairColor;
+          ctx.globalAlpha = 0.35 + Math.sin(pulseTimer + i) * 0.15;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+
+    // Draw Laser Emitter on Left
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(5, OFFSET_Y + CELL_SPACING - 10, 16, 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(21, OFFSET_Y + CELL_SPACING, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw Quantum Gate Receiver on Right
+    const targetX = OFFSET_X + 3 * CELL_SPACING;
+    const targetY = OFFSET_Y + 2 * CELL_SPACING;
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(targetX + 30, targetY, 14, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GATE', targetX + 30, targetY + 3);
+
+    // Draw Laser Path Beam
+    if (laserPath.length > 1) {
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(laserPath[0].x, laserPath[0].y);
+      for (let p = 1; p < laserPath.length; p++) {
+        ctx.lineTo(laserPath[p].x, laserPath[p].y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Draw Nodes & Internal Mirrors
+    nodes.forEach(n => {
+      // Node halo
+      ctx.fillStyle = '#0f172a';
+      ctx.strokeStyle = n.pairColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Mirror line inside node
+      ctx.save();
+      ctx.translate(n.x, n.y);
+      ctx.rotate(n.angle);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-11, 0);
+      ctx.lineTo(11, 0);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const clickedNode = nodes.find(n => Math.hypot(n.x - x, n.y - y) < 22);
+    if (clickedNode) rotateNode(clickedNode);
+  });
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const x = e.touches[0].clientX - rect.left;
+      const y = e.touches[0].clientY - rect.top;
+      const clickedNode = nodes.find(n => Math.hypot(n.x - x, n.y - y) < 22);
+      if (clickedNode) rotateNode(clickedNode);
+    }
+  }, { passive: false });
+
+  modalBtn.addEventListener('click', initCircuit);
+
+  initCircuit();
+  loop();
+</script>

@@ -1,0 +1,617 @@
+---
+// GeoThermal.astro - Subterranean Magma Pressure & Clean Energy Grid Simulation
+---
+<div class="relative w-full h-[650px] bg-stone-950 rounded-2xl overflow-hidden border border-orange-500/30 flex flex-col select-none font-mono text-stone-200">
+  <!-- HUD Header -->
+  <div class="h-14 bg-stone-900/90 border-b border-orange-500/20 px-4 flex items-center justify-between text-xs sm:text-sm z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold">
+        🌋
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2">
+          <span>GEOTHERMAL MATRIX</span>
+          <span id="zone-badge" class="px-2 py-0.5 text-[10px] bg-orange-500/20 text-orange-300 rounded border border-orange-500/40">SECTOR 1</span>
+        </div>
+        <div class="text-[10px] text-stone-400">THERMODYNAMIC POWER GRID HARNESS</div>
+      </div>
+    </div>
+
+    <!-- Power & Pressure Meters -->
+    <div class="flex items-center gap-4">
+      <!-- Power Target -->
+      <div class="flex items-center gap-2 bg-stone-800/80 px-3 py-1 rounded-full border border-stone-700">
+        <span class="text-stone-400 text-[11px]">OUTPUT:</span>
+        <span id="power-output" class="text-emerald-400 font-bold text-xs sm:text-sm">0 / 500 MW</span>
+      </div>
+
+      <!-- Max Core Pressure -->
+      <div class="flex items-center gap-2 bg-stone-800/80 px-3 py-1 rounded-full border border-stone-700">
+        <span class="text-stone-400 text-[11px]">CORE STABILITY:</span>
+        <div class="w-16 h-2.5 bg-stone-700 rounded-full overflow-hidden">
+          <div id="stability-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%"></div>
+        </div>
+        <span id="stability-pct" class="text-xs font-bold text-emerald-400">100%</span>
+      </div>
+    </div>
+
+    <!-- Coolant Stock & Reset -->
+    <div class="flex items-center gap-2">
+      <button id="coolant-btn" class="px-3 py-1.5 bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 border border-cyan-500/40 rounded-lg text-xs font-bold transition-all flex items-center gap-1 active:scale-95 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+        <span>💧 COOLANT INJECT (<span id="coolant-count">3</span>)</span>
+      </button>
+      <button id="reset-sector-btn" class="px-2.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-600 rounded-lg text-xs transition-all">
+        RESET
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Grid Canvas -->
+  <div class="relative flex-1 bg-[#100c0a] overflow-hidden flex items-center justify-center">
+    <canvas id="geo-canvas" class="w-full h-full cursor-pointer"></canvas>
+
+    <!-- Bottom Controls & Hints -->
+    <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between pointer-events-none text-xs">
+      <div class="bg-stone-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-stone-700/60 text-stone-300 shadow-lg pointer-events-auto">
+        <span class="text-orange-400 font-bold">CLICK VALVE NODES:</span> Rotate conduits to route superheated magma to steam turbines without blowing heat thresholds.
+      </div>
+      <div class="bg-stone-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-stone-700/60 text-stone-300 shadow-lg flex items-center gap-2">
+        <span class="inline-block w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping"></span>
+        <span class="text-orange-300 font-bold">MAGMA VELOCITY: <span id="magma-velocity">NORMAL</span></span>
+      </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="victory-modal" class="absolute inset-0 bg-stone-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-stone-900 border border-orange-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(249,115,22,0.2)]">
+        <div class="w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+          ⚡
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">GRID ENERGIZED!</h2>
+        <p class="text-xs sm:text-sm text-stone-300 mb-4" id="victory-desc">Geothermal megawatt quota satisfied! The city is powered cleanly.</p>
+        <div class="flex justify-center gap-4 text-xs text-orange-400 font-bold mb-6 bg-stone-800/80 p-3 rounded-xl border border-stone-700">
+          <div>ENERGY GENERATED: <span id="stat-energy" class="text-white">550 MW</span></div>
+          <div>CORE INTEGRITY: <span id="stat-core" class="text-emerald-400">92%</span></div>
+          <div>XP: <span class="text-emerald-400">+150 XP</span></div>
+        </div>
+        <div class="flex gap-3 justify-center">
+          <button id="next-sector-btn" class="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-stone-950 font-bold text-sm rounded-xl shadow-lg transition-all active:scale-95">
+            NEXT SECTOR &rarr;
+          </button>
+          <button id="replay-btn" class="px-4 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm rounded-xl border border-stone-600 transition-all">
+            RETRY
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meltdown / Failure Modal -->
+    <div id="fail-modal" class="absolute inset-0 bg-stone-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-stone-900 border border-red-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.25)]">
+        <div class="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-3xl mx-auto mb-4">
+          💥
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-red-400 mb-2">THERMAL RUNAWAY!</h2>
+        <p class="text-xs sm:text-sm text-stone-300 mb-6">Pressure exceeded chamber tolerances resulting in subterranean rupture. Coolants depleted or conduit severed.</p>
+        <button id="retry-fail-btn" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg">
+          RESTORE SYSTEM
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('geo-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const zoneBadge = document.getElementById('zone-badge')!;
+  const powerOutputEl = document.getElementById('power-output')!;
+  const stabilityBar = document.getElementById('stability-bar')!;
+  const stabilityPct = document.getElementById('stability-pct')!;
+  const coolantBtn = document.getElementById('coolant-btn')!;
+  const coolantCountEl = document.getElementById('coolant-count')!;
+  const resetSectorBtn = document.getElementById('reset-sector-btn')!;
+  const victoryModal = document.getElementById('victory-modal')!;
+  const failModal = document.getElementById('fail-modal')!;
+  const nextSectorBtn = document.getElementById('next-sector-btn')!;
+  const replayBtn = document.getElementById('replay-btn')!;
+  const retryFailBtn = document.getElementById('retry-fail-btn')!;
+  const statEnergy = document.getElementById('stat-energy')!;
+  const statCore = document.getElementById('stat-core')!;
+
+  interface PipeNode {
+    id: string;
+    col: number;
+    row: number;
+    type: 'source' | 'pipe' | 'turbine' | 'chamber';
+    // 0: top, 1: right, 2: bottom, 3: left
+    connections: boolean[]; // [top, right, bottom, left]
+    heat: number; // 0 to 100
+    pressure: number; // 0 to 100
+    poweredMW: number;
+    targetMW?: number;
+  }
+
+  const COLS = 7;
+  const ROWS = 5;
+
+  let currentSector = 0;
+  let powerGenerated = 0;
+  let targetPower = 400;
+  let coreStability = 100;
+  let coolantsRemaining = 3;
+  let isGameOver = false;
+  let grid: PipeNode[][] = [];
+
+  interface SteamParticle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    alpha: number;
+    size: number;
+    color: string;
+  }
+  let particles: SteamParticle[] = [];
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+
+  function initSector(sectorIdx: number) {
+    currentSector = sectorIdx;
+    isGameOver = false;
+    powerGenerated = 0;
+    coreStability = 100;
+    coolantsRemaining = 3 + sectorIdx;
+    targetPower = 350 + sectorIdx * 150;
+    particles = [];
+
+    victoryModal.classList.add('hidden');
+    failModal.classList.add('hidden');
+    zoneBadge.textContent = `SECTOR ${sectorIdx + 1}`;
+    coolantCountEl.textContent = coolantsRemaining.toString();
+
+    // Generate grid
+    grid = [];
+    for (let r = 0; r < ROWS; r++) {
+      grid[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        let type: PipeNode['type'] = 'pipe';
+        let connections = [false, false, false, false];
+
+        // Leftmost column: Magma Core Sources
+        if (c === 0 && (r === 1 || r === 3)) {
+          type = 'source';
+          connections = [false, true, false, false];
+        }
+        // Rightmost column: Geothermal Turbines
+        else if (c === COLS - 1 && (r === 1 || r === 2 || r === 3)) {
+          type = 'turbine';
+          connections = [false, false, false, true];
+        }
+        // Center Chambers
+        else if ((r === 1 || r === 3) && c === 3) {
+          type = 'chamber';
+          connections = [true, true, true, true];
+        }
+        // Normal pipes with random initial rotations
+        else {
+          const rand = (c + r + sectorIdx) % 3;
+          if (rand === 0) connections = [true, false, true, false]; // vertical
+          else if (rand === 1) connections = [false, true, false, true]; // horizontal
+          else connections = [true, true, false, false]; // corner
+        }
+
+        grid[r][c] = {
+          id: `${c}-${r}`,
+          col: c,
+          row: r,
+          type,
+          connections,
+          heat: type === 'source' ? 95 : 10,
+          pressure: 0,
+          poweredMW: 0
+        };
+      }
+    }
+
+    updateUI();
+  }
+
+  function rotateNode(c: number, r: number) {
+    if (isGameOver) return;
+    const node = grid[r][c];
+    if (node.type === 'source' || node.type === 'turbine') return; // immovable
+
+    sound.click();
+    // Rotate connections clockwise: [top, right, bottom, left] -> [left, top, right, bottom]
+    const [t, ri, b, l] = node.connections;
+    node.connections = [l, t, ri, b];
+  }
+
+  function injectCoolant() {
+    if (isGameOver || coolantsRemaining <= 0) return;
+    coolantsRemaining--;
+    coolantCountEl.textContent = coolantsRemaining.toString();
+    sound.rewind();
+
+    // Cool down all pipes and chambers
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const node = grid[r][c];
+        if (node.type !== 'source') {
+          node.heat = Math.max(5, node.heat - 35);
+          node.pressure = Math.max(0, node.pressure - 30);
+        }
+      }
+    }
+    coreStability = Math.min(100, coreStability + 25);
+    updateUI();
+  }
+
+  coolantBtn.addEventListener('click', injectCoolant);
+  resetSectorBtn.addEventListener('click', () => {
+    sound.click();
+    initSector(currentSector);
+  });
+  nextSectorBtn.addEventListener('click', () => {
+    sound.click();
+    initSector(currentSector + 1);
+  });
+  replayBtn.addEventListener('click', () => {
+    sound.click();
+    initSector(currentSector);
+  });
+  retryFailBtn.addEventListener('click', () => {
+    sound.click();
+    initSector(currentSector);
+  });
+
+  // Canvas click listener to rotate nodes
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const cellW = rect.width / COLS;
+    const cellH = rect.height / ROWS;
+
+    const c = Math.floor(x / cellW);
+    const r = Math.floor(y / cellH);
+
+    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+      rotateNode(c, r);
+    }
+  });
+
+  function updateUI() {
+    powerOutputEl.textContent = `${Math.floor(powerGenerated)} / ${targetPower} MW`;
+    stabilityBar.style.width = `${Math.max(0, coreStability)}%`;
+    stabilityPct.textContent = `${Math.round(coreStability)}%`;
+
+    if (coreStability < 35) {
+      stabilityBar.className = 'h-full bg-red-500 transition-all duration-300 animate-pulse';
+      stabilityPct.className = 'text-xs font-bold text-red-400';
+    } else if (coreStability < 60) {
+      stabilityBar.className = 'h-full bg-amber-500 transition-all duration-300';
+      stabilityPct.className = 'text-xs font-bold text-amber-400';
+    } else {
+      stabilityBar.className = 'h-full bg-emerald-500 transition-all duration-300';
+      stabilityPct.className = 'text-xs font-bold text-emerald-400';
+    }
+  }
+
+  let lastTime = performance.now();
+  function gameLoop(now: number) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+
+    if (!isGameOver) {
+      // Thermodynamic Flow Simulation (BFS / Flow propagation from sources)
+      // Reset pressures
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c].type !== 'source') {
+            grid[r][c].pressure = 0;
+            grid[r][c].heat = Math.max(0, grid[r][c].heat - dt * 2); // gradual natural dissipation
+          }
+        }
+      }
+
+      // Propagate flow from sources
+      const queue: { c: number; r: number; pressure: number; heat: number }[] = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c].type === 'source') {
+            queue.push({ c, r, pressure: 100, heat: 95 });
+            grid[r][c].pressure = 100;
+          }
+        }
+      }
+
+      const visited = new Set<string>();
+      let curTurbinePower = 0;
+
+      while (queue.length > 0) {
+        const { c, r, pressure, heat } = queue.shift()!;
+        const key = `${c}-${r}`;
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        const node = grid[r][c];
+        node.pressure = Math.max(node.pressure, pressure);
+        node.heat = Math.min(100, node.heat + heat * dt * 4);
+
+        if (node.type === 'turbine') {
+          // Generates MW
+          curTurbinePower += (node.pressure * 1.8);
+          // Spawn steam particles
+          if (Math.random() < 0.4) {
+            const rect = canvas.getBoundingClientRect();
+            const cellW = rect.width / COLS;
+            const cellH = rect.height / ROWS;
+            particles.push({
+              x: (c + 0.5) * cellW,
+              y: (r + 0.5) * cellH,
+              vx: (Math.random() - 0.5) * 40,
+              vy: -Math.random() * 80 - 40,
+              alpha: 0.9,
+              size: Math.random() * 6 + 4,
+              color: '#38bdf8'
+            });
+          }
+          continue; // Turbines terminate the line
+        }
+
+        // Check neighbors
+        // Top (r - 1)
+        if (node.connections[0] && r > 0 && grid[r - 1][c].connections[2]) {
+          queue.push({ c, r: r - 1, pressure: pressure * 0.92, heat: heat * 0.95 });
+        }
+        // Right (c + 1)
+        if (node.connections[1] && c < COLS - 1 && grid[r][c + 1].connections[3]) {
+          queue.push({ c: c + 1, r, pressure: pressure * 0.92, heat: heat * 0.95 });
+        }
+        // Bottom (r + 1)
+        if (node.connections[2] && r < ROWS - 1 && grid[r + 1][c].connections[0]) {
+          queue.push({ c, r: r + 1, pressure: pressure * 0.92, heat: heat * 0.95 });
+        }
+        // Left (c - 1)
+        if (node.connections[3] && c > 0 && grid[r][c - 1].connections[1]) {
+          queue.push({ c: c - 1, r, pressure: pressure * 0.92, heat: heat * 0.95 });
+        }
+      }
+
+      // Smoothly adjust current power
+      powerGenerated = Math.min(targetPower * 1.2, powerGenerated + (curTurbinePower - powerGenerated) * dt * 2);
+
+      // Check overheating / pressure bottlenecks
+      let maxPressure = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const node = grid[r][c];
+          if (node.heat > 90) {
+            coreStability -= dt * 6; // pressure wear
+          }
+          if (node.pressure > maxPressure) maxPressure = node.pressure;
+        }
+      }
+
+      updateUI();
+
+      // Check Meltdown condition
+      if (coreStability <= 0) {
+        triggerMeltdown();
+      }
+
+      // Check Win condition
+      if (powerGenerated >= targetPower) {
+        triggerWin();
+      }
+    }
+
+    // Update Particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.alpha -= dt * 0.8;
+      p.size += dt * 5;
+      if (p.alpha <= 0) {
+        particles.splice(i, 1);
+      }
+    }
+
+    render(now);
+    requestAnimationFrame(gameLoop);
+  }
+
+  function triggerWin() {
+    isGameOver = true;
+    sound.powerup();
+    launchConfetti();
+    player.addXP(150);
+
+    statEnergy.textContent = `${Math.round(powerGenerated)} MW`;
+    statCore.textContent = `${Math.round(coreStability)}%`;
+    victoryModal.classList.remove('hidden');
+  }
+
+  function triggerMeltdown() {
+    isGameOver = true;
+    sound.fail();
+    failModal.classList.remove('hidden');
+  }
+
+  function render(time: number) {
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    const cellW = w / COLS;
+    const cellH = h / ROWS;
+
+    // Draw Grid Cells & Pipes
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const node = grid[r][c];
+        const cx = (c + 0.5) * cellW;
+        const cy = (r + 0.5) * cellH;
+
+        // Base cell outline
+        ctx.strokeStyle = '#292524';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(c * cellW + 2, r * cellH + 2, cellW - 4, cellH - 4);
+
+        // Sources (Left)
+        if (node.type === 'source') {
+          ctx.fillStyle = '#7c2d12';
+          ctx.fillRect(c * cellW + 4, r * cellH + 4, cellW - 8, cellH - 8);
+
+          ctx.fillStyle = '#ea580c';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 22 + Math.sin(time / 200) * 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffedd5';
+          ctx.font = 'bold 10px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('MAGMA', cx, cy - 2);
+          ctx.fillText('CORE', cx, cy + 10);
+          continue;
+        }
+
+        // Turbines (Right)
+        if (node.type === 'turbine') {
+          ctx.fillStyle = node.pressure > 10 ? '#065f46' : '#1c1917';
+          ctx.fillRect(c * cellW + 4, r * cellH + 4, cellW - 8, cellH - 8);
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          if (node.pressure > 10) {
+            ctx.rotate(time / 100);
+          }
+          ctx.strokeStyle = node.pressure > 10 ? '#34d399' : '#64748b';
+          ctx.lineWidth = 3;
+          // Fan blades
+          for (let b = 0; b < 4; b++) {
+            ctx.rotate(Math.PI / 2);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(16, 0);
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          ctx.fillStyle = node.pressure > 10 ? '#6ee7b7' : '#94a3b8';
+          ctx.font = 'bold 9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('TURBINE', cx, cy + 26);
+          continue;
+        }
+
+        // Chambers
+        if (node.type === 'chamber') {
+          ctx.fillStyle = '#431407';
+          ctx.fillRect(c * cellW + 6, r * cellH + 6, cellW - 12, cellH - 12);
+          ctx.strokeStyle = '#f97316';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(c * cellW + 6, r * cellH + 6, cellW - 12, cellH - 12);
+
+          ctx.fillStyle = '#fb923c';
+          ctx.font = 'bold 10px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('EXPANSION', cx, cy);
+        }
+
+        // Normal Pipe Conduits
+        const pipeWidth = 14;
+        const [t, ri, b, l] = node.connections;
+
+        const isHot = node.pressure > 5;
+        const pipeColor = isHot ? '#f97316' : '#44403c';
+        const innerColor = isHot ? '#fdba74' : '#292524';
+
+        // Draw pipe backgrounds
+        ctx.strokeStyle = pipeColor;
+        ctx.lineWidth = pipeWidth;
+        ctx.lineCap = 'round';
+
+        // Center hub
+        ctx.beginPath();
+        ctx.arc(cx, cy, pipeWidth / 2, 0, Math.PI * 2);
+        ctx.fillStyle = pipeColor;
+        ctx.fill();
+
+        // Branches
+        if (t) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx, r * cellH);
+          ctx.stroke();
+        }
+        if (ri) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo((c + 1) * cellW, cy);
+          ctx.stroke();
+        }
+        if (b) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx, (r + 1) * cellH);
+          ctx.stroke();
+        }
+        if (l) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(c * cellW, cy);
+          ctx.stroke();
+        }
+
+        // Hot molten core stream inside pipe
+        if (isHot) {
+          ctx.strokeStyle = innerColor;
+          ctx.lineWidth = 6;
+          if (t) { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, r * cellH); ctx.stroke(); }
+          if (ri) { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo((c + 1) * cellW, cy); ctx.stroke(); }
+          if (b) { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, (r + 1) * cellH); ctx.stroke(); }
+          if (l) { ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(c * cellW, cy); ctx.stroke(); }
+        }
+
+        // Valve rotation handle in center
+        ctx.beginPath();
+        ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#1c1917';
+        ctx.fill();
+        ctx.strokeStyle = '#a8a29e';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    // Draw Steam Particles
+    for (const p of particles) {
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  initSector(0);
+  requestAnimationFrame(gameLoop);
+</script>

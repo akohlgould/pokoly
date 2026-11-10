@@ -1,1 +1,0 @@
-import{n as e}from"./player.Cqw3t7YZ.js";import{t}from"./audio.CwOQmcwZ.js";document.querySelectorAll(`.card-fav-btn`).forEach(n=>{let r=n.getAttribute(`data-slug`);r&&(e.isFavorite(r)&&(n.textContent=`❤️`),n.addEventListener(`click`,i=>{i.preventDefault(),i.stopPropagation(),n.textContent=e.toggleFavorite(r)?`❤️`:`🤍`,t.blip()}))});

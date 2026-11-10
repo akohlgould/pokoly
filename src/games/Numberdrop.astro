@@ -2,67 +2,226 @@
 // NumberDrop: Countdown Math
 ---
 
-<div id="numberdrop-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+<div id="numberdrop-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
     <div>Target: <span id="num-target" class="font-mono text-xl font-black text-brand-gold">432</span></div>
     <div>Current: <span id="num-current" class="font-mono text-base font-bold text-white">0</span></div>
+    <div>Score: <span id="num-score" class="font-mono font-bold text-brand-neon">0</span></div>
   </div>
 
+  <div class="w-full text-center text-xs text-gray-400 mb-2">
+    Combine numbers with arithmetic operators to hit the exact target:
+  </div>
+
+  <!-- Numbers Board & Operators Container -->
   <div class="w-full p-4 bg-brand-dark border-2 border-brand-border rounded-2xl shadow-2xl">
-    <div id="num-tiles" class="grid grid-cols-3 gap-2 mb-4"></div>
+    <!-- Number Tiles Grid -->
+    <div id="num-tiles" class="grid grid-cols-3 gap-2.5 mb-4">
+      <!-- 6 tiles rendered dynamically -->
+    </div>
+
+    <!-- Arithmetic Operators Bar with Active Highlight -->
     <div class="flex justify-center gap-2 mb-2">
-      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">+</button>
-      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">-</button>
-      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">×</button>
-      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">÷</button>
+      <button class="num-op w-12 h-11 rounded-xl bg-brand-card border border-brand-border text-lg font-black text-brand-neon hover:bg-brand-neon hover:text-brand-dark transition-all cursor-pointer" data-op="+">+</button>
+      <button class="num-op w-12 h-11 rounded-xl bg-brand-card border border-brand-border text-lg font-black text-brand-neon hover:bg-brand-neon hover:text-brand-dark transition-all cursor-pointer" data-op="-">-</button>
+      <button class="num-op w-12 h-11 rounded-xl bg-brand-card border border-brand-border text-lg font-black text-brand-neon hover:bg-brand-neon hover:text-brand-dark transition-all cursor-pointer" data-op="×">×</button>
+      <button class="num-op w-12 h-11 rounded-xl bg-brand-card border border-brand-border text-lg font-black text-brand-neon hover:bg-brand-neon hover:text-brand-dark transition-all cursor-pointer" data-op="÷">÷</button>
+    </div>
+
+    <!-- Active Equation Formula Display -->
+    <div id="num-equation" class="h-6 text-center font-mono text-xs text-brand-neon font-bold">
+      Select 1st Number
     </div>
   </div>
 
-  <button id="num-reset" class="mt-3 w-full rounded-xl border border-brand-border bg-brand-card py-2 text-xs font-semibold text-gray-300 hover:text-white">Reset Tiles</button>
+  <!-- Action Controls: Undo Move & Reset Board -->
+  <div class="mt-3 flex gap-2 w-full">
+    <button id="num-undo" class="flex-1 rounded-xl border border-brand-border bg-brand-card py-2 text-xs font-semibold text-gray-300 hover:text-white transition-colors cursor-pointer" disabled>
+      ↶ Undo Step
+    </button>
+    <button id="num-reset" class="flex-1 rounded-xl border border-brand-border bg-brand-card py-2 text-xs font-semibold text-gray-300 hover:text-white transition-colors cursor-pointer">
+      Reset Puzzle
+    </button>
+    <button id="num-new" class="rounded-xl border border-brand-border bg-brand-card px-3 py-2 text-xs font-semibold text-amber-400 hover:border-amber-400 transition-colors cursor-pointer">
+      New Target
+    </button>
+  </div>
+
+  <!-- Move Calculation History -->
+  <div class="mt-3 w-full">
+    <div class="text-[10px] font-mono text-gray-500 mb-1">STEPS LOG:</div>
+    <div id="num-history" class="flex flex-col gap-1 max-h-24 overflow-y-auto text-xs font-mono text-gray-300">
+      <span class="text-gray-600 text-[11px]">No operations performed yet.</span>
+    </div>
+  </div>
+
+  <!-- Victory Overlay Modal -->
+  <div id="num-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span class="text-5xl animate-bounce">🎯</span>
+      <h3 id="num-modal-title" class="text-2xl font-black text-white mt-2">Exact Match Solved!</h3>
+      <p id="num-modal-msg" class="text-xs text-gray-300 mt-1">You reached 432 in 4 steps!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="num-modal-btn" class="mt-5 w-full rounded-2xl bg-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Next Math Target →
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
-  const TARGET = 384;
-  const INITIAL_TILES = [75, 50, 8, 4, 3, 2];
-  let availableTiles: number[] = [...INITIAL_TILES];
-  let firstSelected: number | null = null;
+  const LARGE_POOL = [25, 50, 75, 100];
+  const SMALL_POOL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  interface HistoryStep {
+    tiles: number[];
+    equation: string;
+  }
+
+  let initialTiles: number[] = [];
+  let availableTiles: number[] = [];
+  let targetNumber = 432;
+  let firstIdx: number | null = null;
   let selectedOp: string | null = null;
+  let historyStack: HistoryStep[] = [];
+  let score = 0;
 
   const targetEl = document.getElementById('num-target')!;
   const currentEl = document.getElementById('num-current')!;
+  const scoreEl = document.getElementById('num-score')!;
   const tilesEl = document.getElementById('num-tiles')!;
+  const equationEl = document.getElementById('num-equation')!;
+  const historyEl = document.getElementById('num-history')!;
+  const undoBtn = document.getElementById('num-undo') as HTMLButtonElement;
   const resetBtn = document.getElementById('num-reset')!;
+  const newBtn = document.getElementById('num-new')!;
+  const modal = document.getElementById('num-modal')!;
+  const modalTitle = document.getElementById('num-modal-title')!;
+  const modalMsg = document.getElementById('num-modal-msg')!;
+  const modalBtn = document.getElementById('num-modal-btn')!;
 
-  targetEl.textContent = TARGET.toString();
+  function generateSolvablePuzzle() {
+    // Pick 2 large and 4 small numbers
+    const l1 = LARGE_POOL[Math.floor(Math.random() * LARGE_POOL.length)];
+    let l2 = LARGE_POOL[Math.floor(Math.random() * LARGE_POOL.length)];
+    while (l2 === l1) l2 = LARGE_POOL[Math.floor(Math.random() * LARGE_POOL.length)];
+
+    const smalls: number[] = [];
+    while (smalls.length < 4) {
+      smalls.push(SMALL_POOL[Math.floor(Math.random() * SMALL_POOL.length)]);
+    }
+
+    initialTiles = [l1, l2, ...smalls].sort(() => Math.random() - 0.5);
+    availableTiles = [...initialTiles];
+
+    // Simulate 3-4 random valid operations to create a guaranteed reachable target
+    let sim = [...initialTiles];
+    for (let step = 0; step < 3; step++) {
+      if (sim.length < 2) break;
+      const i1 = 0;
+      const i2 = 1;
+      const a = sim[i1];
+      const b = sim[i2];
+      sim.splice(0, 2);
+
+      const ops = ['+', '*', '-'];
+      if (b !== 0 && a % b === 0) ops.push('/');
+      const op = ops[Math.floor(Math.random() * ops.length)];
+
+      let res = a + b;
+      if (op === '*') res = a * b;
+      if (op === '-') res = Math.abs(a - b);
+      if (op === '/') res = a / b;
+
+      if (res > 0 && res < 1000) sim.push(res);
+      else sim.push(a + b);
+    }
+
+    const candidate = sim[sim.length - 1];
+    targetNumber = candidate > 100 && candidate < 999 ? candidate : Math.floor(Math.random() * 800) + 101;
+    targetEl.textContent = targetNumber.toString();
+
+    firstIdx = null;
+    selectedOp = null;
+    historyStack = [];
+    modal.classList.add('hidden');
+    render();
+    player.trackGamePlay('numberdrop');
+  }
 
   function render() {
     tilesEl.innerHTML = '';
     availableTiles.forEach((num, idx) => {
       const btn = document.createElement('button');
-      btn.className = `h-14 rounded-xl border font-mono text-base font-bold transition-all ${
-        firstSelected === idx ? 'bg-brand-neon text-brand-dark border-brand-neon scale-95' : 'bg-brand-card border-brand-border text-white hover:border-gray-400'
+      const isSelected = firstIdx === idx;
+      btn.className = `h-14 rounded-2xl border font-mono text-lg font-black transition-all cursor-pointer shadow-md ${
+        isSelected
+          ? 'bg-brand-neon text-brand-dark border-brand-neon scale-95 shadow-brand-neon/40'
+          : 'bg-brand-card border-brand-border text-white hover:border-brand-neon hover:scale-102 active:scale-95'
       }`;
       btn.textContent = num.toString();
       btn.addEventListener('click', () => handleTileClick(idx));
       tilesEl.appendChild(btn);
     });
 
-    currentEl.textContent = firstSelected !== null ? availableTiles[firstSelected].toString() : '0';
+    // Operator highlights
+    document.querySelectorAll('.num-op').forEach(btn => {
+      const op = (btn as HTMLElement).dataset.op;
+      if (op === selectedOp) {
+        btn.classList.add('bg-brand-neon', 'text-brand-dark', 'border-brand-neon');
+      } else {
+        btn.classList.remove('bg-brand-neon', 'text-brand-dark', 'border-brand-neon');
+      }
+    });
+
+    // Equation indicator
+    if (firstIdx !== null && selectedOp !== null) {
+      equationEl.textContent = `${availableTiles[firstIdx]} ${selectedOp} [Select 2nd Number]`;
+    } else if (firstIdx !== null) {
+      equationEl.textContent = `${availableTiles[firstIdx]} [Select Operator +, -, ×, ÷]`;
+    } else {
+      equationEl.textContent = 'Select 1st Number';
+    }
+
+    currentEl.textContent = firstIdx !== null ? availableTiles[firstIdx].toString() : '0';
+    undoBtn.disabled = historyStack.length === 0;
+    renderHistory();
   }
 
   function handleTileClick(idx: number) {
     sound.click();
-    if (firstSelected === null) {
-      firstSelected = idx;
-    } else if (selectedOp !== null) {
-      const a = availableTiles[firstSelected];
+
+    if (firstIdx === null) {
+      firstIdx = idx;
+      render();
+      return;
+    }
+
+    if (firstIdx === idx) {
+      firstIdx = null;
+      selectedOp = null;
+      render();
+      return;
+    }
+
+    if (selectedOp !== null) {
+      const a = availableTiles[firstIdx];
       const b = availableTiles[idx];
       let res = 0;
 
       if (selectedOp === '+') res = a + b;
-      if (selectedOp === '-') res = a - b;
+      if (selectedOp === '-') {
+        if (a < b) {
+          sound.blip();
+          return;
+        }
+        res = a - b;
+      }
       if (selectedOp === '×') res = a * b;
       if (selectedOp === '÷') {
         if (b === 0 || a % b !== 0) {
@@ -73,33 +232,85 @@
       }
 
       sound.score();
-      availableTiles = availableTiles.filter((_, i) => i !== firstSelected && i !== idx);
-      availableTiles.push(res);
-      firstSelected = null;
-      selectedOp = null;
+      historyStack.push({
+        tiles: [...availableTiles],
+        equation: `${a} ${selectedOp} ${b} = ${res}`
+      });
 
-      if (res === TARGET) {
+      // Remove the 2 used tiles and add result
+      const largerIdx = Math.max(firstIdx, idx);
+      const smallerIdx = Math.min(firstIdx, idx);
+      availableTiles.splice(largerIdx, 1);
+      availableTiles.splice(smallerIdx, 1);
+      availableTiles.push(res);
+
+      firstIdx = null;
+      selectedOp = null;
+      render();
+
+      // Check Victory
+      if (res === targetNumber) {
         sound.victory();
-        setTimeout(() => alert('🎉 Exact Match Solved!'), 200);
+        launchConfetti();
+        score += 1000;
+        scoreEl.textContent = score.toString();
+        player.addXP(250, 'Countdown Math Target Solved');
+
+        modalTitle.textContent = 'Exact Target Hit!';
+        modalMsg.textContent = `Brilliant deduction! You reached ${targetNumber} perfectly.`;
+        modal.classList.remove('hidden');
       }
+    } else {
+      // Switch first selection
+      firstIdx = idx;
+      render();
     }
-    render();
+  }
+
+  function renderHistory() {
+    historyEl.innerHTML = '';
+    if (historyStack.length === 0) {
+      historyEl.innerHTML = '<span class="text-gray-600 text-[11px]">No operations performed yet.</span>';
+      return;
+    }
+    historyStack.forEach((step, idx) => {
+      const d = document.createElement('div');
+      d.className = 'flex items-center gap-1.5';
+      d.innerHTML = `<span class="text-gray-500 font-mono text-[10px]">${idx + 1}.</span> <span class="text-brand-neon font-bold">${step.equation}</span>`;
+      historyEl.appendChild(d);
+    });
   }
 
   document.querySelectorAll('.num-op').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      if (firstSelected === null) return;
+      if (firstIdx === null) return;
       sound.click();
-      selectedOp = (e.currentTarget as HTMLElement).textContent!;
+      selectedOp = (e.currentTarget as HTMLElement).dataset.op!;
+      render();
     });
   });
 
-  resetBtn.addEventListener('click', () => {
-    availableTiles = [...INITIAL_TILES];
-    firstSelected = null;
+  undoBtn.addEventListener('click', () => {
+    if (historyStack.length === 0) return;
+    sound.click();
+    const prev = historyStack.pop()!;
+    availableTiles = [...prev.tiles];
+    firstIdx = null;
     selectedOp = null;
     render();
   });
 
-  render();
+  resetBtn.addEventListener('click', () => {
+    sound.click();
+    availableTiles = [...initialTiles];
+    firstIdx = null;
+    selectedOp = null;
+    historyStack = [];
+    render();
+  });
+
+  newBtn.addEventListener('click', generateSolvablePuzzle);
+  modalBtn.addEventListener('click', generateSolvablePuzzle);
+
+  generateSolvablePuzzle();
 </script>

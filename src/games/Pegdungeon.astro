@@ -1,0 +1,400 @@
+---
+// PegDungeon: Pachinko Crawler
+---
+
+<div id="peg-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div class="flex items-center gap-2">
+      <span class="text-gray-400">Boss HP:</span>
+      <div class="w-20 h-2.5 rounded-full bg-brand-card overflow-hidden border border-brand-border/60">
+        <div id="peg-boss-bar" class="h-full bg-red-500 transition-all duration-150" style="width: 100%;"></div>
+      </div>
+      <span id="peg-boss-hp" class="font-mono font-bold text-red-400">600</span>
+    </div>
+    <div class="flex items-center gap-1 font-mono">
+      <span class="text-gray-400">Orbs:</span>
+      <span id="peg-balls" class="text-brand-gold font-bold text-sm">5</span>
+    </div>
+    <div class="text-[11px] text-gray-400" id="peg-dungeon-tier">
+      Dungeon B1
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="peg-canvas" width="340" height="440" class="block cursor-crosshair touch-none"></canvas>
+
+    <!-- In-game Victory / Defeat Modal Overlay -->
+    <div id="peg-modal" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span id="peg-modal-icon" class="text-5xl animate-bounce">🏆</span>
+      <h3 id="peg-modal-title" class="text-2xl font-black text-white mt-2">Boss Vanquished!</h3>
+      <p id="peg-modal-msg" class="text-xs text-gray-300 mt-1">Dungeon B1 cleared with 2 balls remaining.</p>
+      <div id="peg-modal-reward" class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="peg-modal-btn" class="mt-4 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Enter Next Dungeon Level →
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center">
+    Move pointer to aim trajectory line. Click / tap to fire. Land in the moving bucket for <span class="text-brand-neon font-bold">+1 Free Ball</span>!
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('peg-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const bossHpEl = document.getElementById('peg-boss-hp')!;
+  const bossBarEl = document.getElementById('peg-boss-bar')!;
+  const ballsEl = document.getElementById('peg-balls')!;
+  const tierEl = document.getElementById('peg-dungeon-tier')!;
+  const modal = document.getElementById('peg-modal')!;
+  const modalTitle = document.getElementById('peg-modal-title')!;
+  const modalMsg = document.getElementById('peg-modal-msg')!;
+  const modalIcon = document.getElementById('peg-modal-icon')!;
+  const modalBtn = document.getElementById('peg-modal-btn')!;
+
+  interface Peg {
+    x: number;
+    y: number;
+    r: number;
+    hit: boolean;
+    type: 'normal' | 'crit' | 'bomb';
+  }
+
+  interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    alpha: number;
+  }
+
+  let dungeonTier = 1;
+  let maxBossHP = 600;
+  let bossHP = 600;
+  let ballsLeft = 5;
+
+  let pegs: Peg[] = [];
+  let particles: Particle[] = [];
+  let ball = {
+    x: 170,
+    y: 28,
+    vx: 0,
+    vy: 0,
+    r: 7,
+    active: false
+  };
+
+  let aimX = 170;
+  let aimY = 120;
+  let bucketX = 130;
+  let bucketW = 70;
+  let bucketSpeed = 2.2;
+  let bucketDir = 1;
+  let isGameOver = false;
+
+  function initDungeon(tier: number) {
+    dungeonTier = tier;
+    maxBossHP = 500 + tier * 150;
+    bossHP = maxBossHP;
+    ballsLeft = 5;
+    isGameOver = false;
+
+    bossHpEl.textContent = bossHP.toString();
+    bossBarEl.style.width = '100%';
+    ballsEl.textContent = ballsLeft.toString();
+    tierEl.textContent = `Dungeon B${tier}`;
+    modal.classList.add('hidden');
+
+    // Build randomized peg layout
+    pegs = [];
+    const rows = 6;
+    const cols = 7;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const rnd = Math.random();
+        const type: Peg['type'] = rnd < 0.15 ? 'bomb' : rnd < 0.35 ? 'crit' : 'normal';
+        pegs.push({
+          x: 45 + c * 42 + (r % 2 === 0 ? 0 : 21),
+          y: 95 + r * 44,
+          r: 6,
+          hit: false,
+          type
+        });
+      }
+    }
+
+    ball.active = false;
+    ball.x = 170;
+    ball.y = 28;
+    player.trackGamePlay('pegdungeon');
+  }
+
+  function loop() {
+    // Update moving bucket
+    bucketX += bucketSpeed * bucketDir;
+    if (bucketX <= 10) {
+      bucketX = 10;
+      bucketDir = 1;
+    } else if (bucketX + bucketW >= canvas.width - 10) {
+      bucketX = canvas.width - 10 - bucketW;
+      bucketDir = -1;
+    }
+
+    // Update active ball physics
+    if (ball.active) {
+      ball.vy += 0.28; // Gravity
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+
+      // Wall bounces
+      if (ball.x - ball.r <= 8) {
+        ball.x = 8 + ball.r;
+        ball.vx *= -0.75;
+      } else if (ball.x + ball.r >= canvas.width - 8) {
+        ball.x = canvas.width - 8 - ball.r;
+        ball.vx *= -0.75;
+      }
+
+      // Peg collisions
+      pegs.forEach(p => {
+        if (!p.hit) {
+          const dist = Math.hypot(ball.x - p.x, ball.y - p.y);
+          if (dist < ball.r + p.r) {
+            p.hit = true;
+            sound.blip();
+
+            // Particle spark
+            particles.push({
+              x: p.x,
+              y: p.y,
+              vx: (Math.random() - 0.5) * 4,
+              vy: (Math.random() - 0.5) * 4,
+              color: p.type === 'crit' ? '#fbbf24' : p.type === 'bomb' ? '#ec4899' : '#38bdf8',
+              alpha: 1
+            });
+
+            // Bounce trajectory impulse
+            const nx = (ball.x - p.x) / dist;
+            const ny = (ball.y - p.y) / dist;
+            ball.vx = nx * 4 + (Math.random() - 0.5) * 2;
+            ball.vy = ny * 4 - 1.5;
+
+            // Damage boss
+            let dmg = p.type === 'crit' ? 45 : 18;
+            if (p.type === 'bomb') {
+              dmg = 75;
+              sound.explosion();
+              // Detonate adjacent pegs
+              pegs.forEach(adj => {
+                if (!adj.hit && Math.hypot(adj.x - p.x, adj.y - p.y) < 60) {
+                  adj.hit = true;
+                  bossHP = Math.max(0, bossHP - 25);
+                }
+              });
+            }
+
+            bossHP = Math.max(0, bossHP - dmg);
+            bossHpEl.textContent = bossHP.toString();
+            const pct = (bossHP / maxBossHP) * 100;
+            bossBarEl.style.width = `${pct}%`;
+          }
+        }
+      });
+
+      // Bottom boundary check
+      if (ball.y > canvas.height - 20) {
+        // Did it land inside the moving bucket?
+        if (ball.x >= bucketX && ball.x <= bucketX + bucketW) {
+          sound.victory();
+          ballsLeft++;
+          ballsEl.textContent = ballsLeft.toString();
+          // Spawn celebration sparkles
+          for (let i = 0; i < 8; i++) {
+            particles.push({
+              x: ball.x,
+              y: canvas.height - 20,
+              vx: (Math.random() - 0.5) * 4,
+              vy: -Math.random() * 4 - 2,
+              color: '#34d399',
+              alpha: 1
+            });
+          }
+        }
+
+        ball.active = false;
+
+        // Check Boss Slain
+        if (bossHP <= 0) {
+          isGameOver = true;
+          sound.victory();
+          launchConfetti();
+          player.addXP(250 * dungeonTier, 'Dungeon Boss Slain');
+
+          modalIcon.textContent = '👑';
+          modalTitle.textContent = `DUNGEON B${dungeonTier} CLEARED!`;
+          modalMsg.textContent = `The dungeon guardian has fallen! You advance to Dungeon B${dungeonTier + 1}.`;
+          modalBtn.textContent = 'Enter Next Dungeon Level →';
+          modalBtn.onclick = () => initDungeon(dungeonTier + 1);
+          modal.classList.remove('hidden');
+        } else if (ballsLeft <= 0) {
+          isGameOver = true;
+          sound.gameOver();
+          modalIcon.textContent = '💀';
+          modalTitle.textContent = 'OUT OF HERO ORBS!';
+          modalMsg.textContent = `The boss survived with ${bossHP} HP. Relaunch to try again!`;
+          modalBtn.textContent = 'Restart Dungeon B1';
+          modalBtn.onclick = () => initDungeon(1);
+          modal.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Update particles
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= 0.04;
+    });
+    particles = particles.filter(p => p.alpha > 0);
+
+    // Draw frame
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#080a14';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Aim guide line
+    if (!ball.active && !isGameOver) {
+      const angle = Math.atan2(aimY - 28, aimX - 170);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(170, 28);
+      ctx.lineTo(170 + Math.cos(angle) * 120, 28 + Math.sin(angle) * 120);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw Pegs
+    pegs.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      if (p.hit) {
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+      } else if (p.type === 'crit') {
+        ctx.fillStyle = '#f59e0b';
+        ctx.fill();
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      } else if (p.type === 'bomb') {
+        ctx.fillStyle = '#ec4899';
+        ctx.fill();
+        ctx.strokeStyle = '#f472b6';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = '#0284c7';
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    });
+
+    // Draw Moving Bucket at Bottom
+    ctx.fillStyle = '#10b981';
+    ctx.strokeStyle = '#34d399';
+    ctx.lineWidth = 2;
+    ctx.fillRect(bucketX, canvas.height - 18, bucketW, 14);
+    ctx.strokeRect(bucketX, canvas.height - 18, bucketW, 14);
+    ctx.fillStyle = '#064e3b';
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('+1 FREE', bucketX + bucketW / 2, canvas.height - 7);
+
+    // Draw Top Launcher Cannon
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.arc(170, 26, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw Ball
+    if (ball.active) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(ball.x - 2, ball.y - 2, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw Particles
+    particles.forEach(p => {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Pointer & Touch Handlers
+  function updateAim(clientX: number, clientY: number) {
+    const rect = canvas.getBoundingClientRect();
+    aimX = clientX - rect.left;
+    aimY = Math.max(50, clientY - rect.top);
+  }
+
+  function launchBall() {
+    if (ball.active || ballsLeft <= 0 || isGameOver) return;
+    sound.score();
+    ballsLeft--;
+    ballsEl.textContent = ballsLeft.toString();
+
+    const angle = Math.atan2(aimY - 28, aimX - 170);
+    const speed = 7.5;
+    ball = {
+      x: 170,
+      y: 28,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: 7,
+      active: true
+    };
+  }
+
+  canvas.addEventListener('mousemove', (e) => updateAim(e.clientX, e.clientY));
+  canvas.addEventListener('click', launchBall);
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      updateAim(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    launchBall();
+  });
+
+  initDungeon(1);
+  loop();
+</script>

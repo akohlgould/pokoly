@@ -2,105 +2,265 @@
 // CipherPunk: Daily Decryption
 ---
 
-<div id="cipher-game" class="flex flex-col items-center justify-center p-3 select-none max-w-lg mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-emerald-500/40 bg-brand-dark/95 px-4 py-2 text-xs">
-    <div class="font-mono text-emerald-400">NETRUNNER DECRYPTOR v2.4</div>
-    <button id="cipher-hint" class="rounded border border-emerald-500/50 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-300 hover:text-white">Hint (1 Free)</button>
+<div id="cipher-game" class="flex flex-col items-center justify-center p-3 select-none max-w-lg mx-auto w-full">
+  <!-- Top Terminal Status Bar -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-emerald-500/40 bg-brand-dark/95 px-4 py-2.5 text-xs font-mono">
+    <div class="flex items-center gap-2">
+      <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-emerald-400 font-bold">NETRUNNER v3.1</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-gray-400">Decrypted: <span id="cipher-progress" class="text-emerald-300 font-bold">0%</span></div>
+      <button id="cipher-hint" class="rounded-lg border border-emerald-500/50 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-300 hover:text-white transition-colors cursor-pointer">
+        Hint (3)
+      </button>
+      <button id="cipher-new" class="rounded-lg border border-emerald-500/50 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-300 hover:text-white transition-colors cursor-pointer">
+        New Cipher
+      </button>
+    </div>
   </div>
 
-  <div class="w-full rounded-2xl border-2 border-emerald-500/30 bg-black/90 p-5 font-mono shadow-2xl text-emerald-400">
-    <div id="cipher-text" class="flex flex-wrap gap-2 text-base leading-loose"></div>
+  <!-- Terminal Decryption Display Viewport -->
+  <div class="w-full rounded-2xl border-2 border-emerald-500/40 bg-black/95 p-5 font-mono shadow-2xl text-emerald-400 relative">
+    <div class="text-[10px] text-emerald-600 mb-2">// ENCRYPTED TRANSMISSION INTERCEPT:</div>
+    <div id="cipher-text" class="flex flex-wrap gap-2 text-base leading-loose min-h-[140px]">
+      <!-- Word clusters and substitution boxes -->
+    </div>
   </div>
 
-  <div class="mt-4 flex flex-wrap justify-center gap-1.5 w-full" id="cipher-keyboard"></div>
+  <!-- Virtual Cyber Keyboard -->
+  <div class="mt-4 flex flex-wrap justify-center gap-1.5 w-full max-w-md" id="cipher-keyboard">
+    <!-- 26 Keys with used indicators -->
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center font-mono">
+    Select any letter, then type <span class="text-emerald-400 font-bold">A-Z</span> on your keyboard or tap below. Press <span class="text-emerald-400 font-bold">Backspace</span> to erase.
+  </div>
+
+  <!-- Decryption Complete Modal -->
+  <div id="cipher-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-emerald-500/60 bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl font-mono">
+      <span class="text-5xl animate-bounce">🔓</span>
+      <h3 class="text-2xl font-black text-emerald-400 mt-2">TRANSMISSION DECRYPTED</h3>
+      <p id="cipher-modal-quote" class="text-xs text-gray-300 mt-2 italic leading-relaxed"></p>
+      <div class="mt-3 text-xs text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="cipher-modal-btn" class="mt-5 w-full rounded-2xl bg-emerald-600 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Intercept Next Signal →
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
-  const SECRET = "INFORMATION WANTS TO BE FREE IN CYBERSPACE";
-  const CIPHER_MAP: Record<string, string> = {
-    'I': 'X', 'N': 'K', 'F': 'Q', 'O': 'Z', 'R': 'M', 'M': 'T', 'A': 'P', 'T': 'V',
-    'W': 'L', 'S': 'J', 'B': 'D', 'E': 'C', 'C': 'Y', 'Y': 'H', 'P': 'R'
-  };
+  const QUOTES = [
+    'INFORMATION WANTS TO BE FREE IN CYBERSPACE',
+    'THE FUTURE IS ALREADY HERE IT IS JUST NOT EVENLY DISTRIBUTED',
+    'ANY SUFFICIENTLY ADVANCED TECHNOLOGY IS INDISTINGUISHABLE FROM MAGIC',
+    'WE CAN CODE OUR OWN FREEDOM IN THE DIGITAL MATRIX',
+    'THE SKY ABOVE THE PORT WAS THE COLOR OF TELEVISION TUNED TO A DEAD CHANNEL',
+    'NEVER SEND A HUMAN TO DO A MACHINE JOB',
+    'REALITY IS THAT WHICH WHEN YOU STOP BELIEVING IN IT DOES NOT GO AWAY',
+    'IN CRYPTOGRAPHY WE TRUST FOR OUR PRIVACY AND SOVEREIGNTY',
+    'VIRTUAL WORLDS ARE ONLY AS REAL AS THE MINDS THAT INHABIT THEM',
+    'THE NET REPRESENTS A NEW FRONTIER OF HUMAN CONSCIOUSNESS'
+  ];
 
-  let playerSubstitutions: Record<string, string> = {};
+  let currentQuote = QUOTES[0];
+  let cipherMap: Record<string, string> = {}; // Plain -> Cipher
+  let playerSubstitutions: Record<string, string> = {}; // Cipher -> Player Guess
   let selectedCipherLetter: string | null = null;
+  let hintsLeft = 3;
+  let isGameOver = false;
 
   const textEl = document.getElementById('cipher-text')!;
   const kbEl = document.getElementById('cipher-keyboard')!;
   const hintBtn = document.getElementById('cipher-hint')!;
+  const newBtn = document.getElementById('cipher-new')!;
+  const progressEl = document.getElementById('cipher-progress')!;
+  const modal = document.getElementById('cipher-modal')!;
+  const modalQuote = document.getElementById('cipher-modal-quote')!;
+  const modalBtn = document.getElementById('cipher-modal-btn')!;
+
+  function generateCipher() {
+    isGameOver = false;
+    hintsLeft = 3;
+    hintBtn.textContent = 'Hint (3)';
+    modal.classList.add('hidden');
+    playerSubstitutions = {};
+
+    currentQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+
+    // Generate random permutation of the alphabet
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const shuffled = [...alphabet].sort(() => Math.random() - 0.5);
+
+    cipherMap = {};
+    alphabet.forEach((letter, i) => {
+      cipherMap[letter] = shuffled[i];
+    });
+
+    // Auto-select first cipher letter
+    const firstChar = currentQuote.replace(/[^A-Z]/g, '')[0];
+    selectedCipherLetter = cipherMap[firstChar] || null;
+
+    render();
+    setupKeyboard();
+    player.trackGamePlay('cipherpunk');
+  }
 
   function render() {
     textEl.innerHTML = '';
-    const words = SECRET.split(' ');
+    const words = currentQuote.split(' ');
+
+    let totalLetters = 0;
+    let correctLetters = 0;
+
     words.forEach(w => {
       const wordContainer = document.createElement('div');
       wordContainer.className = 'flex gap-1 mr-3 mb-2';
-      for (const char of w) {
-        const cipherLetter = CIPHER_MAP[char] || char;
-        const guessed = playerSubstitutions[cipherLetter] || '_';
-        const isSelected = selectedCipherLetter === cipherLetter;
 
-        const charBox = document.createElement('div');
-        charBox.className = `flex flex-col items-center cursor-pointer rounded px-1 ${isSelected ? 'bg-emerald-500/30 border border-emerald-400' : ''}`;
-        charBox.innerHTML = `
-          <span class="text-sm font-bold ${guessed === char ? 'text-brand-neon' : guessed !== '_' ? 'text-amber-400' : 'text-gray-500'}">${guessed}</span>
-          <span class="text-xs text-emerald-300 font-mono border-t border-emerald-800">${cipherLetter}</span>
-        `;
-        charBox.addEventListener('click', () => {
-          sound.click();
-          selectedCipherLetter = cipherLetter;
-          render();
-        });
-        wordContainer.appendChild(charBox);
+      for (const char of w) {
+        if (/[A-Z]/.test(char)) {
+          totalLetters++;
+          const cipherLetter = cipherMap[char];
+          const guessed = playerSubstitutions[cipherLetter] || '_';
+          const isSelected = selectedCipherLetter === cipherLetter;
+          const isCorrect = guessed === char;
+
+          if (isCorrect) correctLetters++;
+
+          const charBox = document.createElement('div');
+          charBox.className = `flex flex-col items-center cursor-pointer rounded px-1.5 py-0.5 transition-all ${
+            isSelected
+              ? 'bg-emerald-500/30 border border-emerald-400 scale-105'
+              : 'hover:bg-emerald-950/40'
+          }`;
+
+          charBox.innerHTML = `
+            <span class="text-sm font-bold font-mono ${
+              isCorrect ? 'text-brand-neon' : guessed !== '_' ? 'text-amber-400' : 'text-gray-500'
+            }">${guessed}</span>
+            <span class="text-xs text-emerald-300 font-mono border-t border-emerald-800/80 mt-0.5">${cipherLetter}</span>
+          `;
+
+          charBox.addEventListener('click', () => {
+            sound.click();
+            selectedCipherLetter = cipherLetter;
+            render();
+          });
+
+          wordContainer.appendChild(charBox);
+        } else {
+          // Punctuation
+          const punct = document.createElement('span');
+          punct.className = 'text-sm font-bold text-gray-400 self-end mb-1';
+          punct.textContent = char;
+          wordContainer.appendChild(punct);
+        }
       }
       textEl.appendChild(wordContainer);
     });
 
-    checkCompletion();
+    const pct = totalLetters > 0 ? Math.floor((correctLetters / totalLetters) * 100) : 0;
+    progressEl.textContent = `${pct}%`;
+
+    // Check completion
+    if (correctLetters === totalLetters && totalLetters > 0 && !isGameOver) {
+      triggerVictory();
+    }
   }
 
   function setupKeyboard() {
     kbEl.innerHTML = '';
+    const usedLetters = new Set(Object.values(playerSubstitutions));
+
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
+      const isUsed = usedLetters.has(letter);
       const btn = document.createElement('button');
-      btn.className = 'w-8 h-9 rounded bg-brand-card border border-brand-border text-xs font-bold text-gray-200 hover:border-emerald-400 hover:text-white';
+      btn.className = `w-7 h-9 sm:w-8 sm:h-9 rounded-lg border font-mono text-xs font-bold transition-all cursor-pointer ${
+        isUsed
+          ? 'bg-emerald-950/60 border-emerald-800/40 text-gray-500 opacity-50'
+          : 'bg-brand-card border-brand-border text-gray-200 hover:border-emerald-400 hover:text-white'
+      }`;
       btn.textContent = letter;
+
       btn.addEventListener('click', () => {
-        if (!selectedCipherLetter) return;
+        if (!selectedCipherLetter || isGameOver) return;
         sound.click();
         playerSubstitutions[selectedCipherLetter] = letter;
+        advanceSelection();
         render();
+        setupKeyboard();
       });
+
       kbEl.appendChild(btn);
     });
   }
 
-  function checkCompletion() {
-    const isComplete = SECRET.split('').every(char => {
-      if (char === ' ') return true;
-      const cipher = CIPHER_MAP[char] || char;
-      return playerSubstitutions[cipher] === char;
-    });
-
-    if (isComplete) {
-      sound.victory();
-      setTimeout(() => alert('🎉 Cipher Cracked! Decryption Complete.'), 200);
+  function advanceSelection() {
+    // Automatically advance to the next un-substituted cipher letter in the quote
+    const letters = currentQuote.replace(/[^A-Z]/g, '').split('');
+    for (const char of letters) {
+      const cipher = cipherMap[char];
+      if (!playerSubstitutions[cipher]) {
+        selectedCipherLetter = cipher;
+        return;
+      }
     }
   }
 
+  function triggerVictory() {
+    isGameOver = true;
+    sound.victory();
+    launchConfetti();
+    player.addXP(250, 'Cryptogram Signal Decrypted');
+    modalQuote.textContent = `"${currentQuote}"`;
+    modal.classList.remove('hidden');
+  }
+
   hintBtn.addEventListener('click', () => {
+    if (isGameOver || hintsLeft <= 0) return;
     sound.score();
-    for (const [plain, cipher] of Object.entries(CIPHER_MAP)) {
-      if (!playerSubstitutions[cipher]) {
+    hintsLeft--;
+    hintBtn.textContent = `Hint (${hintsLeft})`;
+
+    // Reveal one unsolved substitution
+    const chars = Object.keys(cipherMap);
+    for (const plain of chars) {
+      const cipher = cipherMap[plain];
+      if (playerSubstitutions[cipher] !== plain) {
         playerSubstitutions[cipher] = plain;
         break;
       }
     }
     render();
+    setupKeyboard();
   });
 
-  setupKeyboard();
-  render();
+  window.addEventListener('keydown', (e) => {
+    if (isGameOver || !selectedCipherLetter) return;
+
+    const key = e.key.toUpperCase();
+    if (/^[A-Z]$/.test(key) && key.length === 1) {
+      sound.click();
+      playerSubstitutions[selectedCipherLetter] = key;
+      advanceSelection();
+      render();
+      setupKeyboard();
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      sound.click();
+      delete playerSubstitutions[selectedCipherLetter];
+      render();
+      setupKeyboard();
+    }
+  });
+
+  newBtn.addEventListener('click', generateCipher);
+  modalBtn.addEventListener('click', generateCipher);
+
+  generateCipher();
 </script>

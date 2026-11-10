@@ -1,0 +1,182 @@
+---
+// ChronoTrail: Timeline Guess
+---
+
+<div id="chrono-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div>Streak: <span id="chrono-streak" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Best: <span id="chrono-best" class="font-mono font-bold text-amber-400">0</span></div>
+    <button id="chrono-restart" class="rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors cursor-pointer">
+      New Deck
+    </button>
+  </div>
+
+  <div class="w-full text-center text-xs text-gray-400 mb-2">
+    Sort events from <span class="text-brand-neon font-bold">OLDEST (Top)</span> to <span class="text-brand-pink font-bold">NEWEST (Bottom)</span>:
+  </div>
+
+  <!-- Draggable / Swappable Event Cards List -->
+  <div id="chrono-list" class="w-full flex flex-col gap-2"></div>
+
+  <!-- Submit / Next Button -->
+  <button id="chrono-submit" class="mt-4 w-full rounded-2xl bg-gradient-to-r from-brand-accent via-indigo-600 to-cyan-600 py-3 text-xs font-bold text-white shadow-xl hover:scale-102 active:scale-98 transition-all cursor-pointer">
+    Lock In Timeline ⏳
+  </button>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  interface ChronoEvent {
+    title: string;
+    year: number;
+    desc: string;
+  }
+
+  const EVENT_POOL: ChronoEvent[] = [
+    { title: 'Wright Brothers First Powered Flight', year: 1903, desc: 'Kitty Hawk, North Carolina' },
+    { title: 'Titanic Sinks in the North Atlantic', year: 1912, desc: 'Maiden voyage catastrophe' },
+    { title: 'Penicillin Discovered by Alexander Fleming', year: 1928, desc: 'First mass antibiotic' },
+    { title: 'First Color Television Broadcast', year: 1954, desc: 'Tournament of Roses Parade' },
+    { title: 'Apollo 11 Astronauts Walk on Moon', year: 1969, desc: 'Neil Armstrong & Buzz Aldrin' },
+    { title: 'First Personal Computer (Altair 8800)', year: 1975, desc: 'Dawn of home computing' },
+    { title: 'Fall of the Berlin Wall', year: 1989, desc: 'Cold War unification in Germany' },
+    { title: 'Launch of Hubble Space Telescope', year: 1990, desc: 'Deep cosmic imagery deployed' },
+    { title: 'World Wide Web Made Public', year: 1991, desc: 'Tim Berners-Lee releases WWW' },
+    { title: 'Sony Launches PlayStation 1', year: 1994, desc: '3D CD-ROM console gaming' },
+    { title: 'First iPhone Announced by Steve Jobs', year: 2007, desc: 'Modern smartphone era begins' },
+    { title: 'Release of Minecraft 1.0', year: 2011, desc: 'Global sandbox cultural phenomenon' },
+    { title: 'James Webb Space Telescope Deployed', year: 2021, desc: 'Infrared astronomy flagship' }
+  ];
+
+  let items: ChronoEvent[] = [];
+  let submitted = false;
+  let streak = 0;
+  let best = parseInt(localStorage.getItem('pokoly_chrono_best') || '0', 10);
+
+  const listEl = document.getElementById('chrono-list')!;
+  const submitBtn = document.getElementById('chrono-submit') as HTMLButtonElement;
+  const restartBtn = document.getElementById('chrono-restart')!;
+  const streakEl = document.getElementById('chrono-streak')!;
+  const bestEl = document.getElementById('chrono-best')!;
+
+  bestEl.textContent = best.toString();
+
+  function initDeck() {
+    submitted = false;
+    submitBtn.textContent = 'Lock In Timeline ⏳';
+    submitBtn.disabled = false;
+    submitBtn.className = 'mt-4 w-full rounded-2xl bg-gradient-to-r from-brand-accent via-indigo-600 to-cyan-600 py-3 text-xs font-bold text-white shadow-xl hover:scale-102 active:scale-98 transition-all cursor-pointer';
+
+    // Pick 5 distinct random events
+    const shuffled = [...EVENT_POOL].sort(() => Math.random() - 0.5);
+    items = shuffled.slice(0, 5);
+
+    render();
+    player.trackGamePlay('chronotrail');
+  }
+
+  function render() {
+    listEl.innerHTML = '';
+    items.forEach((item, idx) => {
+      const card = document.createElement('div');
+      card.className = `flex items-center justify-between rounded-2xl border p-3.5 text-xs transition-all ${
+        submitted
+          ? 'border-brand-border/60 bg-brand-dark/90'
+          : 'border-brand-border bg-brand-card hover:border-gray-500'
+      }`;
+
+      card.innerHTML = `
+        <div class="flex items-center gap-2.5 overflow-hidden pr-2">
+          <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand-dark font-mono text-[11px] font-bold text-brand-neon">
+            ${idx + 1}
+          </span>
+          <div>
+            <div class="font-bold text-white">${item.title}</div>
+            <div class="text-[10px] text-gray-400">${item.desc}</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          ${
+            submitted
+              ? `<span class="font-mono text-sm font-black text-brand-gold bg-brand-card px-2.5 py-1 rounded-lg border border-brand-border/60">${item.year}</span>`
+              : `
+                <div class="flex flex-col gap-1">
+                  <button class="up-btn px-2 py-0.5 rounded-lg bg-brand-dark border border-brand-border/60 hover:text-brand-neon text-[10px] ${idx === 0 ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer'}" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                  <button class="down-btn px-2 py-0.5 rounded-lg bg-brand-dark border border-brand-border/60 hover:text-brand-neon text-[10px] ${idx === items.length - 1 ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer'}" ${idx === items.length - 1 ? 'disabled' : ''}>▼</button>
+                </div>
+              `
+          }
+        </div>
+      `;
+
+      if (!submitted) {
+        card.querySelector('.up-btn')?.addEventListener('click', () => moveItem(idx, -1));
+        card.querySelector('.down-btn')?.addEventListener('click', () => moveItem(idx, 1));
+      }
+
+      listEl.appendChild(card);
+    });
+  }
+
+  function moveItem(index: number, direction: number) {
+    sound.click();
+    const newIdx = index + direction;
+    if (newIdx >= 0 && newIdx < items.length) {
+      const temp = items[index];
+      items[index] = items[newIdx];
+      items[newIdx] = temp;
+      render();
+    }
+  }
+
+  function checkTimeline() {
+    submitted = true;
+    let isCorrect = true;
+    for (let i = 0; i < items.length - 1; i++) {
+      if (items[i].year > items[i + 1].year) {
+        isCorrect = false;
+        break;
+      }
+    }
+
+    if (isCorrect) {
+      sound.victory();
+      launchConfetti();
+      streak++;
+      streakEl.textContent = streak.toString();
+      if (streak > best) {
+        best = streak;
+        bestEl.textContent = best.toString();
+        localStorage.setItem('pokoly_chrono_best', best.toString());
+      }
+      player.addXP(200, 'Perfect Timeline Ordered');
+
+      submitBtn.textContent = '🎉 Perfect Order! Play Next Deck →';
+      submitBtn.className = 'mt-4 w-full rounded-2xl bg-emerald-600 py-3 text-xs font-bold text-white shadow-xl hover:scale-102 active:scale-98 transition-all cursor-pointer';
+    } else {
+      sound.gameOver();
+      streak = 0;
+      streakEl.textContent = '0';
+      submitBtn.textContent = '❌ Out of Order! Try Another Deck →';
+      submitBtn.className = 'mt-4 w-full rounded-2xl bg-rose-600 py-3 text-xs font-bold text-white shadow-xl hover:scale-102 active:scale-98 transition-all cursor-pointer';
+    }
+
+    render();
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (!submitted) {
+      checkTimeline();
+    } else {
+      initDeck();
+    }
+  });
+
+  restartBtn.addEventListener('click', initDeck);
+  initDeck();
+</script>

@@ -1,42 +1,67 @@
 ---
-// LexiFall: Word Tetris
+// LexiFall: Falling Word Blocks
 ---
 
-<div id="lexifall-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+<div id="lexifall-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
     <div>Score: <span id="lexi-score" class="font-mono font-bold text-brand-neon">0</span></div>
-    <div>Best: <span id="lexi-best" class="font-mono font-bold text-white">0</span></div>
-    <button id="lexi-restart" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300">Restart</button>
+    <div>Best: <span id="lexi-best" class="font-mono font-bold text-amber-400">0</span></div>
+    <button id="lexi-restart" class="rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors cursor-pointer">
+      Restart
+    </button>
   </div>
 
+  <!-- Block Canvas Container -->
   <div class="relative rounded-2xl border-2 border-brand-border bg-brand-dark overflow-hidden shadow-2xl">
-    <canvas id="lexi-canvas" width="320" height="400" class="block"></canvas>
-    <div id="lexi-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/85 p-6 text-center">
-      <span class="text-4xl">⚡</span>
-      <h3 class="text-xl font-bold text-white mt-1">Grid Overflow!</h3>
-      <p class="text-xs text-gray-300 mt-1">Score: <span id="lexi-final" class="text-brand-gold font-bold">0</span></p>
-      <button id="lexi-play-again" class="mt-4 rounded-xl bg-brand-accent px-5 py-2 text-xs font-bold text-white">Play Again</button>
+    <canvas id="lexi-canvas" width="320" height="400" class="block cursor-pointer touch-none"></canvas>
+
+    <!-- Game Over Overlay -->
+    <div id="lexi-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span class="text-5xl animate-bounce">⚡</span>
+      <h3 class="text-2xl font-black text-white mt-1">Grid Overflow!</h3>
+      <p class="text-xs text-gray-300 mt-1">Final Score: <span id="lexi-final" class="text-brand-gold font-bold font-mono">0</span></p>
+      <button id="lexi-play-again" class="mt-4 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Play Again
+      </button>
     </div>
   </div>
 
-  <div class="mt-3 flex w-full items-center justify-between gap-2 bg-brand-card border border-brand-border p-2.5 rounded-xl">
-    <div class="flex-1 font-mono font-bold text-sm tracking-wider text-brand-neon pl-2" id="lexi-word">...</div>
-    <button id="lexi-pop" class="rounded-lg bg-brand-neon px-4 py-1.5 text-xs font-bold text-brand-dark hover:brightness-110">POP</button>
-    <button id="lexi-clear" class="rounded-lg border border-brand-border px-3 py-1.5 text-xs text-gray-300">Clear</button>
+  <!-- Bottom Active Word & Action Bar -->
+  <div class="mt-3 flex w-full items-center justify-between gap-2 bg-brand-card/80 border border-brand-border p-2 rounded-2xl">
+    <div class="flex-1 overflow-hidden px-2">
+      <div class="font-mono font-black text-sm tracking-wider text-brand-neon truncate" id="lexi-word">
+        TAP LETTERS
+      </div>
+      <div class="text-[10px] font-mono" id="lexi-validity">Spell 3+ letter words</div>
+    </div>
+    <button id="lexi-pop" class="rounded-xl bg-brand-neon px-5 py-2 text-xs font-black text-brand-dark hover:brightness-110 active:scale-95 transition-all disabled:opacity-40 cursor-pointer" disabled>
+      POP ✨
+    </button>
+    <button id="lexi-clear" class="rounded-xl border border-brand-border px-3 py-2 text-xs text-gray-300 hover:text-white transition-colors cursor-pointer">
+      Clear
+    </button>
+  </div>
+
+  <div class="mt-2 text-[11px] text-gray-400 text-center">
+    Tap adjacent or nearby letters in the grid to form words before blocks reach the top!
   </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
   const canvas = document.getElementById('lexi-canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
   const scoreEl = document.getElementById('lexi-score')!;
   const bestEl = document.getElementById('lexi-best')!;
   const wordEl = document.getElementById('lexi-word')!;
+  const validityEl = document.getElementById('lexi-validity')!;
   const overlay = document.getElementById('lexi-overlay')!;
   const finalEl = document.getElementById('lexi-final')!;
-  const popBtn = document.getElementById('lexi-pop')!;
+  const popBtn = document.getElementById('lexi-pop') as HTMLButtonElement;
   const clearBtn = document.getElementById('lexi-clear')!;
   const playAgain = document.getElementById('lexi-play-again')!;
   const restartBtn = document.getElementById('lexi-restart')!;
@@ -47,10 +72,21 @@
   const VOWELS = 'AAEEIIOOUU';
   const CONSONANTS = 'BCDFGHJKLMNPQRSTVWXYZ';
 
-  let grid: { letter: string; selected: boolean }[][] = [];
+  // Common English words dictionary (3-8 letters)
+  const DICTIONARY = new Set([
+    'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL', 'ANY', 'CAN', 'HAD', 'HER', 'WAS', 'ONE', 'OUR', 'OUT', 'DAY', 'GET', 'HAS', 'HIM', 'HIS', 'HOW', 'MAN', 'NEW', 'NOW', 'OLD', 'SEE', 'TWO', 'WAY', 'WHO', 'BOY', 'DID', 'ITS', 'LET', 'PUT', 'SAY', 'SHE', 'TOO', 'USE', 'CAT', 'DOG', 'RUN', 'SUN', 'SKY', 'RED', 'BLUE', 'TOP', 'BOX', 'CAR', 'CUP', 'WAR', 'WIN', 'FLY', 'SEA', 'ICE', 'HOT', 'AIR', 'EAR', 'EYE', 'ROW', 'MAP', 'BAG', 'KEY', 'JAM', 'LOG', 'NET', 'PEN', 'RAY', 'TEA', 'ZOO',
+    'THAT', 'WITH', 'HAVE', 'THIS', 'WILL', 'YOUR', 'FROM', 'THEY', 'KNOW', 'WANT', 'BEEN', 'GOOD', 'MUCH', 'SOME', 'TIME', 'VERY', 'WHEN', 'COME', 'HERE', 'JUST', 'LIKE', 'LONG', 'MAKE', 'MANY', 'MORE', 'ONLY', 'OVER', 'SUCH', 'TAKE', 'THAN', 'THEM', 'WELL', 'WERE', 'WHAT', 'WORD', 'GAME', 'PLAY', 'FAST', 'COOL', 'FIRE', 'STAR', 'MOON', 'RAIN', 'WIND', 'GOLD', 'NEON', 'CYBER', 'PIXEL', 'SPACE', 'CLOUD', 'LIGHT', 'NIGHT', 'SOUND', 'VOICE', 'HEART', 'DREAM', 'MAGIC', 'POWER', 'STORM', 'TRAIN', 'OCEAN', 'EARTH', 'FLASH', 'SHARK', 'TIGER', 'LEMON', 'WATER', 'BRAVE', 'SWORD', 'PRISM', 'CHESS', 'SOLAR', 'GHOST', 'PLANT', 'QUEST', 'BLITZ', 'PULSE', 'SPARK', 'CLEAN', 'DRIVE', 'FORCE', 'LEVEL', 'SCORE', 'CRANE', 'AUDIO', 'ROAST', 'SLATE', 'VIBES', 'RADAR', 'SHINE', 'GLOW', 'FLAME'
+  ]);
+
+  interface Tile {
+    letter: string;
+    selected: boolean;
+  }
+
+  let grid: Tile[][] = [];
   let currentWord: { col: number; row: number; letter: string }[] = [];
   let score = 0;
-  let best = parseInt(localStorage.getItem('vibecade_lexi_best') || '0', 10);
+  let best = parseInt(localStorage.getItem('pokoly_lexi_best') || '0', 10);
   let isGameOver = false;
   let dropTimer: any = null;
 
@@ -62,9 +98,13 @@
     currentWord = [];
     scoreEl.textContent = '0';
     wordEl.textContent = 'TAP LETTERS';
+    validityEl.textContent = 'Spell 3+ letter words';
+    validityEl.className = 'text-[10px] font-mono text-gray-400';
+    popBtn.disabled = true;
     overlay.classList.add('hidden');
     grid = Array(COLS).fill(null).map(() => []);
 
+    // Initial 3 rows of tiles
     for (let c = 0; c < COLS; c++) {
       for (let r = 0; r < 3; r++) {
         spawnTile(c);
@@ -72,12 +112,15 @@
     }
 
     clearInterval(dropTimer);
-    dropTimer = setInterval(dropTick, 2400);
+    dropTimer = setInterval(dropTick, 2800);
     draw();
+    player.trackGamePlay('lexifall');
   }
 
-  function randomLetter() {
-    return Math.random() < 0.4 ? VOWELS[Math.floor(Math.random() * VOWELS.length)] : CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+  function randomLetter(): string {
+    return Math.random() < 0.42
+      ? VOWELS[Math.floor(Math.random() * VOWELS.length)]
+      : CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
   }
 
   function spawnTile(col: number) {
@@ -97,40 +140,67 @@
 
   function triggerGameOver() {
     isGameOver = true;
-    sound.gameOver();
     clearInterval(dropTimer);
+    sound.gameOver();
+
+    if (score > best) {
+      best = score;
+      bestEl.textContent = best.toString();
+      localStorage.setItem('pokoly_lexi_best', best.toString());
+      launchConfetti();
+    }
+
+    player.addXP(Math.floor(score / 5), 'LexiFall Run');
     finalEl.textContent = score.toString();
     overlay.classList.remove('hidden');
   }
 
   function draw() {
-    ctx.fillStyle = '#0a0b10';
+    ctx.fillStyle = '#0a0b12';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = 'rgba(236, 72, 153, 0.2)';
+    // Danger overflow line
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
     ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(0, 40);
-    ctx.lineTo(canvas.width, 40);
+    ctx.moveTo(0, 48);
+    ctx.lineTo(canvas.width, 48);
     ctx.stroke();
     ctx.setLineDash([]);
 
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText('OVERFLOW LIMIT', 10, 42);
+
+    // Draw grid columns
     for (let c = 0; c < COLS; c++) {
       const colX = 10 + c * TILE_SIZE;
       for (let r = 0; r < grid[c].length; r++) {
         const tile = grid[c][r];
-        const tileY = canvas.height - 10 - (r + 1) * TILE_SIZE;
+        const tileY = canvas.height - 12 - (r + 1) * TILE_SIZE;
 
-        ctx.fillStyle = tile.selected ? '#10b981' : '#1e1b4b';
-        ctx.strokeStyle = tile.selected ? '#34d399' : '#4338ca';
+        if (tile.selected) {
+          ctx.fillStyle = '#10b981';
+          ctx.strokeStyle = '#34d399';
+        } else {
+          ctx.fillStyle = '#1e1b4b';
+          ctx.strokeStyle = '#4338ca';
+        }
+
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(colX, tileY, TILE_SIZE - 4, TILE_SIZE - 4, 8);
+        // Fallback for roundRect
+        if (ctx.roundRect) {
+          ctx.roundRect(colX, tileY, TILE_SIZE - 4, TILE_SIZE - 4, 8);
+        } else {
+          ctx.rect(colX, tileY, TILE_SIZE - 4, TILE_SIZE - 4);
+        }
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = tile.selected ? '#000000' : '#ffffff';
-        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.font = 'bold 20px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(tile.letter, colX + (TILE_SIZE - 4) / 2, tileY + (TILE_SIZE - 4) / 2);
@@ -138,19 +208,20 @@
     }
   }
 
-  canvas.addEventListener('click', (e) => {
+  function handleGridClick(clientX: number, clientY: number) {
     if (isGameOver) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     const c = Math.floor((x - 10) / TILE_SIZE);
     if (c >= 0 && c < COLS) {
       for (let r = 0; r < grid[c].length; r++) {
-        const tileY = canvas.height - 10 - (r + 1) * TILE_SIZE;
+        const tileY = canvas.height - 12 - (r + 1) * TILE_SIZE;
         if (y >= tileY && y <= tileY + TILE_SIZE - 4) {
           const tile = grid[c][r];
           sound.click();
+
           if (tile.selected) {
             tile.selected = false;
             currentWord = currentWord.filter(w => !(w.col === c && w.row === r));
@@ -158,35 +229,66 @@
             tile.selected = true;
             currentWord.push({ col: c, row: r, letter: tile.letter });
           }
-          wordEl.textContent = currentWord.map(w => w.letter).join('') || 'TAP LETTERS';
+
+          updateWordState();
           draw();
           break;
         }
       }
     }
-  });
+  }
+
+  function updateWordState() {
+    const wordStr = currentWord.map(w => w.letter).join('');
+    wordEl.textContent = wordStr || 'TAP LETTERS';
+
+    if (wordStr.length >= 3) {
+      if (DICTIONARY.has(wordStr) || wordStr.length >= 4) {
+        validityEl.textContent = `✓ VALID WORD (+${wordStr.length * 100} pts)`;
+        validityEl.className = 'text-[10px] font-mono font-bold text-emerald-400';
+        popBtn.disabled = false;
+      } else {
+        validityEl.textContent = 'Word not in vocabulary';
+        validityEl.className = 'text-[10px] font-mono text-amber-400';
+        popBtn.disabled = true;
+      }
+    } else {
+      validityEl.textContent = 'Spell 3+ letter words';
+      validityEl.className = 'text-[10px] font-mono text-gray-400';
+      popBtn.disabled = true;
+    }
+  }
+
+  canvas.addEventListener('click', (e) => handleGridClick(e.clientX, e.clientY));
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 0) {
+      e.preventDefault();
+      handleGridClick(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
 
   popBtn.addEventListener('click', () => {
-    if (currentWord.length < 3) {
-      sound.blip();
-      return;
-    }
+    if (currentWord.length < 3) return;
     sound.score();
-    const pts = currentWord.length * 100;
+
+    const pts = currentWord.length * 100 * (currentWord.length >= 5 ? 2 : 1);
     score += pts;
     scoreEl.textContent = score.toString();
+
     if (score > best) {
       best = score;
       bestEl.textContent = best.toString();
-      localStorage.setItem('vibecade_lexi_best', best.toString());
+      localStorage.setItem('pokoly_lexi_best', best.toString());
     }
 
+    // Sort descending by row so splicing doesn't invalidate lower indices
     currentWord.sort((a, b) => b.row - a.row);
     currentWord.forEach(w => {
       grid[w.col].splice(w.row, 1);
     });
+
     currentWord = [];
-    wordEl.textContent = 'GREAT!';
+    updateWordState();
     draw();
   });
 
@@ -194,11 +296,12 @@
     sound.click();
     grid.forEach(col => col.forEach(t => t.selected = false));
     currentWord = [];
-    wordEl.textContent = 'TAP LETTERS';
+    updateWordState();
     draw();
   });
 
   restartBtn.addEventListener('click', init);
   playAgain.addEventListener('click', init);
+
   init();
 </script>

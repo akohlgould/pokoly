@@ -1,19 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
+        <radialGradient id="syn-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="60%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#4338ca" />
+        </radialGradient>
         <filter id="syn-glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#6366f1" flood-opacity="0.6" />
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#8b5cf6" flood-opacity="0.8" />
         </filter>
       </defs>
-      <rect width="120" height="120" rx="26" fill="#0d1117" />
-      <!-- Connecting neural synapses -->
-      <line x1="38" y1="38" x2="82" y2="38" stroke="#6366f1" stroke-width="3" opacity="0.6" />
-      <line x1="38" y1="82" x2="82" y2="82" stroke="#6366f1" stroke-width="3" opacity="0.6" />
-      <line x1="38" y1="38" x2="38" y2="82" stroke="#6366f1" stroke-width="3" opacity="0.6" />
-      <line x1="82" y1="38" x2="82" y2="82" stroke="#6366f1" stroke-width="3" opacity="0.6" />
-      <line x1="38" y1="38" x2="82" y2="82" stroke="#ec4899" stroke-width="2" filter="url(#syn-glow)" />
-      <!-- 4 category node blocks -->
-      <rect x="24" y="24" width="28" height="28" rx="8" fill="#fbbf24" />
-      <rect x="68" y="24" width="28" height="28" rx="8" fill="#10b981" />
-      <rect x="24" y="68" width="28" height="28" rx="8" fill="#3b82f6" />
-      <rect x="68" y="68" width="28" height="28" rx="8" fill="#a855f7" />
+      <rect width="120" height="120" rx="26" fill="#090d16" />
+      <!-- Synaptic Connection Axons -->
+      <line x1="60" y1="60" x2="30" y2="35" stroke="#38bdf8" stroke-width="2" opacity="0.8" />
+      <line x1="60" y1="60" x2="90" y2="35" stroke="#ec4899" stroke-width="2" opacity="0.8" />
+      <line x1="60" y1="60" x2="30" y2="85" stroke="#10b981" stroke-width="2" opacity="0.8" />
+      <line x1="60" y1="60" x2="90" y2="85" stroke="#f59e0b" stroke-width="2" opacity="0.8" />
+      <line x1="30" y1="35" x2="90" y2="35" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.5" />
+      <line x1="30" y1="85" x2="90" y2="85" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.5" />
+      <!-- 4 Category Nodes -->
+      <circle cx="30" cy="35" r="9" fill="#38bdf8" />
+      <circle cx="90" cy="35" r="9" fill="#ec4899" />
+      <circle cx="30" cy="85" r="9" fill="#10b981" />
+      <circle cx="90" cy="85" r="9" fill="#f59e0b" />
+      <!-- Central Synapse Hub -->
+      <circle cx="60" cy="60" r="14" fill="url(#syn-core)" filter="url(#syn-glow)" />
+      <circle cx="60" cy="60" r="4" fill="#ffffff" />
     </svg>

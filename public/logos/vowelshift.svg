@@ -1,14 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
-        <linearGradient id="g-vowelshift" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#06b6d4" />
-          <stop offset="100%" stop-color="#1e1b4b" />
+        <linearGradient id="vs-vowel" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#ef4444" />
         </linearGradient>
-        <filter id="gf-vowelshift" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.5" />
+        <filter id="vs-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.8" />
         </filter>
       </defs>
       <rect width="120" height="120" rx="26" fill="#0d1117" />
-      <rect x="24" y="24" width="72" height="72" rx="18" fill="url(#g-vowelshift)" filter="url(#gf-vowelshift)" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.3" />
-      <text x="60" y="68" font-family="system-ui, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="1">VOW</text>
+      <!-- Grid rows with sliding offset -->
+      <rect x="18" y="24" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="29" y="39" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">S</text>
+      <rect x="44" y="24" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="55" y="39" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">T</text>
+      <rect x="70" y="24" width="22" height="22" rx="6" fill="url(#vs-vowel)" filter="url(#vs-glow)" />
+      <text x="81" y="39" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">A</text>
+      <!-- Arrow Slide Indicator -->
+      <path d="M96 35 L106 35 M102 31 L106 35 L102 39" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M24 60 L14 60 M18 56 L14 60 L18 64" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Row 2 -->
+      <rect x="28" y="49" width="22" height="22" rx="6" fill="url(#vs-vowel)" filter="url(#vs-glow)" />
+      <text x="39" y="64" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">E</text>
+      <rect x="54" y="49" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="65" y="64" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">T</text>
+      <rect x="80" y="49" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="91" y="64" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">R</text>
+      <!-- Row 3 -->
+      <rect x="18" y="74" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="29" y="89" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">P</text>
+      <rect x="44" y="74" width="22" height="22" rx="6" fill="url(#vs-vowel)" filter="url(#vs-glow)" />
+      <text x="55" y="89" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">O</text>
+      <rect x="70" y="74" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="81" y="89" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">L</text>
     </svg>

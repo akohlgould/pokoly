@@ -2,53 +2,149 @@
 // KanjiForge: Radical Builder
 ---
 
-<div id="forge-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+<div id="forge-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
     <div>Forged: <span id="forge-count" class="font-mono font-bold text-brand-neon">0/4</span></div>
-    <div>Score: <span id="forge-score" class="font-mono font-bold text-brand-gold">0</span></div>
+    <div>Discovered: <span id="forge-discovered" class="font-mono font-bold text-amber-400">0/12</span></div>
+    <div>Score: <span id="forge-score" class="font-mono font-bold text-white">0</span></div>
   </div>
 
-  <div class="text-xs text-gray-400 mb-2">Select 2 Radicals to Forge:</div>
-  <div id="forge-radicals" class="grid grid-cols-4 gap-2 w-full mb-4"></div>
+  <div class="w-full text-center text-xs text-gray-400 mb-2">
+    Select 2 primitive radicals to synthesize compound characters:
+  </div>
 
-  <div class="w-full p-4 rounded-xl border border-brand-border bg-brand-dark text-center">
-    <div class="text-xs text-gray-500">Selected Ingredients:</div>
-    <div id="forge-selected" class="font-mono font-bold text-base text-brand-neon mt-1">None</div>
-    <button id="forge-btn" class="mt-3 w-full rounded-xl bg-brand-accent py-2 text-xs font-bold text-white hover:scale-105 active:scale-95 transition-all">Forge Compound</button>
+  <!-- Radicals Grid -->
+  <div id="forge-radicals" class="grid grid-cols-4 sm:grid-cols-6 gap-2 w-full mb-3"></div>
+
+  <!-- Forge Crucible Anvil Area -->
+  <div class="w-full p-4 rounded-2xl border-2 border-brand-border bg-brand-dark text-center relative overflow-hidden shadow-2xl">
+    <div class="text-[11px] font-mono text-gray-400">Active Crucible:</div>
+    <div id="forge-selected" class="font-mono font-bold text-xl text-brand-neon my-2 flex items-center justify-center gap-2">
+      <span class="text-gray-600">Empty</span>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-2 mt-2">
+      <button id="forge-clear" class="rounded-xl border border-brand-border bg-brand-card px-4 py-2 text-xs font-semibold text-gray-300 hover:text-white transition-colors">
+        Clear
+      </button>
+      <button id="forge-btn" class="flex-1 rounded-xl bg-gradient-to-r from-amber-500 via-rose-600 to-indigo-600 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-102 active:scale-98 transition-all disabled:opacity-40 cursor-pointer" disabled>
+        🔥 Strike Anvil (Forge)
+      </button>
+    </div>
+  </div>
+
+  <!-- Discovered Kanji Compendium -->
+  <div class="mt-4 w-full">
+    <div class="text-xs font-mono text-gray-400 mb-1.5 flex items-center justify-between">
+      <span>📖 Discovered Recipes</span>
+      <span class="text-[10px] text-brand-neon">Tap to view</span>
+    </div>
+    <div id="forge-compendium" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 bg-brand-card/30 rounded-xl border border-brand-border/40">
+      <!-- Unlocked cards appear here -->
+    </div>
+  </div>
+
+  <!-- Victory Modal -->
+  <div id="forge-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span class="text-5xl animate-bounce">⚡</span>
+      <h3 class="text-2xl font-black text-white mt-2">Master Blacksmith!</h3>
+      <p id="forge-modal-msg" class="text-xs text-gray-300 mt-1">You forged 4 target compounds!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+200 XP Awarded</div>
+      <button id="forge-modal-btn" class="mt-4 w-full rounded-2xl bg-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Forge Next Batch →
+      </button>
+    </div>
   </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
-  const RADICALS = [
-    { symbol: '氵', name: 'Water' },
-    { symbol: '木', name: 'Tree' },
+  interface Radical {
+    symbol: string;
+    name: string;
+  }
+
+  interface Recipe {
+    pair: string; // sorted symbols
+    result: string;
+    meaning: string;
+    reading: string;
+  }
+
+  const RADICALS: Radical[] = [
     { symbol: '日', name: 'Sun' },
     { symbol: '月', name: 'Moon' },
+    { symbol: '木', name: 'Tree' },
+    { symbol: '氵', name: 'Water' },
     { symbol: '火', name: 'Fire' },
-    { symbol: '山', name: 'Mountain' }
+    { symbol: '山', name: 'Mountain' },
+    { symbol: '人', name: 'Person' },
+    { symbol: '口', name: 'Mouth' },
+    { symbol: '鳥', name: 'Bird' },
+    { symbol: '金', name: 'Metal' },
+    { symbol: '心', name: 'Heart' },
+    { symbol: '雨', name: 'Rain' }
+  ];
+
+  const RECIPES: Recipe[] = [
+    { pair: '日月', result: '明', meaning: 'Bright / Clear', reading: 'mei' },
+    { pair: '木木', result: '林', meaning: 'Forest / Woods', reading: 'rin' },
+    { pair: '木氵', result: '沐', meaning: 'Wash / Cleanse', reading: 'moku' },
+    { pair: '火火', result: '炎', meaning: 'Blaze / Flame', reading: 'en' },
+    { pair: '日木', result: '東', meaning: 'East / Sunrise', reading: 'tou' },
+    { pair: '山山', result: '出', meaning: 'Exit / Emerge', reading: 'shutsu' },
+    { pair: '人木', result: '休', meaning: 'Rest / Relax', reading: 'kyuu' },
+    { pair: '口鳥', result: '鳴', meaning: 'Chirp / Sing', reading: 'mei' },
+    { pair: '火木', result: '焚', meaning: 'Burn / Bonfire', reading: 'fun' },
+    { pair: '心雨', result: '雲', meaning: 'Cloud / Atmosphere', reading: 'un' },
+    { pair: '金木', result: '針', meaning: 'Needle / Craft', reading: 'shin' },
+    { pair: '水山', result: '汕', meaning: 'Rapid / Current', reading: 'san' }
   ];
 
   let selected: string[] = [];
   let score = 0;
-  let forgedCount = 0;
+  let forgedThisRound = 0;
+  let discoveredSet = new Set<string>();
 
   const radEl = document.getElementById('forge-radicals')!;
   const selEl = document.getElementById('forge-selected')!;
-  const btn = document.getElementById('forge-btn')!;
+  const forgeBtn = document.getElementById('forge-btn') as HTMLButtonElement;
+  const clearBtn = document.getElementById('forge-clear')!;
   const countEl = document.getElementById('forge-count')!;
+  const discEl = document.getElementById('forge-discovered')!;
   const scoreEl = document.getElementById('forge-score')!;
+  const compendiumEl = document.getElementById('forge-compendium')!;
+  const modal = document.getElementById('forge-modal')!;
+  const modalBtn = document.getElementById('forge-modal-btn')!;
+
+  function initRound() {
+    selected = [];
+    forgedThisRound = 0;
+    countEl.textContent = '0/4';
+    discEl.textContent = `${discoveredSet.size}/${RECIPES.length}`;
+    modal.classList.add('hidden');
+    render();
+    player.trackGamePlay('kanjiforge');
+  }
 
   function render() {
     radEl.innerHTML = '';
     RADICALS.forEach(r => {
       const isSel = selected.includes(r.symbol);
       const b = document.createElement('button');
-      b.className = `p-3 rounded-xl border flex flex-col items-center justify-center transition-all ${
-        isSel ? 'bg-brand-neon text-brand-dark border-brand-neon' : 'bg-brand-card border-brand-border text-white hover:border-gray-500'
+      b.className = `p-2.5 rounded-xl border flex flex-col items-center justify-center transition-all ${
+        isSel
+          ? 'bg-brand-neon text-brand-dark border-brand-neon scale-95 shadow-md shadow-brand-neon/30'
+          : 'bg-brand-card border-brand-border text-white hover:border-gray-400 active:scale-95'
       }`;
-      b.innerHTML = `<span class="text-xl font-bold">${r.symbol}</span><span class="text-[10px] opacity-80 mt-1">${r.name}</span>`;
+      b.innerHTML = `<span class="text-xl font-bold font-mono">${r.symbol}</span><span class="text-[9px] text-gray-400 mt-0.5">${r.name}</span>`;
+
       b.addEventListener('click', () => {
         sound.click();
         if (selected.includes(r.symbol)) {
@@ -56,38 +152,91 @@
         } else if (selected.length < 2) {
           selected.push(r.symbol);
         }
-        selEl.textContent = selected.join(' + ') || 'None';
-        render();
+        updateCrucible();
       });
+
       radEl.appendChild(b);
+    });
+
+    updateCrucible();
+    renderCompendium();
+  }
+
+  function updateCrucible() {
+    if (selected.length === 0) {
+      selEl.innerHTML = '<span class="text-gray-600">Empty</span>';
+      forgeBtn.disabled = true;
+    } else if (selected.length === 1) {
+      selEl.innerHTML = `<span class="text-white">${selected[0]}</span> <span class="text-gray-500 text-sm font-normal">+ [Select 2nd]</span>`;
+      forgeBtn.disabled = true;
+    } else {
+      selEl.innerHTML = `<span class="text-white">${selected[0]}</span> <span class="text-brand-pink">+</span> <span class="text-white">${selected[1]}</span>`;
+      forgeBtn.disabled = false;
+    }
+  }
+
+  function renderCompendium() {
+    compendiumEl.innerHTML = '';
+    if (discoveredSet.size === 0) {
+      compendiumEl.innerHTML = '<span class="text-gray-500 text-[10px] p-1">No forged characters yet. Strike the anvil to discover!</span>';
+      return;
+    }
+    RECIPES.forEach(rec => {
+      if (discoveredSet.has(rec.result)) {
+        const item = document.createElement('div');
+        item.className = 'flex items-center gap-1.5 px-2 py-1 rounded-lg bg-brand-dark border border-brand-border/60 text-xs';
+        item.innerHTML = `<span class="font-bold text-brand-gold text-sm font-mono">${rec.result}</span> <span class="text-[10px] text-gray-300">(${rec.meaning})</span>`;
+        compendiumEl.appendChild(item);
+      }
     });
   }
 
-  btn.addEventListener('click', () => {
+  forgeBtn.addEventListener('click', () => {
     if (selected.length !== 2) return;
     const pair = [...selected].sort().join('');
+    const match = RECIPES.find(r => r.pair === pair);
 
-    if (pair === '日月') {
+    if (match) {
       sound.victory();
-      alert('🌟 Forged 明 (BRIGHT)! +500 pts');
       score += 500;
-      forgedCount++;
-    } else if (pair === '木氵') {
-      sound.victory();
-      alert('🌲 Forged 沐 (WASH / CLEANSE)! +500 pts');
-      score += 500;
-      forgedCount++;
+      forgedThisRound++;
+      discoveredSet.add(match.result);
+
+      // Flash Crucible
+      selEl.innerHTML = `
+        <span class="text-brand-gold text-2xl font-black animate-bounce">${match.result}</span>
+        <span class="text-xs text-emerald-400 font-bold ml-2">(${match.meaning})</span>
+      `;
+
+      countEl.textContent = `${forgedThisRound}/4`;
+      discEl.textContent = `${discoveredSet.size}/${RECIPES.length}`;
+      scoreEl.textContent = score.toString();
+
+      if (forgedThisRound >= 4) {
+        launchConfetti();
+        player.addXP(200, 'Master Kanji Forger');
+        setTimeout(() => {
+          modal.classList.remove('hidden');
+        }, 600);
+      }
     } else {
       sound.blip();
-      alert('💥 Incompatible combination! Try different radicals.');
+      selEl.innerHTML = `<span class="text-red-400 text-xs">💥 Incompatible Combination</span>`;
     }
 
     selected = [];
-    selEl.textContent = 'None';
-    countEl.textContent = `${forgedCount}/4`;
-    scoreEl.textContent = score.toString();
+    forgeBtn.disabled = true;
+    setTimeout(() => {
+      render();
+    }, 1200);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    sound.click();
+    selected = [];
     render();
   });
 
-  render();
+  modalBtn.addEventListener('click', initRound);
+  initRound();
 </script>

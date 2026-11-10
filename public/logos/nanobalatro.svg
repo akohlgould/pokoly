@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
-        <linearGradient id="nb-joker" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="nj-joker" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#ef4444" />
           <stop offset="50%" stop-color="#3b82f6" />
           <stop offset="100%" stop-color="#10b981" />
         </linearGradient>
-        <filter id="nb-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <filter id="nj-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ec4899" flood-opacity="0.8" />
         </filter>
       </defs>
       <rect width="120" height="120" rx="26" fill="#0f172a" />
       <!-- Holographic card -->
-      <rect x="32" y="20" width="56" height="80" rx="10" fill="#1e293b" stroke="url(#nb-joker)" stroke-width="3" filter="url(#nb-glow)" />
+      <rect x="32" y="20" width="56" height="80" rx="10" fill="#1e293b" stroke="url(#nj-joker)" stroke-width="3" filter="url(#nj-glow)" />
       <!-- Multiplier text -->
       <text x="60" y="52" font-family="system-ui, sans-serif" font-weight="900" font-size="20" fill="#f43f5e" text-anchor="middle">x4</text>
       <!-- Joker bell/hat silhouette -->

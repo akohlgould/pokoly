@@ -1,77 +1,209 @@
 ---
-// WordHedge: Reverse Wordle
+// WordHedge: Word Deduction Puzzle
 ---
 
-<div id="hedge-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
-    <div>Remaining: <span id="hedge-remaining" class="font-mono font-bold text-brand-neon">12</span></div>
-    <div>Clues Used: <span id="hedge-clues" class="font-mono font-bold text-white">0</span></div>
+<div id="hedge-game" class="flex flex-col items-center justify-center p-3 select-none max-w-lg mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div>Candidates: <span id="hedge-remaining" class="font-mono font-bold text-brand-neon">16</span></div>
+    <div>Clues Used: <span id="hedge-clues" class="font-mono font-bold text-amber-400">0</span></div>
+    <div>Streak: <span id="hedge-streak" class="font-mono font-bold text-white">0</span></div>
+    <button id="hedge-new-game" class="rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors">
+      New Word
+    </button>
   </div>
 
-  <div id="hedge-words" class="grid grid-cols-4 gap-2 w-full mb-3"></div>
+  <div class="w-full text-center text-xs text-gray-400 mb-2">
+    Use question clues to prune candidates, then tap the target word!
+  </div>
 
-  <div class="w-full flex flex-col gap-1.5" id="hedge-questions">
-    <button class="hedge-q text-left px-3 py-2 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon" data-type="vowels">Does it have more than 2 vowels?</button>
-    <button class="hedge-q text-left px-3 py-2 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon" data-type="starts-c">Does it start with a Consonant?</button>
-    <button class="hedge-q text-left px-3 py-2 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon" data-type="has-r">Does it contain the letter 'R'?</button>
+  <!-- Candidates Grid -->
+  <div id="hedge-words" class="grid grid-cols-4 sm:grid-cols-4 gap-2 w-full mb-4"></div>
+
+  <!-- Deduction Clue Buttons -->
+  <div class="w-full space-y-2">
+    <div class="text-[11px] font-mono text-gray-400 uppercase tracking-wider">Ask Deduction Clues:</div>
+    <div class="flex flex-col gap-1.5" id="hedge-questions">
+      <!-- Generated dynamically based on the secret word -->
+    </div>
+  </div>
+
+  <!-- Victory / Game Over Overlay Modal -->
+  <div id="hedge-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-2xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span id="hedge-modal-icon" class="text-5xl">🎯</span>
+      <h3 id="hedge-modal-title" class="text-2xl font-bold text-white mt-2">Deduction Solved!</h3>
+      <p id="hedge-modal-msg" class="text-xs text-gray-300 mt-1">The secret word was indeed CRANE.</p>
+      <div id="hedge-modal-score" class="mt-2 text-xs font-mono text-emerald-400 font-bold">+150 XP Earned</div>
+      <button id="hedge-modal-btn" class="mt-5 w-full rounded-xl bg-brand-accent py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform">
+        Next Target Word
+      </button>
+    </div>
   </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
-  const SECRET = "CRANE";
-  let words = ['CRANE', 'GHOST', 'PLAZA', 'AUDIO', 'TRAIN', 'LEMON', 'BRAVE', 'SHARK', 'OCEAN', 'FLUTE', 'SWORD', 'PRISM'];
-  let clues = 0;
+  const WORD_DATABASE = [
+    { word: 'CRANE', category: 'animal', vowels: 2, startsVowel: false, hasR: true, hasE: true, doubles: false },
+    { word: 'GHOST', category: 'nature', vowels: 1, startsVowel: false, hasR: false, hasE: false, doubles: false },
+    { word: 'PLAZA', category: 'place', vowels: 2, startsVowel: false, hasR: false, hasE: false, doubles: true },
+    { word: 'AUDIO', category: 'science', vowels: 4, startsVowel: true, hasR: false, hasE: false, doubles: false },
+    { word: 'TRAIN', category: 'transport', vowels: 2, startsVowel: false, hasR: true, hasE: false, doubles: false },
+    { word: 'LEMON', category: 'nature', vowels: 2, startsVowel: false, hasR: false, hasE: true, doubles: false },
+    { word: 'BRAVE', category: 'abstract', vowels: 2, startsVowel: false, hasR: true, hasE: true, doubles: false },
+    { word: 'SHARK', category: 'animal', vowels: 1, startsVowel: false, hasR: true, hasE: false, doubles: false },
+    { word: 'OCEAN', category: 'nature', vowels: 3, startsVowel: true, hasR: false, hasE: true, doubles: false },
+    { word: 'FLUTE', category: 'music', vowels: 2, startsVowel: false, hasR: false, hasE: true, doubles: false },
+    { word: 'SWORD', category: 'weapon', vowels: 1, startsVowel: false, hasR: true, hasE: false, doubles: false },
+    { word: 'PRISM', category: 'science', vowels: 1, startsVowel: false, hasR: true, hasE: false, doubles: false },
+    { word: 'ZEBRA', category: 'animal', vowels: 2, startsVowel: false, hasR: true, hasE: true, doubles: false },
+    { word: 'EAGLE', category: 'animal', vowels: 3, startsVowel: true, hasR: false, hasE: true, doubles: true },
+    { word: 'STORM', category: 'nature', vowels: 1, startsVowel: false, hasR: true, hasE: false, doubles: false },
+    { word: 'SOLAR', category: 'science', vowels: 2, startsVowel: false, hasR: true, hasE: false, doubles: false }
+  ];
+
+  let currentSecret = WORD_DATABASE[0];
+  let activeCandidates: typeof WORD_DATABASE = [];
+  let cluesUsed = 0;
+  let streak = 0;
+  let isGameOver = false;
 
   const wordsEl = document.getElementById('hedge-words')!;
   const remEl = document.getElementById('hedge-remaining')!;
   const cluesEl = document.getElementById('hedge-clues')!;
+  const streakEl = document.getElementById('hedge-streak')!;
+  const questionsEl = document.getElementById('hedge-questions')!;
+  const modal = document.getElementById('hedge-modal')!;
+  const modalTitle = document.getElementById('hedge-modal-title')!;
+  const modalMsg = document.getElementById('hedge-modal-msg')!;
+  const modalIcon = document.getElementById('hedge-modal-icon')!;
+  const modalBtn = document.getElementById('hedge-modal-btn')!;
+  const newGameBtn = document.getElementById('hedge-new-game')!;
+
+  function initRound() {
+    isGameOver = false;
+    cluesUsed = 0;
+    currentSecret = WORD_DATABASE[Math.floor(Math.random() * WORD_DATABASE.length)];
+    activeCandidates = [...WORD_DATABASE];
+    modal.classList.add('hidden');
+    render();
+    buildQuestions();
+    player.trackGamePlay('wordhedge');
+  }
 
   function render() {
     wordsEl.innerHTML = '';
-    remEl.textContent = words.length.toString();
-    cluesEl.textContent = clues.toString();
+    remEl.textContent = activeCandidates.length.toString();
+    cluesEl.textContent = cluesUsed.toString();
+    streakEl.textContent = streak.toString();
 
-    words.forEach(w => {
+    WORD_DATABASE.forEach(item => {
+      const isAlive = activeCandidates.some(c => c.word === item.word);
       const btn = document.createElement('button');
-      btn.className = 'p-2 rounded-lg border border-brand-border bg-brand-card font-mono text-xs font-bold text-white hover:border-brand-neon';
-      btn.textContent = w;
-      btn.addEventListener('click', () => {
-        if (w === SECRET) {
-          sound.victory();
-          alert(`🎉 Bullseye! The secret word was ${SECRET}!`);
-        } else {
-          sound.gameOver();
-          alert(`❌ Incorrect! ${w} is not the secret word.`);
-        }
-      });
+      btn.className = `p-2.5 rounded-xl border font-mono text-xs font-bold transition-all ${
+        isAlive
+          ? 'border-brand-border bg-brand-card text-white hover:border-brand-neon hover:scale-105 active:scale-95 shadow-sm'
+          : 'border-brand-border/30 bg-brand-dark/50 text-gray-600 line-through cursor-not-allowed opacity-30'
+      }`;
+      btn.textContent = item.word;
+
+      if (isAlive) {
+        btn.addEventListener('click', () => guessWord(item.word));
+      }
+
       wordsEl.appendChild(btn);
     });
   }
 
-  document.querySelectorAll('.hedge-q').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      sound.click();
-      clues++;
-      const type = (e.currentTarget as HTMLElement).dataset.type;
+  function guessWord(word: string) {
+    if (isGameOver) return;
 
-      if (type === 'vowels') {
-        // SECRET is CRANE (2 vowels -> not > 2)
-        words = words.filter(w => (w.match(/[AEIOU]/g) || []).length <= 2);
-      } else if (type === 'starts-c') {
-        // CRANE starts with consonant
-        words = words.filter(w => !'AEIOU'.includes(w[0]));
-      } else if (type === 'has-r') {
-        // CRANE contains R
-        words = words.filter(w => w.includes('R'));
-      }
+    if (word === currentSecret.word) {
+      isGameOver = true;
+      sound.victory();
+      launchConfetti();
+      streak++;
+      const earnedXP = Math.max(50, 200 - cluesUsed * 30);
+      player.addXP(earnedXP, 'WordHedge Victory');
 
-      (e.currentTarget as HTMLButtonElement).disabled = true;
-      (e.currentTarget as HTMLElement).classList.add('opacity-40');
+      modalIcon.textContent = '🎉';
+      modalTitle.textContent = 'Bullseye Deduction!';
+      modalMsg.textContent = `You correctly identified ${currentSecret.word} using only ${cluesUsed} clues!`;
+      modal.classList.remove('hidden');
+    } else {
+      sound.blip();
+      // Eliminate this word
+      activeCandidates = activeCandidates.filter(c => c.word !== word);
+      cluesUsed++;
       render();
-    });
-  });
 
-  render();
+      if (activeCandidates.length <= 1) {
+        // Only 1 left, auto-resolve
+        guessWord(activeCandidates[0]?.word || currentSecret.word);
+      }
+    }
+  }
+
+  function buildQuestions() {
+    questionsEl.innerHTML = '';
+
+    const questions = [
+      {
+        text: 'Does it have more than 2 vowels?',
+        filter: () => {
+          const secretHasMore = currentSecret.vowels > 2;
+          activeCandidates = activeCandidates.filter(w => (w.vowels > 2) === secretHasMore);
+        }
+      },
+      {
+        text: 'Does it start with a Consonant?',
+        filter: () => {
+          const secretCons = !currentSecret.startsVowel;
+          activeCandidates = activeCandidates.filter(w => (!w.startsVowel) === secretCons);
+        }
+      },
+      {
+        text: "Does it contain the letter 'R'?",
+        filter: () => {
+          activeCandidates = activeCandidates.filter(w => w.hasR === currentSecret.hasR);
+        }
+      },
+      {
+        text: "Does it contain the letter 'E'?",
+        filter: () => {
+          activeCandidates = activeCandidates.filter(w => w.hasE === currentSecret.hasE);
+        }
+      },
+      {
+        text: 'Does it contain any repeating letters?',
+        filter: () => {
+          activeCandidates = activeCandidates.filter(w => w.doubles === currentSecret.doubles);
+        }
+      }
+    ];
+
+    questions.forEach(q => {
+      const btn = document.createElement('button');
+      btn.className = 'w-full text-left px-3.5 py-2.5 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon hover:text-white transition-all';
+      btn.textContent = `❓ ${q.text}`;
+      btn.addEventListener('click', (e) => {
+        sound.click();
+        cluesUsed++;
+        q.filter();
+        (e.currentTarget as HTMLButtonElement).disabled = true;
+        (e.currentTarget as HTMLElement).classList.add('opacity-40', 'line-through');
+        render();
+      });
+      questionsEl.appendChild(btn);
+    });
+  }
+
+  modalBtn.addEventListener('click', initRound);
+  newGameBtn.addEventListener('click', initRound);
+
+  initRound();
 </script>

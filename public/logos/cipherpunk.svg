@@ -1,14 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
-        <linearGradient id="g-cipherpunk" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#06b6d4" />
-          <stop offset="100%" stop-color="#1e1b4b" />
+        <linearGradient id="cp-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#059669" />
         </linearGradient>
-        <filter id="gf-cipherpunk" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.5" />
+        <filter id="cp-filter" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.8" />
         </filter>
       </defs>
-      <rect width="120" height="120" rx="26" fill="#0d1117" />
-      <rect x="24" y="24" width="72" height="72" rx="18" fill="url(#g-cipherpunk)" filter="url(#gf-cipherpunk)" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.3" />
-      <text x="60" y="68" font-family="system-ui, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="1">CIP</text>
+      <rect width="120" height="120" rx="26" fill="#020617" />
+      <!-- Matrix Scanlines -->
+      <text x="24" y="30" font-family="monospace" font-weight="700" font-size="10" fill="#059669" opacity="0.6">01 10 11</text>
+      <text x="68" y="30" font-family="monospace" font-weight="700" font-size="10" fill="#10b981">X -&gt; I</text>
+      <text x="24" y="44" font-family="monospace" font-weight="700" font-size="10" fill="#10b981">K -&gt; N</text>
+      <text x="68" y="44" font-family="monospace" font-weight="700" font-size="10" fill="#059669" opacity="0.6">F0 9A 4C</text>
+      <!-- Cyber Lock Emblem -->
+      <rect x="36" y="56" width="48" height="42" rx="8" fill="#064e3b" stroke="url(#cp-glow)" stroke-width="2" filter="url(#cp-filter)" />
+      <path d="M48 56 V46 A12 12 0 0 1 72 46 V56" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" />
+      <!-- Keyhole / Terminal Symbol -->
+      <circle cx="60" cy="74" r="4" fill="#a7f3d0" />
+      <polygon points="58,76 62,76 64,86 56,86" fill="#a7f3d0" />
     </svg>

@@ -291,7 +291,7 @@ const LOGOS = {
     </svg>
   `,
 
-  'nanobalatro': `
+  'nanojoker': `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
         <linearGradient id="nb-joker" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -337,7 +337,7 @@ const LOGOS = {
     </svg>
   `,
 
-  'peggledungeon': `
+  'pegdungeon': `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
         <radialGradient id="pd-orb" cx="40%" cy="40%" r="60%">
@@ -358,51 +358,400 @@ const LOGOS = {
       <!-- Pachinko Bouncing Orb -->
       <circle cx="48" cy="50" r="10" fill="url(#pd-orb)" filter="url(#pd-glow)" />
     </svg>
-  `
-};
+  `,
 
-// Generic stylish emblem generator for remaining games
-function generateGenericLogo(slug, title, color = '#6366f1') {
-  const initials = title.split(' ')[0].slice(0, 3).toUpperCase();
-  return `
+  'pegdungeon': `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
       <defs>
-        <linearGradient id="g-${slug}" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="${color}" />
-          <stop offset="100%" stop-color="#1e1b4b" />
+        <radialGradient id="pd2-orb" cx="40%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="40%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#b45309" />
+        </radialGradient>
+        <filter id="pd2-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#1c1917" />
+      <!-- Crystal Pegs -->
+      <circle cx="36" cy="64" r="6" fill="#38bdf8" />
+      <circle cx="84" cy="64" r="6" fill="#38bdf8" />
+      <circle cx="60" cy="86" r="6" fill="#ec4899" />
+      <circle cx="60" cy="42" r="6" fill="#38bdf8" />
+      <!-- Pachinko Bouncing Orb -->
+      <circle cx="48" cy="50" r="10" fill="url(#pd2-orb)" filter="url(#pd2-glow)" />
+    </svg>
+  `,
+
+  'nanojoker': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="nj-joker" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ef4444" />
+          <stop offset="50%" stop-color="#3b82f6" />
+          <stop offset="100%" stop-color="#10b981" />
         </linearGradient>
-        <filter id="gf-${slug}" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="${color}" flood-opacity="0.5" />
+        <filter id="nj-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ec4899" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0f172a" />
+      <!-- Holographic card -->
+      <rect x="32" y="20" width="56" height="80" rx="10" fill="#1e293b" stroke="url(#nj-joker)" stroke-width="3" filter="url(#nj-glow)" />
+      <!-- Multiplier text -->
+      <text x="60" y="52" font-family="system-ui, sans-serif" font-weight="900" font-size="20" fill="#f43f5e" text-anchor="middle">x4</text>
+      <!-- Joker bell/hat silhouette -->
+      <circle cx="50" cy="72" r="4" fill="#fbbf24" />
+      <circle cx="70" cy="72" r="4" fill="#fbbf24" />
+      <path d="M46 76 Q60 86 74 76" stroke="#fbbf24" stroke-width="3" fill="none" stroke-linecap="round" />
+    </svg>
+  `,
+
+  'chronotrail': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="ct-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="50%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#ec4899" />
+        </linearGradient>
+        <filter id="ct-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#8b5cf6" flood-opacity="0.8" />
         </filter>
       </defs>
       <rect width="120" height="120" rx="26" fill="#0d1117" />
-      <rect x="24" y="24" width="72" height="72" rx="18" fill="url(#g-${slug})" filter="url(#gf-${slug})" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.3" />
-      <text x="60" y="68" font-family="system-ui, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="1">${initials}</text>
+      <!-- Chronometer Outer Dial -->
+      <circle cx="60" cy="60" r="42" fill="none" stroke="url(#ct-ring)" stroke-width="3" filter="url(#ct-glow)" />
+      <circle cx="60" cy="60" r="34" fill="#131b2e" stroke="#1e293b" stroke-width="1" />
+      <!-- Timeline Hourglass / Portal Crossing -->
+      <path d="M44 38 H76 L60 60 L76 82 H44 L60 60 Z" fill="#8b5cf6" opacity="0.3" stroke="#38bdf8" stroke-width="1.5" />
+      <!-- Clock Hands -->
+      <line x1="60" y1="60" x2="60" y2="40" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="60" y1="60" x2="74" y2="60" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
+      <circle cx="60" cy="60" r="4" fill="#ffffff" />
+      <!-- Milestone Year Nodes -->
+      <circle cx="60" cy="22" r="3.5" fill="#f59e0b" />
+      <circle cx="98" cy="60" r="3.5" fill="#ec4899" />
+      <circle cx="60" cy="98" r="3.5" fill="#10b981" />
+      <circle cx="22" cy="60" r="3.5" fill="#06b6d4" />
     </svg>
-  `;
-}
+  `,
 
-// Write bespoke logos
+  'lexifall': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="lf-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#3b82f6" />
+        </linearGradient>
+        <linearGradient id="lf-grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f43f5e" />
+          <stop offset="100%" stop-color="#ec4899" />
+        </linearGradient>
+        <linearGradient id="lf-grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#059669" />
+        </linearGradient>
+        <filter id="lf-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#06b6d4" flood-opacity="0.6" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0d1117" />
+      <!-- Falling Tetris Letter Tiles -->
+      <rect x="22" y="68" width="24" height="24" rx="6" fill="url(#lf-grad1)" />
+      <text x="34" y="85" font-family="system-ui, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">W</text>
+      <rect x="48" y="68" width="24" height="24" rx="6" fill="url(#lf-grad1)" />
+      <text x="60" y="85" font-family="system-ui, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">O</text>
+      <rect x="74" y="68" width="24" height="24" rx="6" fill="url(#lf-grad1)" />
+      <text x="86" y="85" font-family="system-ui, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">R</text>
+      <!-- Falling T block -->
+      <rect x="48" y="42" width="24" height="24" rx="6" fill="url(#lf-grad2)" filter="url(#lf-glow)" />
+      <text x="60" y="59" font-family="system-ui, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">D</text>
+      <rect x="48" y="16" width="24" height="24" rx="6" fill="url(#lf-grad3)" />
+      <text x="60" y="33" font-family="system-ui, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">S</text>
+      <rect x="74" y="42" width="24" height="24" rx="6" fill="url(#lf-grad2)" />
+      <text x="86" y="59" font-family="system-ui, sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">!</text>
+    </svg>
+  `,
+
+  'vowelshift': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="vs-vowel" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#ef4444" />
+        </linearGradient>
+        <filter id="vs-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0d1117" />
+      <!-- Grid rows with sliding offset -->
+      <rect x="18" y="24" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="29" y="39" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">S</text>
+      <rect x="44" y="24" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="55" y="39" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">T</text>
+      <rect x="70" y="24" width="22" height="22" rx="6" fill="url(#vs-vowel)" filter="url(#vs-glow)" />
+      <text x="81" y="39" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">A</text>
+      <!-- Arrow Slide Indicator -->
+      <path d="M96 35 L106 35 M102 31 L106 35 L102 39" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M24 60 L14 60 M18 56 L14 60 L18 64" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Row 2 -->
+      <rect x="28" y="49" width="22" height="22" rx="6" fill="url(#vs-vowel)" filter="url(#vs-glow)" />
+      <text x="39" y="64" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">E</text>
+      <rect x="54" y="49" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="65" y="64" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">T</text>
+      <rect x="80" y="49" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="91" y="64" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">R</text>
+      <!-- Row 3 -->
+      <rect x="18" y="74" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="29" y="89" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">P</text>
+      <rect x="44" y="74" width="22" height="22" rx="6" fill="url(#vs-vowel)" filter="url(#vs-glow)" />
+      <text x="55" y="89" font-family="system-ui, sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">O</text>
+      <rect x="70" y="74" width="22" height="22" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+      <text x="81" y="89" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">L</text>
+    </svg>
+  `,
+
+  'semanticlimb': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sc-mountain" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f43f5e" />
+          <stop offset="50%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#3b82f6" />
+        </linearGradient>
+        <radialGradient id="sc-hot" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="50%" stop-color="#ef4444" />
+          <stop offset="100%" stop-color="#b91c1c" />
+        </radialGradient>
+        <filter id="sc-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ef4444" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0b0f19" />
+      <!-- Altitude Radar Rings -->
+      <circle cx="60" cy="70" r="42" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="3,3" />
+      <circle cx="60" cy="70" r="30" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="3,3" />
+      <circle cx="60" cy="70" r="18" fill="none" stroke="#0284c7" stroke-width="1.5" />
+      <!-- Mountain Peak -->
+      <polygon points="60,24 96,96 24,96" fill="url(#sc-mountain)" opacity="0.35" />
+      <polygon points="60,24 84,96 36,96" fill="url(#sc-mountain)" opacity="0.6" />
+      <!-- Bullseye Summit Beacon (100% Match) -->
+      <circle cx="60" cy="26" r="8" fill="url(#sc-hot)" filter="url(#sc-glow)" />
+      <!-- Word Compass Crosshair -->
+      <line x1="60" y1="12" x2="60" y2="40" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" />
+      <line x1="46" y1="26" x2="74" y2="26" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" />
+      <!-- Temperature Heat Tag -->
+      <text x="60" y="88" font-family="monospace" font-weight="900" font-size="11" fill="#38bdf8" text-anchor="middle">98.4° HOT</text>
+    </svg>
+  `,
+
+  'synapse': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="syn-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="60%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#4338ca" />
+        </radialGradient>
+        <filter id="syn-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#8b5cf6" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#090d16" />
+      <!-- Synaptic Connection Axons -->
+      <line x1="60" y1="60" x2="30" y2="35" stroke="#38bdf8" stroke-width="2" opacity="0.8" />
+      <line x1="60" y1="60" x2="90" y2="35" stroke="#ec4899" stroke-width="2" opacity="0.8" />
+      <line x1="60" y1="60" x2="30" y2="85" stroke="#10b981" stroke-width="2" opacity="0.8" />
+      <line x1="60" y1="60" x2="90" y2="85" stroke="#f59e0b" stroke-width="2" opacity="0.8" />
+      <line x1="30" y1="35" x2="90" y2="35" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.5" />
+      <line x1="30" y1="85" x2="90" y2="85" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.5" />
+      <!-- 4 Category Nodes -->
+      <circle cx="30" cy="35" r="9" fill="#38bdf8" />
+      <circle cx="90" cy="35" r="9" fill="#ec4899" />
+      <circle cx="30" cy="85" r="9" fill="#10b981" />
+      <circle cx="90" cy="85" r="9" fill="#f59e0b" />
+      <!-- Central Synapse Hub -->
+      <circle cx="60" cy="60" r="14" fill="url(#syn-core)" filter="url(#syn-glow)" />
+      <circle cx="60" cy="60" r="4" fill="#ffffff" />
+    </svg>
+  `,
+
+  'geopixel': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="gp-sky" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#0284c7" />
+          <stop offset="60%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#d97706" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0d1117" />
+      <!-- Pixel Landmark Frame -->
+      <rect x="20" y="20" width="80" height="80" rx="14" fill="url(#gp-sky)" stroke="#38bdf8" stroke-width="2" />
+      <!-- Pixel Matrix Silhouette: Pyramids + Sun -->
+      <rect x="68" y="28" width="16" height="16" fill="#fef08a" />
+      <polygon points="45,45 25,85 65,85" fill="#78350f" />
+      <polygon points="65,55 50,85 85,85" fill="#451a03" />
+      <!-- Pixelation grid overlay in corner -->
+      <rect x="68" y="60" width="8" height="8" fill="#10b981" opacity="0.8" />
+      <rect x="76" y="60" width="8" height="8" fill="#059669" opacity="0.8" />
+      <rect x="84" y="60" width="8" height="8" fill="#047857" opacity="0.8" />
+      <rect x="68" y="68" width="8" height="8" fill="#f59e0b" opacity="0.8" />
+      <rect x="76" y="68" width="8" height="8" fill="#d97706" opacity="0.8" />
+      <rect x="84" y="68" width="8" height="8" fill="#b45309" opacity="0.8" />
+      <!-- Resolution Badge -->
+      <rect x="28" y="88" width="64" height="16" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+      <text x="60" y="100" font-family="monospace" font-weight="900" font-size="9" fill="#38bdf8" text-anchor="middle">4×4 PIXEL</text>
+    </svg>
+  `,
+
+  'cipherpunk': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cp-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#059669" />
+        </linearGradient>
+        <filter id="cp-filter" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#020617" />
+      <!-- Matrix Scanlines -->
+      <text x="24" y="30" font-family="monospace" font-weight="700" font-size="10" fill="#059669" opacity="0.6">01 10 11</text>
+      <text x="68" y="30" font-family="monospace" font-weight="700" font-size="10" fill="#10b981">X -&gt; I</text>
+      <text x="24" y="44" font-family="monospace" font-weight="700" font-size="10" fill="#10b981">K -&gt; N</text>
+      <text x="68" y="44" font-family="monospace" font-weight="700" font-size="10" fill="#059669" opacity="0.6">F0 9A 4C</text>
+      <!-- Cyber Lock Emblem -->
+      <rect x="36" y="56" width="48" height="42" rx="8" fill="#064e3b" stroke="url(#cp-glow)" stroke-width="2" filter="url(#cp-filter)" />
+      <path d="M48 56 V46 A12 12 0 0 1 72 46 V56" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" />
+      <!-- Keyhole / Terminal Symbol -->
+      <circle cx="60" cy="74" r="4" fill="#a7f3d0" />
+      <polygon points="58,76 62,76 64,86 56,86" fill="#a7f3d0" />
+    </svg>
+  `,
+
+  'kanjiforge': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="kf-fire" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="50%" stop-color="#ef4444" />
+          <stop offset="100%" stop-color="#881337" />
+        </linearGradient>
+        <filter id="kf-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#180c0e" />
+      <!-- Blacksmith Anvil -->
+      <path d="M30 78 L90 78 L80 92 L40 92 Z" fill="#475569" stroke="#94a3b8" stroke-width="1.5" />
+      <!-- Forged Glowing Kanji Character (明 = Bright = Sun + Moon) -->
+      <text x="60" y="66" font-family="'Noto Sans JP', 'Hiragino Sans', sans-serif" font-weight="900" font-size="38" fill="url(#kf-fire)" text-anchor="middle" filter="url(#kf-glow)">明</text>
+      <!-- Radical Sparks -->
+      <circle cx="36" cy="36" r="3" fill="#fbbf24" />
+      <circle cx="84" cy="38" r="3" fill="#f43f5e" />
+      <circle cx="78" cy="24" r="2.5" fill="#facc15" />
+      <circle cx="42" cy="22" r="2" fill="#fbbf24" />
+      <!-- Hammer Strike Icon -->
+      <rect x="76" y="24" width="14" height="8" rx="2" fill="#e2e8f0" transform="rotate(-30 76 24)" />
+    </svg>
+  `,
+
+  'numberdrop': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="nd-card" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#3b82f6" />
+          <stop offset="100%" stop-color="#1d4ed8" />
+        </linearGradient>
+        <filter id="nd-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#38bdf8" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0b1329" />
+      <!-- Target Display Banner -->
+      <rect x="24" y="16" width="72" height="26" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2" filter="url(#nd-glow)" />
+      <text x="60" y="34" font-family="monospace" font-weight="900" font-size="16" fill="#38bdf8" text-anchor="middle">432</text>
+      <!-- Countdown Math Number Cards -->
+      <rect x="18" y="52" width="24" height="24" rx="6" fill="url(#nd-card)" />
+      <text x="30" y="69" font-family="monospace" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">75</text>
+      <!-- Operator -->
+      <circle cx="50" cy="64" r="6" fill="#10b981" />
+      <text x="50" y="68" font-family="system-ui, sans-serif" font-weight="900" font-size="12" fill="#ffffff" text-anchor="middle">×</text>
+      <rect x="62" y="52" width="24" height="24" rx="6" fill="url(#nd-card)" />
+      <text x="74" y="69" font-family="monospace" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle">6</text>
+      <!-- Bottom row -->
+      <rect x="34" y="82" width="22" height="22" rx="5" fill="#1e293b" stroke="#475569" stroke-width="1.5" />
+      <text x="45" y="97" font-family="monospace" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">+4</text>
+      <rect x="64" y="82" width="22" height="22" rx="5" fill="#1e293b" stroke="#475569" stroke-width="1.5" />
+      <text x="75" y="97" font-family="monospace" font-weight="900" font-size="12" fill="#94a3b8" text-anchor="middle">÷2</text>
+    </svg>
+  `,
+
+  'wordhedge': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="wh-bush" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#047857" />
+        </linearGradient>
+        <filter id="wh-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#081c15" />
+      <!-- Hedge Maze Borders -->
+      <path d="M22 22 H98 V98 H22 Z" fill="none" stroke="url(#wh-bush)" stroke-width="6" stroke-linejoin="round" filter="url(#wh-glow)" />
+      <!-- Maze Interior Paths -->
+      <path d="M42 22 V54 H74 V40" fill="none" stroke="#059669" stroke-width="5" stroke-linecap="round" />
+      <path d="M78 98 V70 H46 V80" fill="none" stroke="#059669" stroke-width="5" stroke-linecap="round" />
+      <!-- Secret Letter in Center -->
+      <rect x="46" y="46" width="28" height="28" rx="8" fill="#fbbf24" />
+      <text x="60" y="66" font-family="system-ui, sans-serif" font-weight="900" font-size="18" fill="#1e1b4b" text-anchor="middle">?</text>
+    </svg>
+  `,
+
+  'chronotrail': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cc-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="50%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#ec4899" />
+        </linearGradient>
+        <filter id="cc-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#8b5cf6" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0d1117" />
+      <!-- Chronometer Outer Dial -->
+      <circle cx="60" cy="60" r="42" fill="none" stroke="url(#cc-ring)" stroke-width="3" filter="url(#cc-glow)" />
+      <circle cx="60" cy="60" r="34" fill="#131b2e" stroke="#1e293b" stroke-width="1" />
+      <!-- Timeline Hourglass / Portal Crossing -->
+      <path d="M44 38 H76 L60 60 L76 82 H44 L60 60 Z" fill="#8b5cf6" opacity="0.3" stroke="#38bdf8" stroke-width="1.5" />
+      <!-- Clock Hands -->
+      <line x1="60" y1="60" x2="60" y2="40" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+      <line x1="60" y1="60" x2="74" y2="60" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
+      <circle cx="60" cy="60" r="4" fill="#ffffff" />
+      <!-- Milestone Year Nodes -->
+      <circle cx="60" cy="22" r="3.5" fill="#f59e0b" />
+      <circle cx="98" cy="60" r="3.5" fill="#ec4899" />
+      <circle cx="60" cy="98" r="3.5" fill="#10b981" />
+      <circle cx="22" cy="60" r="3.5" fill="#06b6d4" />
+    </svg>
+  `
+};
+
+// Write all bespoke logos
 for (const [slug, svg] of Object.entries(LOGOS)) {
   const filePath = path.join(logosDir, `${slug}.svg`);
   fs.writeFileSync(filePath, svg.trim() + '\n', 'utf-8');
-  console.log(`✓ Generated custom logo: public/logos/${slug}.svg`);
+  console.log(`✓ Generated bespoke logo: public/logos/${slug}.svg`);
 }
-
-// Generate for remaining catalog games
-const allSlugs = [
-  'lexifall', 'chronocross', 'vowelshift', 'cipherpunk',
-  'numberdrop', 'geopixel', 'semanticlimb', 'wordhedge', 'kanjiforge'
-];
-
-allSlugs.forEach(slug => {
-  if (!LOGOS[slug]) {
-    const filePath = path.join(logosDir, `${slug}.svg`);
-    const svg = generateGenericLogo(slug, slug.toUpperCase(), '#06b6d4');
-    fs.writeFileSync(filePath, svg.trim() + '\n', 'utf-8');
-    console.log(`✓ Generated stylish emblem: public/logos/${slug}.svg`);
-  }
-});
 
 console.log('🎉 All game logos generated successfully!');
 

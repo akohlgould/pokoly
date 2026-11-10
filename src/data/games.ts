@@ -20,10 +20,10 @@ export interface GameMeta {
 
 export const GAMES: GameMeta[] = [
   {
-  id: "peggledungeon",
-  slug: "peggledungeon",
+  id: "pegdungeon",
+  slug: "pegdungeon",
   subdomain: "pegdungeon",
-  title: "PeggleDungeon: Pachinko Crawler",
+  title: "PegDungeon: Pachinko Crawler",
   tagline: "Drop bouncing hero orbs to strike pegs, trigger crits, and defeat dungeon bosses!",
   category: "arcade",
   rating: 4.8,
@@ -32,12 +32,12 @@ export const GAMES: GameMeta[] = [
   badge: "Pachinko RPG",
   releaseDate: "2026-03-08",
   keywords: [
-    "peglin browser free",
     "pachinko roguelike online",
-    "peggle rpg unblocked",
-    "pachinko dungeon crawler"
+    "pachinko dungeon crawler",
+    "bouncing orb rpg",
+    "peg drop game"
   ],
-  description: "Peggle meets dungeon crawler RPG: launch bouncing orbs to strike pegs and damage the goblin boss.",
+  description: "Pachinko meets dungeon crawler RPG: launch bouncing hero orbs to strike pegs and damage the goblin boss.",
   controls: [
     {
       key: "Aim Mouse / Touch",
@@ -68,7 +68,7 @@ export const GAMES: GameMeta[] = [
   slug: "orbit-survivors",
   subdomain: "orbitsurvivors",
   title: "Orbit Survivors: Cosmic Horde",
-  tagline: "Vampire Survivors in space! Steer orbital lasers to survive endless cosmic swarms.",
+  tagline: "Bullet heaven in space! Steer orbital lasers to survive endless cosmic swarms.",
   category: "arcade",
   rating: 4.9,
   playCount: "1.9M",
@@ -76,7 +76,7 @@ export const GAMES: GameMeta[] = [
   badge: "Bullet Heaven",
   releaseDate: "2026-03-05",
   keywords: [
-    "vampire survivors in browser",
+    "bullet heaven browser",
     "free horde survivor",
     "bullet heaven online",
     "orbit space survival"
@@ -108,10 +108,10 @@ export const GAMES: GameMeta[] = [
   ]
 },
   {
-  id: "nanobalatro",
-  slug: "nanobalatro",
+  id: "nanojoker",
+  slug: "nanojoker",
   subdomain: "nanopoker",
-  title: "NanoBalatro: Poker Roguelike",
+  title: "NanoJoker: Poker Roguelike",
   tagline: "Play poker hands to score Chips × Multiplier and beat escalating Boss Blinds!",
   category: "card",
   rating: 4.9,
@@ -120,12 +120,12 @@ export const GAMES: GameMeta[] = [
   badge: "Endless Fun",
   releaseDate: "2026-03-01",
   keywords: [
-    "balatro web free",
     "poker roguelike online",
     "poker deckbuilder browser",
-    "balatro alternative free"
+    "card roguelike free",
+    "joker poker game"
   ],
-  description: "NanoBalatro brings the viral poker deckbuilding sensation to your browser. Score Chips and Multipliers to defeat bosses.",
+  description: "NanoJoker brings tactical poker deckbuilding to your browser. Score Chips and Multipliers to defeat escalating Boss Blinds.",
   controls: [
     {
       key: "Click Cards",
@@ -151,7 +151,7 @@ export const GAMES: GameMeta[] = [
   ],
   faqs: [
     {
-      question: "Is NanoBalatro free?",
+      question: "Is NanoJoker free?",
       answer: "100% free with unlimited procedural runs."
     }
   ]
@@ -200,19 +200,19 @@ export const GAMES: GameMeta[] = [
   id: "wordhedge",
   slug: "wordhedge",
   subdomain: "wordhedge",
-  title: "WordHedge: Reverse Wordle",
+  title: "WordHedge: Word Deduction",
   tagline: "20 words are visible. Ask deductive clues to eliminate candidates down to the target!",
   category: "word",
   rating: 4.8,
   playCount: "540K",
   color: "#14b8a6",
-  badge: "Reverse Logic",
+  badge: "Word Logic",
   releaseDate: "2026-02-22",
   keywords: [
-    "reverse wordle",
     "word deduction game",
+    "word elimination puzzle",
     "eliminate candidate words",
-    "guess who words"
+    "guess the secret word"
   ],
   description: "Ask strategic questions to eliminate wrong candidate words until only the secret word remains.",
   controls: [
@@ -243,7 +243,7 @@ export const GAMES: GameMeta[] = [
   {
   id: "semanticlimb",
   slug: "semanticlimb",
-  subdomain: "semantle",
+  subdomain: "semantic",
   title: "SemantiClimb: Word Distance",
   tagline: "Guess the mystery word by temperature similarity from Freezing to Boiling!",
   category: "word",
@@ -253,7 +253,7 @@ export const GAMES: GameMeta[] = [
   badge: "Deductive Heat",
   releaseDate: "2026-02-20",
   keywords: [
-    "semantle unlimited",
+    "semantic word guesser online",
     "semantic word guesser",
     "word similarity game",
     "daily semantic puzzle"
@@ -327,8 +327,8 @@ export const GAMES: GameMeta[] = [
   {
   id: "numberdrop",
   slug: "numberdrop",
-  subdomain: "countdown",
-  title: "NumberDrop: Countdown Math",
+  subdomain: "numbers",
+  title: "NumberDrop: Arithmetic Target",
   tagline: "Combine 6 numbers using basic arithmetic (+ - * /) to hit the exact target!",
   category: "puzzle",
   rating: 4.9,
@@ -337,12 +337,12 @@ export const GAMES: GameMeta[] = [
   badge: "Math Challenge",
   releaseDate: "2026-02-15",
   keywords: [
-    "countdown numbers game",
+    "numbers target puzzle",
     "arithmetic target puzzle",
-    "math countdown online",
+    "math target online",
     "daily math target"
   ],
-  description: "The classic television arithmetic game: reach the exact target number using 6 provided integers.",
+  description: "The classic arithmetic numbers game: reach the exact target number using 6 provided integers.",
   controls: [
     {
       key: "Click Number / Operator",
@@ -428,11 +428,11 @@ export const GAMES: GameMeta[] = [
   releaseDate: "2026-02-10",
   keywords: [
     "sliding word puzzle",
-    "rubiks word game",
+    "rotational word puzzle",
     "sliding anagrams",
     "daily word slider"
   ],
-  description: "VowelShift merges Rubiks cube mechanics with anagram crosswords. Shift rows and columns to align valid words.",
+  description: "VowelShift merges rotational grid mechanics with anagram crosswords. Shift rows and columns to align valid words.",
   controls: [
     {
       key: "Arrow Buttons",
@@ -460,10 +460,10 @@ export const GAMES: GameMeta[] = [
   ]
 },
   {
-  id: "chronocross",
-  slug: "chronocross",
+  id: "chronotrail",
+  slug: "chronotrail",
   subdomain: "timeline",
-  title: "ChronoCross: Timeline Guess",
+  title: "ChronoTrail: Timeline Guess",
   tagline: "Order 5 historical and pop culture events chronologically from oldest to newest!",
   category: "puzzle",
   rating: 4.9,
@@ -477,7 +477,7 @@ export const GAMES: GameMeta[] = [
     "timeline trivia browser",
     "chronology quiz"
   ],
-  description: "ChronoCross tests your historical perspective. Drag and order 5 events to reveal their true years.",
+  description: "ChronoTrail tests your historical perspective. Drag and order 5 events to reveal their true years.",
   controls: [
     {
       key: "▲ / ▼",
@@ -508,7 +508,7 @@ export const GAMES: GameMeta[] = [
   id: "lexifall",
   slug: "lexifall",
   subdomain: "lexifall",
-  title: "LexiFall: Word Tetris",
+  title: "LexiFall: Falling Word Blocks",
   tagline: "Falling letter blocks! Tap blocks to spell words before they hit the ceiling.",
   category: "word",
   rating: 4.8,
@@ -517,12 +517,12 @@ export const GAMES: GameMeta[] = [
   badge: "Action Word",
   releaseDate: "2026-02-05",
   keywords: [
-    "word tetris",
+    "falling letter blocks",
     "falling letters game",
-    "scrabble tetris online",
+    "word cascade online",
     "word collapse browser"
   ],
-  description: "LexiFall combines Tetris gravity with word spelling. Select letters from stacked blocks to pop them and prevent grid overflow.",
+  description: "LexiFall combines falling block gravity with word spelling. Select letters from stacked blocks to pop them and prevent grid overflow.",
   controls: [
     {
       key: "Click Letters",
@@ -571,7 +571,7 @@ export const GAMES: GameMeta[] = [
     "unlimited connections",
     "word association puzzle",
     "group words daily",
-    "nyt connections alternative"
+    "daily word association challenge"
   ],
   description: "Synapse is a fast-paced word association game where players must find the hidden threads linking four groups of four words.",
   controls: [
@@ -609,8 +609,8 @@ export const GAMES: GameMeta[] = [
   {
     id: 'word-guess',
     slug: 'word-guess',
-    subdomain: 'wordle',
-    title: 'Word Guess: Unlimited Wordle',
+    subdomain: 'words',
+    title: 'Word Guess: 5-Letter Daily & Unlimited',
     tagline: 'Guess the secret 5-letter word in 6 attempts. Play daily or unlimited!',
     category: 'word',
     rating: 4.9,
@@ -619,12 +619,12 @@ export const GAMES: GameMeta[] = [
     badge: 'Trending Daily',
     releaseDate: '2026-01-15',
     keywords: [
-      'wordle unlimited',
       'word guess online',
-      'play wordle free',
+      '5 letter word game',
+      'daily word guess free',
       'word puzzle no limit',
-      'unblocked wordle',
-      '5 letter word game'
+      'letter deduction game',
+      'unblocked word guess'
     ],
     description: 'Word Guess is the ultimate free 5-letter word puzzle game. Guess the mystery word in six tries with interactive color-coded feedback. Play the daily challenge or switch to unlimited practice mode anytime.',
     controls: [
@@ -663,8 +663,8 @@ export const GAMES: GameMeta[] = [
   {
     id: 'fruit-merge',
     slug: 'fruit-merge',
-    subdomain: 'suika',
-    title: 'Cosmic Fruit Merge: Suika Drop',
+    subdomain: 'fruits',
+    title: 'Cosmic Fruit Merge: Watermelon Drop',
     tagline: 'Drop and merge celestial fruits into the Giant Watermelon! Real 2D physics.',
     category: 'physics',
     rating: 4.9,
@@ -673,14 +673,13 @@ export const GAMES: GameMeta[] = [
     badge: 'Viral Sensation',
     releaseDate: '2026-02-01',
     keywords: [
-      'suika game online',
       'watermelon drop game',
       'fruit merge physics',
-      'suika unblocked',
+      'giant watermelon puzzle',
       'merge fruits free online',
       'casual drop puzzle'
     ],
-    description: 'Experience the beloved Japanese Watermelon Game (Suika) in your browser! Drop cherries, strawberries, oranges, and melons into the box. Watch them roll, bounce, and fuse into larger fruits until you craft the mythical Watermelon.',
+    description: 'Experience the beloved watermelon merging sensation in your browser! Drop cherries, strawberries, oranges, and melons into the box. Watch them roll, bounce, and fuse into larger fruits until you craft the mythical Watermelon.',
     controls: [
       { key: 'Mouse Move / Touch Drag', action: 'Position the drop pointer left and right' },
       { key: 'Left Click / Touch Release', action: 'Drop the current fruit into the container' },
@@ -817,12 +816,12 @@ export const GAMES: GameMeta[] = [
     releaseDate: '2026-02-10',
     keywords: [
       'snake game online',
-      'google snake alternative',
+      'classic snake online',
       'retro snake unblocked',
       'cyber snake neon',
       'arcade snake free'
     ],
-    description: 'A lightning-fast modern take on the iconic 90s Nokia Snake game. Glide smoothly through a neon grid, consume energy pellets, grow your cyber snake tail, and avoid crashing into your own trail or perimeter barriers.',
+    description: 'A lightning-fast modern take on the iconic 90s retro Snake game. Glide smoothly through a neon grid, consume energy pellets, grow your cyber snake tail, and avoid crashing into your own trail or perimeter barriers.',
     controls: [
       { key: 'Arrow Keys / WASD', action: 'Steer the snake in 4 directions' },
       { key: 'Touch On-Screen Pad / Swipe', action: 'Mobile directional steering' },
@@ -902,12 +901,12 @@ export const GAMES: GameMeta[] = [
     releaseDate: '2026-02-18',
     keywords: [
       'brick breaker online',
-      'atari breakout unblocked',
+      'block breaker unblocked',
       'block smash game',
       'neon brick breaker free',
       'arcade breakout'
     ],
-    description: 'An electrifying homage to Breakout and Arkanoid. Control your paddle, angle your ball bounces, shatter reinforced neon blocks, and grab falling power-up capsules like Wide Paddle, Multi-Ball, and Slow Ball.',
+    description: 'An electrifying homage to classic retro arcade block breakers. Control your paddle, angle your ball bounces, shatter reinforced neon blocks, and grab falling power-up capsules like Wide Paddle, Multi-Ball, and Slow Ball.',
     controls: [
       { key: 'Mouse Move / Touch Drag', action: 'Move paddle horizontally across screen' },
       { key: 'Left / Right Arrow Keys', action: 'Keyboard paddle movement' },
@@ -1026,9 +1025,9 @@ export const GAMES: GameMeta[] = [
     badge: 'High Replay',
     releaseDate: '2026-03-01',
     keywords: [
-      'flappy bird unblocked',
-      'play flappy bird online',
-      'flappy bird free no download',
+      'tap to fly unblocked',
+      'neon flap arcade',
+      'tap flap online',
       'cyber flappy neon',
       'one button game'
     ],

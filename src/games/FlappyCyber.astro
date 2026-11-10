@@ -1,0 +1,415 @@
+---
+// Flappy Cyber: Neon Wings
+---
+
+<div id="flappy-app" class="flex flex-col items-center justify-center p-3 select-none">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full max-w-[340px] items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div class="flex items-center gap-1.5">
+      <span class="text-gray-400">Score:</span>
+      <span id="flappy-score" class="font-mono text-base font-bold text-brand-neon">0</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <span class="text-gray-400">Best:</span>
+      <span id="flappy-best" class="font-mono text-base font-bold text-amber-400">0</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="text-gray-400">Medal:</span>
+      <span id="flappy-medal" class="text-sm">🪙</span>
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
+  <div class="relative overflow-hidden rounded-2xl border-2 border-brand-border bg-black shadow-2xl">
+    <canvas id="flappy-canvas" width="340" height="460" class="block cursor-pointer touch-none"></canvas>
+
+    <!-- Tap to Start Message -->
+    <div id="flappy-start-prompt" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] p-6 text-center transition-opacity pointer-events-none">
+      <div class="h-12 w-12 rounded-full bg-brand-neon/20 border border-brand-neon/50 flex items-center justify-center text-xl animate-bounce">
+        🚀
+      </div>
+      <h3 class="font-display text-xl font-bold text-white mt-3">TAP OR PRESS SPACE</h3>
+      <p class="text-xs text-gray-300 mt-1">Fly between neon energy pillars</p>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="flappy-overlay" class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl bg-brand-dark/90 backdrop-blur-sm p-6 text-center opacity-0 pointer-events-none transition-opacity duration-300">
+      <span class="text-4xl" id="flappy-over-icon">💥</span>
+      <h3 class="font-display text-2xl font-bold text-white mt-1">System Crash!</h3>
+      <div class="my-3 flex items-center justify-center gap-6 font-mono text-xs">
+        <div>
+          <div class="text-gray-400">Score</div>
+          <div class="text-2xl font-bold text-brand-neon" id="flappy-final-score">0</div>
+        </div>
+        <div class="h-8 w-[1px] bg-brand-border/60"></div>
+        <div>
+          <div class="text-gray-400">Best</div>
+          <div class="text-2xl font-bold text-amber-400" id="flappy-final-best">0</div>
+        </div>
+      </div>
+      <button id="flappy-restart-btn" class="mt-2 rounded-xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform">
+        Relaunch Jet
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400">
+    Tap anywhere on screen or press <span class="font-mono text-brand-neon">Space</span> to flap
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('flappy-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('flappy-score')!;
+  const bestEl = document.getElementById('flappy-best')!;
+  const medalEl = document.getElementById('flappy-medal')!;
+  const startPrompt = document.getElementById('flappy-start-prompt')!;
+  const overlay = document.getElementById('flappy-overlay')!;
+  const finalScoreEl = document.getElementById('flappy-final-score')!;
+  const finalBestEl = document.getElementById('flappy-final-best')!;
+  const restartBtn = document.getElementById('flappy-restart-btn')!;
+
+  let bird = {
+    x: 70,
+    y: 200,
+    radius: 13,
+    velocity: 0,
+    gravity: 0.38,
+    jump: -6.5,
+    rotation: 0
+  };
+
+  interface Pillar {
+    x: number;
+    topH: number;
+    bottomY: number;
+    passed: boolean;
+  }
+
+  interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    color: string;
+    alpha: number;
+  }
+
+  const PILLAR_WIDTH = 52;
+  const GAP_SIZE = 120;
+  const PILLAR_SPEED = 2.2;
+
+  let pillars: Pillar[] = [];
+  let particles: Particle[] = [];
+  let score = 0;
+  let best = parseInt(localStorage.getItem('pokoly_flappy_best') || '0', 10);
+  let isPlaying = false;
+  let isGameOver = false;
+  let animFrameId: number | null = null;
+  let shakeFrames = 0;
+
+  bestEl.textContent = best.toString();
+
+  function resetGame() {
+    bird.y = 200;
+    bird.velocity = 0;
+    bird.rotation = 0;
+    pillars = [];
+    particles = [];
+    score = 0;
+    isPlaying = false;
+    isGameOver = false;
+    scoreEl.textContent = '0';
+    startPrompt.classList.remove('opacity-0');
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+    draw();
+  }
+
+  function spawnPillar(startX: number) {
+    const minH = 50;
+    const maxH = canvas.height - GAP_SIZE - minH - 30;
+    const topH = Math.floor(Math.random() * (maxH - minH + 1)) + minH;
+    pillars.push({
+      x: startX,
+      topH,
+      bottomY: topH + GAP_SIZE,
+      passed: false
+    });
+  }
+
+  function flap() {
+    if (isGameOver) return;
+    if (!isPlaying) {
+      isPlaying = true;
+      startPrompt.classList.add('opacity-0');
+      spawnPillar(canvas.width + 20);
+      player.trackGamePlay('flappy-cyber');
+    }
+    sound.click();
+    bird.velocity = bird.jump;
+
+    // Emit thruster sparks
+    for (let i = 0; i < 6; i++) {
+      particles.push({
+        x: bird.x - 10,
+        y: bird.y + (Math.random() - 0.5) * 8,
+        vx: -(Math.random() * 3 + 2),
+        vy: (Math.random() - 0.5) * 2,
+        size: Math.random() * 3 + 2,
+        color: Math.random() < 0.5 ? '#f59e0b' : '#38bdf8',
+        alpha: 1
+      });
+    }
+  }
+
+  function update() {
+    if (!isPlaying || isGameOver) return;
+
+    // Bird physics
+    bird.velocity += bird.gravity;
+    bird.y += bird.velocity;
+    bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 6, (bird.velocity / 10)));
+
+    // Floor and ceiling collisions
+    if (bird.y + bird.radius >= canvas.height - 15 || bird.y - bird.radius <= 0) {
+      triggerGameOver();
+      return;
+    }
+
+    // Spawn pillars
+    if (pillars.length === 0 || pillars[pillars.length - 1].x < canvas.width - 160) {
+      spawnPillar(canvas.width);
+    }
+
+    // Move pillars & check collisions
+    for (let i = 0; i < pillars.length; i++) {
+      const p = pillars[i];
+      p.x -= PILLAR_SPEED;
+
+      // Score passing
+      if (!p.passed && p.x + PILLAR_WIDTH < bird.x) {
+        p.passed = true;
+        score++;
+        scoreEl.textContent = score.toString();
+        sound.score();
+
+        if (score === 10) medalEl.textContent = '🥉';
+        if (score === 25) medalEl.textContent = '🥈';
+        if (score === 50) {
+          medalEl.textContent = '🥇';
+          launchConfetti();
+        }
+      }
+
+      // Check collision with top pillar
+      if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + PILLAR_WIDTH) {
+        if (bird.y - bird.radius < p.topH || bird.y + bird.radius > p.bottomY) {
+          triggerGameOver();
+          return;
+        }
+      }
+    }
+
+    // Remove off-screen pillars
+    pillars = pillars.filter(p => p.x + PILLAR_WIDTH > -10);
+
+    // Update particles
+    particles.forEach(pt => {
+      pt.x += pt.vx;
+      pt.y += pt.vy;
+      pt.alpha -= 0.04;
+    });
+    particles = particles.filter(pt => pt.alpha > 0);
+  }
+
+  function draw() {
+    ctx.save();
+
+    // Screen shake
+    if (shakeFrames > 0) {
+      ctx.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
+      shakeFrames--;
+    }
+
+    // Background gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    bgGrad.addColorStop(0, '#060814');
+    bgGrad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Neon grid floor
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 30) {
+      ctx.beginPath();
+      ctx.moveTo(x, canvas.height - 15);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(0, canvas.height - 15, canvas.width, 2);
+
+    // Draw Neon Pillars
+    pillars.forEach(p => {
+      // Top Pillar
+      const gradTop = ctx.createLinearGradient(p.x, 0, p.x + PILLAR_WIDTH, 0);
+      gradTop.addColorStop(0, '#10b981');
+      gradTop.addColorStop(1, '#047857');
+      ctx.fillStyle = gradTop;
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2;
+
+      ctx.fillRect(p.x, 0, PILLAR_WIDTH, p.topH);
+      ctx.strokeRect(p.x, 0, PILLAR_WIDTH, p.topH);
+
+      // Top cap
+      ctx.fillStyle = '#34d399';
+      ctx.fillRect(p.x - 3, p.topH - 12, PILLAR_WIDTH + 6, 12);
+
+      // Bottom Pillar
+      const hBottom = canvas.height - p.bottomY - 15;
+      ctx.fillStyle = gradTop;
+      ctx.fillRect(p.x, p.bottomY, PILLAR_WIDTH, hBottom);
+      ctx.strokeRect(p.x, p.bottomY, PILLAR_WIDTH, hBottom);
+
+      // Bottom cap
+      ctx.fillStyle = '#34d399';
+      ctx.fillRect(p.x - 3, p.bottomY, PILLAR_WIDTH + 6, 12);
+
+      // Energy beam glow through center gap
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(p.x + PILLAR_WIDTH / 2, p.topH);
+      ctx.lineTo(p.x + PILLAR_WIDTH / 2, p.bottomY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // Draw Particles
+    particles.forEach(pt => {
+      ctx.globalAlpha = pt.alpha;
+      ctx.fillStyle = pt.color;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Draw Bird (Cyber Jet)
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rotation);
+
+    // Jet Fuselage
+    const jetGrad = ctx.createLinearGradient(-12, 0, 14, 0);
+    jetGrad.addColorStop(0, '#f59e0b');
+    jetGrad.addColorStop(1, '#ef4444');
+    ctx.fillStyle = jetGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, bird.radius + 3, bird.radius - 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Jet Cockpit Eye
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(6, -4, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(7, -5, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Jet Wing
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(-6, 2);
+    ctx.lineTo(-14, 10);
+    ctx.lineTo(2, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Laser Nose Cone
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.moveTo(14, -2);
+    ctx.lineTo(22, 1);
+    ctx.lineTo(14, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function loop() {
+    update();
+    draw();
+    animFrameId = requestAnimationFrame(loop);
+  }
+
+  function triggerGameOver() {
+    isGameOver = true;
+    shakeFrames = 12;
+    sound.explosion();
+
+    // Explosion debris
+    for (let i = 0; i < 25; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = Math.random() * 5 + 2;
+      particles.push({
+        x: bird.x,
+        y: bird.y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        size: Math.random() * 4 + 2,
+        color: ['#ef4444', '#f59e0b', '#38bdf8', '#ffffff'][Math.floor(Math.random() * 4)],
+        alpha: 1
+      });
+    }
+
+    if (score > best) {
+      best = score;
+      bestEl.textContent = best.toString();
+      localStorage.setItem('pokoly_flappy_best', best.toString());
+      launchConfetti();
+    }
+
+    player.addXP(score * 10, 'Flappy Cyber Flight');
+    finalScoreEl.textContent = score.toString();
+    finalBestEl.textContent = best.toString();
+    overlay.classList.remove('opacity-0', 'pointer-events-none');
+  }
+
+  // Input Handlers (Zero touch latency)
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    flap();
+  }, { passive: false });
+
+  canvas.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    flap();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      flap();
+    }
+  });
+
+  restartBtn.addEventListener('click', resetGame);
+
+  resetGame();
+  loop();
+</script>
+

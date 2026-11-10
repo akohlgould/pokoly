@@ -1,0 +1,362 @@
+---
+// NanoJoker: Poker Roguelike
+---
+
+<div id="joker-game" class="flex flex-col items-center justify-center p-3 select-none max-w-lg mx-auto w-full">
+  <!-- Blind Target & Score Bar -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-3 text-xs">
+    <div>
+      <div class="text-[10px] text-gray-400 font-mono" id="joker-blind-title">SMALL BLIND</div>
+      <div class="font-mono text-lg font-black text-brand-gold" id="joker-target">300</div>
+    </div>
+    <div class="text-center">
+      <div class="text-[10px] text-gray-400 font-mono">ROUND SCORE</div>
+      <div class="font-mono text-xl font-black text-brand-neon" id="joker-score">0</div>
+    </div>
+    <div class="flex items-center gap-3 text-right">
+      <div>
+        <div class="text-[10px] text-gray-400">Hands</div>
+        <div class="font-mono text-sm font-bold text-white" id="joker-hands">4</div>
+      </div>
+      <div>
+        <div class="text-[10px] text-gray-400">Discards</div>
+        <div class="font-mono text-sm font-bold text-rose-400" id="joker-discards">3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Relic / Joker Bar -->
+  <div class="w-full flex items-center justify-between gap-2 p-2.5 bg-brand-card/70 border border-brand-border rounded-xl mb-3 text-xs">
+    <div class="flex items-center gap-1.5">
+      <span class="rounded bg-rose-500/20 border border-rose-500/40 px-2 py-0.5 text-rose-300 font-bold">
+        🃏 Neon Joker (+4 Mult)
+      </span>
+      <span class="rounded bg-sky-500/20 border border-sky-500/40 px-2 py-0.5 text-sky-300 font-bold">
+        💎 Foil Deck (+20 Chips)
+      </span>
+    </div>
+    <div id="joker-preview-type" class="font-mono font-bold text-brand-neon truncate">
+      Select Cards
+    </div>
+  </div>
+
+  <!-- Poker Hand Cards Container -->
+  <div id="joker-hand" class="flex flex-wrap justify-center gap-2 w-full mb-4 min-h-[110px]">
+    <!-- Up to 8 cards rendered dynamically -->
+  </div>
+
+  <!-- Dynamic Hand Evaluation Pill -->
+  <div id="joker-hand-pill" class="mb-3 w-full rounded-xl bg-brand-dark/80 border border-brand-border/60 p-2 text-center text-xs font-mono">
+    <span id="eval-name" class="font-bold text-white">High Card</span>:
+    <span id="eval-chips" class="text-sky-400 font-bold">25</span> Chips ×
+    <span id="eval-mult" class="text-rose-400 font-bold">5</span> Mult =
+    <span id="eval-total" class="text-brand-gold font-bold">125</span> pts
+  </div>
+
+  <!-- Action Buttons: Play Hand (0/5) & Discard -->
+  <div class="flex gap-2 w-full">
+    <button
+      id="joker-play"
+      class="flex-1 rounded-xl bg-gradient-to-r from-brand-accent via-rose-600 to-indigo-600 py-3 text-xs font-bold text-white shadow-xl hover:scale-102 active:scale-98 disabled:opacity-40 transition-all cursor-pointer"
+      disabled
+    >
+      Play Hand (0/5)
+    </button>
+    <button
+      id="joker-discard"
+      class="rounded-xl border border-rose-500/50 bg-rose-950/30 px-5 py-3 text-xs font-semibold text-rose-200 hover:bg-rose-900/50 hover:text-white transition-all disabled:opacity-40 cursor-pointer"
+      disabled
+    >
+      Discard (0/5)
+    </button>
+  </div>
+
+  <!-- In-game Blind Cleared / Game Over Modal -->
+  <div id="joker-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span id="joker-modal-icon" class="text-5xl">🎉</span>
+      <h3 id="joker-modal-title" class="text-2xl font-black text-white mt-2">Blind Defeated!</h3>
+      <p id="joker-modal-msg" class="text-xs text-gray-300 mt-1">You reached 450 pts with 2 hands remaining!</p>
+      <div id="joker-modal-reward" class="mt-2 text-xs font-mono text-brand-gold font-bold">+200 XP Awarded</div>
+      <button id="joker-modal-btn" class="mt-5 w-full rounded-2xl bg-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform">
+        Next Blind →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  interface Card {
+    rank: string;
+    suit: string;
+    val: number;
+    selected: boolean;
+    id: number;
+  }
+
+  const SUITS = [
+    { s: '♠', red: false },
+    { s: '♥', red: true },
+    { s: '♦', red: true },
+    { s: '♣', red: false }
+  ];
+  const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+  const HAND_FORMULAS: Record<string, { baseChips: number; baseMult: number }> = {
+    'Royal Flush': { baseChips: 100, baseMult: 8 },
+    'Straight Flush': { baseChips: 100, baseMult: 8 },
+    'Four of a Kind': { baseChips: 60, baseMult: 7 },
+    'Full House': { baseChips: 40, baseMult: 4 },
+    'Flush': { baseChips: 35, baseMult: 4 },
+    'Straight': { baseChips: 30, baseMult: 4 },
+    'Three of a Kind': { baseChips: 30, baseMult: 3 },
+    'Two Pair': { baseChips: 20, baseMult: 2 },
+    'Pair': { baseChips: 10, baseMult: 2 },
+    'High Card': { baseChips: 5, baseMult: 1 }
+  };
+
+  let target = 300;
+  let score = 0;
+  let ante = 1;
+  let blindStage = 0; // 0 = Small, 1 = Big, 2 = Boss
+  const BLIND_NAMES = ['SMALL BLIND', 'BIG BLIND', 'BOSS BLIND: THE WALL'];
+
+  let handsLeft = 4;
+  let discardsLeft = 3;
+  let deck: Card[] = [];
+  let hand: Card[] = [];
+  let cardCounter = 0;
+
+  const targetEl = document.getElementById('joker-target')!;
+  const scoreEl = document.getElementById('joker-score')!;
+  const blindTitleEl = document.getElementById('joker-blind-title')!;
+  const handsEl = document.getElementById('joker-hands')!;
+  const discardsEl = document.getElementById('joker-discards')!;
+  const handEl = document.getElementById('joker-hand')!;
+  const playBtn = document.getElementById('joker-play') as HTMLButtonElement;
+  const discardBtn = document.getElementById('joker-discard') as HTMLButtonElement;
+  const previewTypeEl = document.getElementById('joker-preview-type')!;
+  const evalNameEl = document.getElementById('eval-name')!;
+  const evalChipsEl = document.getElementById('eval-chips')!;
+  const evalMultEl = document.getElementById('eval-mult')!;
+  const evalTotalEl = document.getElementById('eval-total')!;
+  const modal = document.getElementById('joker-modal')!;
+  const modalTitle = document.getElementById('joker-modal-title')!;
+  const modalMsg = document.getElementById('joker-modal-msg')!;
+  const modalIcon = document.getElementById('joker-modal-icon')!;
+  const modalBtn = document.getElementById('joker-modal-btn')!;
+
+  function buildFullDeck(): Card[] {
+    const d: Card[] = [];
+    SUITS.forEach(s => {
+      RANKS.forEach((r, idx) => {
+        d.push({
+          rank: r,
+          suit: s.s,
+          val: idx + 2,
+          selected: false,
+          id: ++cardCounter
+        });
+      });
+    });
+    return d.sort(() => Math.random() - 0.5);
+  }
+
+  function startRound() {
+    score = 0;
+    handsLeft = 4;
+    discardsLeft = 3;
+    deck = buildFullDeck();
+    hand = deck.splice(0, 8);
+    modal.classList.add('hidden');
+    blindTitleEl.textContent = `ANTE ${ante} - ${BLIND_NAMES[blindStage]}`;
+    targetEl.textContent = target.toString();
+    scoreEl.textContent = '0';
+    render();
+    player.trackGamePlay('nanojoker');
+  }
+
+  function evaluatePokerHand(cards: Card[]): { name: string; chips: number; mult: number; total: number } {
+    if (cards.length === 0) {
+      return { name: 'Select Cards', chips: 0, mult: 0, total: 0 };
+    }
+
+    const counts: Record<number, number> = {};
+    const suitCounts: Record<string, number> = {};
+    let cardSum = 0;
+
+    cards.forEach(c => {
+      counts[c.val] = (counts[c.val] || 0) + 1;
+      suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+      cardSum += c.val;
+    });
+
+    const isFlush = Object.values(suitCounts).some(cnt => cnt >= 5);
+    const sortedVals = [...new Set(cards.map(c => c.val))].sort((a, b) => a - b);
+    let isStraight = false;
+    if (sortedVals.length >= 5) {
+      for (let i = 0; i <= sortedVals.length - 5; i++) {
+        if (sortedVals[i + 4] - sortedVals[i] === 4) isStraight = true;
+      }
+      // Ace-low straight A,2,3,4,5
+      if (sortedVals.includes(14) && sortedVals.includes(2) && sortedVals.includes(3) && sortedVals.includes(4) && sortedVals.includes(5)) {
+        isStraight = true;
+      }
+    }
+
+    const freqValues = Object.values(counts).sort((a, b) => b - a);
+
+    let type = 'High Card';
+    if (isFlush && isStraight) type = sortedVals.includes(14) ? 'Royal Flush' : 'Straight Flush';
+    else if (freqValues[0] === 4) type = 'Four of a Kind';
+    else if (freqValues[0] === 3 && freqValues[1] >= 2) type = 'Full House';
+    else if (isFlush) type = 'Flush';
+    else if (isStraight) type = 'Straight';
+    else if (freqValues[0] === 3) type = 'Three of a Kind';
+    else if (freqValues[0] === 2 && freqValues[1] === 2) type = 'Two Pair';
+    else if (freqValues[0] === 2) type = 'Pair';
+
+    const formula = HAND_FORMULAS[type] || HAND_FORMULAS['High Card'];
+    const foilBonus = 20; // Foil Deck
+    const jokerMult = 4; // Neon Joker
+    const totalChips = formula.baseChips + cardSum + foilBonus;
+    const totalMult = formula.baseMult + jokerMult;
+    const total = totalChips * totalMult;
+
+    return { name: type, chips: totalChips, mult: totalMult, total };
+  }
+
+  function render() {
+    handsEl.textContent = handsLeft.toString();
+    discardsEl.textContent = discardsLeft.toString();
+    scoreEl.textContent = score.toString();
+
+    const selectedCards = hand.filter(c => c.selected);
+    const evaluation = evaluatePokerHand(selectedCards);
+
+    playBtn.textContent = `Play Hand (${selectedCards.length}/5)`;
+    playBtn.disabled = selectedCards.length === 0;
+
+    discardBtn.textContent = `Discard (${selectedCards.length}/5)`;
+    discardBtn.disabled = selectedCards.length === 0 || discardsLeft <= 0;
+
+    previewTypeEl.textContent = selectedCards.length > 0 ? `${evaluation.name} (+${evaluation.total} pts)` : 'Select 1-5 Cards';
+    evalNameEl.textContent = evaluation.name;
+    evalChipsEl.textContent = evaluation.chips.toString();
+    evalMultEl.textContent = evaluation.mult.toString();
+    evalTotalEl.textContent = evaluation.total.toString();
+
+    handEl.innerHTML = '';
+    hand.forEach(card => {
+      const isRed = card.suit === '♥' || card.suit === '♦';
+      const div = document.createElement('div');
+      div.className = `w-12 h-18 sm:w-14 sm:h-20 rounded-xl border-2 flex flex-col items-center justify-between p-1.5 cursor-pointer transition-all duration-150 ${
+        card.selected
+          ? 'border-brand-neon bg-brand-neon/20 -translate-y-3 shadow-lg shadow-brand-neon/30 scale-105'
+          : 'border-brand-border/80 bg-brand-dark hover:border-gray-400 hover:-translate-y-1'
+      }`;
+      div.innerHTML = `
+        <div class="flex items-center justify-between w-full">
+          <span class="font-bold text-xs sm:text-sm font-mono ${isRed ? 'text-red-400' : 'text-white'}">${card.rank}</span>
+          <span class="text-xs ${isRed ? 'text-red-400' : 'text-white'}">${card.suit}</span>
+        </div>
+        <span class="text-xl sm:text-2xl ${isRed ? 'text-red-400' : 'text-white'}">${card.suit}</span>
+        <div class="w-full text-right">
+          <span class="text-[9px] text-gray-500 font-mono">${card.val}</span>
+        </div>
+      `;
+      div.addEventListener('click', () => {
+        sound.click();
+        if (card.selected) {
+          card.selected = false;
+        } else if (hand.filter(c => c.selected).length < 5) {
+          card.selected = true;
+        }
+        render();
+      });
+      handEl.appendChild(div);
+    });
+  }
+
+  playBtn.addEventListener('click', () => {
+    const selected = hand.filter(c => c.selected);
+    if (selected.length === 0 || handsLeft <= 0) return;
+
+    sound.score();
+    handsLeft--;
+    const evalResult = evaluatePokerHand(selected);
+    score += evalResult.total;
+
+    // Discard played cards and refill
+    hand = hand.filter(c => !c.selected);
+    while (hand.length < 8 && deck.length > 0) {
+      hand.push(deck.pop()!);
+    }
+
+    render();
+
+    // Check Blind Win
+    if (score >= target) {
+      sound.victory();
+      launchConfetti();
+      player.addXP(200 + ante * 50, 'Blind Cleared in NanoJoker');
+
+      modalIcon.textContent = '🃏';
+      modalTitle.textContent = `${BLIND_NAMES[blindStage]} DEFEATED!`;
+      modalMsg.textContent = `Scored ${score} / ${target} pts with ${handsLeft} hands remaining.`;
+      modalBtn.textContent = 'Continue to Next Blind →';
+
+      modalBtn.onclick = () => {
+        blindStage++;
+        if (blindStage > 2) {
+          blindStage = 0;
+          ante++;
+          target = Math.floor(target * 1.6);
+        } else {
+          target = Math.floor(target * 1.35);
+        }
+        startRound();
+      };
+
+      modal.classList.remove('hidden');
+      return;
+    }
+
+    // Check Game Over
+    if (handsLeft <= 0 && score < target) {
+      sound.gameOver();
+      modalIcon.textContent = '💥';
+      modalTitle.textContent = 'BLIND FAILED!';
+      modalMsg.textContent = `You reached ${score} / ${target} pts. Better luck next run!`;
+      modalBtn.textContent = 'Restart Run (Ante 1)';
+
+      modalBtn.onclick = () => {
+        ante = 1;
+        blindStage = 0;
+        target = 300;
+        startRound();
+      };
+
+      modal.classList.remove('hidden');
+    }
+  });
+
+  discardBtn.addEventListener('click', () => {
+    const selected = hand.filter(c => c.selected);
+    if (selected.length === 0 || discardsLeft <= 0) return;
+
+    sound.click();
+    discardsLeft--;
+    hand = hand.filter(c => !c.selected);
+    while (hand.length < 8 && deck.length > 0) {
+      hand.push(deck.pop()!);
+    }
+    render();
+  });
+
+  startRound();
+</script>

@@ -2,73 +2,296 @@
 // SemantiClimb: Word Distance
 ---
 
-<div id="semanti-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+<div id="semanti-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
     <div>Guesses: <span id="semanti-count" class="font-mono font-bold text-brand-neon">0</span></div>
-    <div>Top Heat: <span id="semanti-top" class="font-mono font-bold text-brand-gold">0%</span></div>
+    <div>Peak Heat: <span id="semanti-top" class="font-mono font-bold text-amber-400">0%</span></div>
+    <button id="semanti-hint-btn" class="rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-brand-gold hover:text-white transition-colors cursor-pointer">
+      💡 Hint (2)
+    </button>
+    <button id="semanti-new-btn" class="rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors cursor-pointer">
+      New Secret
+    </button>
   </div>
 
+  <!-- Thermal Altitude Meter -->
+  <div class="w-full mb-3 rounded-2xl border border-brand-border bg-brand-card/80 p-3">
+    <div class="flex items-center justify-between text-[11px] font-mono text-gray-400 mb-1.5">
+      <span>❄️ COLD (0%)</span>
+      <span id="semanti-status" class="text-white font-bold">Basecamp</span>
+      <span>🔥 SUMMIT (100%)</span>
+    </div>
+    <div class="w-full h-3 rounded-full bg-brand-dark overflow-hidden border border-brand-border/60 p-[1px]">
+      <div id="semanti-thermometer" class="h-full rounded-full bg-gradient-to-r from-sky-500 via-amber-400 to-rose-500 transition-all duration-300" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <!-- Input Guess Form -->
   <div class="flex gap-2 w-full mb-3">
-    <input id="semanti-input" type="text" placeholder="Type a guess..." class="flex-1 rounded-xl bg-brand-card border border-brand-border px-3 py-2 text-xs text-white uppercase font-mono focus:border-brand-neon outline-none" />
-    <button id="semanti-submit" class="rounded-xl bg-brand-neon px-4 py-2 text-xs font-bold text-brand-dark">Guess</button>
+    <input
+      id="semanti-input"
+      type="text"
+      placeholder="Type any word (e.g. STAR, PLANET)..."
+      class="flex-1 rounded-2xl bg-brand-dark border-2 border-brand-border px-4 py-2.5 text-xs text-white uppercase font-mono placeholder-gray-500 focus:border-brand-neon focus:outline-none transition-all shadow-inner"
+      autocomplete="off"
+    />
+    <button id="semanti-submit" class="rounded-2xl bg-brand-neon px-5 py-2.5 text-xs font-black text-brand-dark hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+      CLIMB 🧗
+    </button>
   </div>
 
-  <div id="semanti-history" class="w-full flex flex-col gap-1.5 max-h-60 overflow-y-auto"></div>
+  <!-- Guess History Leaderboard (Highest heat first) -->
+  <div class="w-full">
+    <div class="text-[10px] font-mono text-gray-500 mb-1 flex items-center justify-between">
+      <span>GUESS ALTITUDE LOG</span>
+      <span>HEAT %</span>
+    </div>
+    <div id="semanti-history" class="w-full flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+      <div class="text-center py-6 text-gray-600 text-xs font-mono">
+        Enter your first word guess to measure semantic distance to the secret summit.
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Overlay Modal -->
+  <div id="semanti-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span class="text-5xl animate-bounce">🏔️</span>
+      <h3 class="text-2xl font-black text-white mt-2">Summit Reached!</h3>
+      <p id="semanti-modal-msg" class="text-xs text-gray-300 mt-1">You scaled the peak in 7 guesses!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+250 XP Awarded</div>
+      <button id="semanti-modal-btn" class="mt-5 w-full rounded-2xl bg-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Climb Next Peak →
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
-  const SECRET = "GALAXY";
-  const SIMILARITIES: Record<string, number> = {
-    'STAR': 88, 'SPACE': 92, 'UNIVERSE': 96, 'SOLAR': 74, 'PLANET': 81,
-    'OCEAN': 32, 'DOG': 5, 'CAR': 12, 'TELESCOPE': 78, 'ROCKET': 69
-  };
+  interface TargetWord {
+    word: string;
+    category: string;
+    hint: string;
+    associations: Record<string, number>;
+  }
 
-  let count = 0;
+  const SECRETS: TargetWord[] = [
+    {
+      word: 'GALAXY',
+      category: 'Astronomy / Cosmos',
+      hint: 'It contains billions of stars, planets, and solar systems bound by gravity.',
+      associations: {
+        'UNIVERSE': 97, 'COSMOS': 95, 'STAR': 91, 'SPACE': 90, 'NEBULA': 88,
+        'SOLAR': 84, 'PLANET': 82, 'ASTRONOMY': 80, 'TELESCOPE': 77, 'MILKYWAY': 99,
+        'ROCKET': 68, 'GRAVITY': 74, 'MOON': 71, 'EARTH': 65, 'COMET': 78,
+        'SKY': 58, 'NIGHT': 52, 'LIGHT': 45, 'DARK': 42, 'TIME': 38, 'OCEAN': 22
+      }
+    },
+    {
+      word: 'VOLCANO',
+      category: 'Geology / Nature',
+      hint: 'A geological rupture where hot magma and ash erupt onto the surface.',
+      associations: {
+        'MAGMA': 98, 'LAVA': 97, 'ERUPTION': 95, 'ASH': 89, 'MOUNTAIN': 86,
+        'FIRE': 83, 'CRATER': 88, 'HEAT': 76, 'EARTHQUAKE': 74, 'GEOLOGY': 71,
+        'SMOKE': 78, 'ISLAND': 64, 'ROCK': 68, 'DISASTER': 60, 'EXPLOSION': 65
+      }
+    },
+    {
+      word: 'GUITAR',
+      category: 'Music / Instruments',
+      hint: 'A fretted musical instrument typically with six strings.',
+      associations: {
+        'STRINGS': 96, 'MUSIC': 94, 'ACOUSTIC': 92, 'ELECTRIC': 90, 'BASS': 88,
+        'SONG': 82, 'CHORD': 89, 'BAND': 80, 'ROCK': 78, 'CONCERT': 75,
+        'PIANO': 72, 'DRUMS': 70, 'AMPLIFIER': 74, 'SOUND': 65, 'MELODY': 79
+      }
+    },
+    {
+      word: 'OCEAN',
+      category: 'Nature / Geography',
+      hint: 'The continuous body of saltwater that covers over 70% of Earth.',
+      associations: {
+        'SEA': 97, 'WATER': 94, 'TIDE': 91, 'WAVE': 89, 'BEACH': 85,
+        'PACIFIC': 95, 'ATLANTIC': 95, 'FISH': 78, 'SHARK': 76, 'WHALE': 80,
+        'CORAL': 74, 'ISLAND': 71, 'BLUE': 60, 'SAIL': 65, 'SHIP': 68
+      }
+    }
+  ];
+
+  let currentSecret = SECRETS[0];
+  let guessCount = 0;
   let topHeat = 0;
+  let guesses: { word: string; heat: number }[] = [];
+  let hintsLeft = 2;
+  let isGameOver = false;
 
   const inputEl = document.getElementById('semanti-input') as HTMLInputElement;
   const submitBtn = document.getElementById('semanti-submit')!;
   const countEl = document.getElementById('semanti-count')!;
   const topEl = document.getElementById('semanti-top')!;
+  const thermoEl = document.getElementById('semanti-thermometer')!;
+  const statusEl = document.getElementById('semanti-status')!;
   const historyEl = document.getElementById('semanti-history')!;
+  const hintBtn = document.getElementById('semanti-hint-btn')!;
+  const newBtn = document.getElementById('semanti-new-btn')!;
+  const modal = document.getElementById('semanti-modal')!;
+  const modalMsg = document.getElementById('semanti-modal-msg')!;
+  const modalBtn = document.getElementById('semanti-modal-btn')!;
+
+  function initSecret() {
+    isGameOver = false;
+    guessCount = 0;
+    topHeat = 0;
+    guesses = [];
+    hintsLeft = 2;
+    hintBtn.textContent = '💡 Hint (2)';
+    currentSecret = SECRETS[Math.floor(Math.random() * SECRETS.length)];
+
+    countEl.textContent = '0';
+    topEl.textContent = '0%';
+    thermoEl.style.width = '0%';
+    statusEl.textContent = 'Basecamp (Cold)';
+    historyEl.innerHTML = '<div class="text-center py-6 text-gray-600 text-xs font-mono">Enter your first word guess to measure semantic distance to the secret summit.</div>';
+    modal.classList.add('hidden');
+    inputEl.value = '';
+    player.trackGamePlay('semanticlimb');
+  }
+
+  function calculateSimilarity(guess: string): number {
+    if (guess === currentSecret.word) return 100;
+    if (currentSecret.associations[guess]) return currentSecret.associations[guess];
+
+    // Algorithmic deterministic fallback based on character n-grams and length
+    let score = 0;
+    const targetLetters = currentSecret.word.split('');
+    const guessLetters = guess.split('');
+
+    // Letter overlap
+    let common = 0;
+    guessLetters.forEach(l => {
+      if (targetLetters.includes(l)) common++;
+    });
+    const letterRatio = (common / Math.max(targetLetters.length, guessLetters.length)) * 30;
+
+    // Length similarity
+    const lenDiff = Math.abs(currentSecret.word.length - guess.length);
+    const lenBonus = Math.max(0, 15 - lenDiff * 3);
+
+    // Hash pseudo-randomness (deterministic for same word)
+    let hash = 0;
+    for (let i = 0; i < guess.length; i++) {
+      hash = (hash << 5) - hash + guess.charCodeAt(i);
+      hash |= 0;
+    }
+    const pseudo = Math.abs(hash % 25);
+
+    score = Math.min(85, Math.floor(letterRatio + lenBonus + pseudo));
+    return Math.max(5, score);
+  }
 
   function submitGuess() {
+    if (isGameOver) return;
     const val = inputEl.value.trim().toUpperCase();
-    if (!val) return;
+    if (!val || val.length < 2) return;
     inputEl.value = '';
-    count++;
-    countEl.textContent = count.toString();
 
-    let heat = SIMILARITIES[val] || Math.floor(Math.random() * 40);
-    if (val === SECRET) heat = 100;
+    // Check duplicate
+    if (guesses.some(g => g.word === val)) {
+      sound.blip();
+      return;
+    }
+
+    guessCount++;
+    countEl.textContent = guessCount.toString();
+    const heat = calculateSimilarity(val);
+
+    guesses.push({ word: val, heat });
+    // Sort descending by heat
+    guesses.sort((a, b) => b.heat - a.heat);
 
     if (heat > topHeat) {
       topHeat = heat;
       topEl.textContent = `${topHeat}%`;
+      thermoEl.style.width = `${topHeat}%`;
+
+      if (topHeat >= 90) statusEl.textContent = 'SCORCHING 🔥';
+      else if (topHeat >= 75) statusEl.textContent = 'VERY WARM ☀️';
+      else if (topHeat >= 50) statusEl.textContent = 'WARMING UP 🌤️';
+      else if (topHeat >= 25) statusEl.textContent = 'COOL ⛅';
+      else statusEl.textContent = 'FREEZING ❄️';
     }
+
+    renderHistory();
 
     if (heat === 100) {
+      isGameOver = true;
       sound.victory();
-      alert(`🎉 Victory! The secret word was ${SECRET} in ${count} guesses!`);
-    } else if (heat > 70) {
+      launchConfetti();
+      player.addXP(250, 'SemantiClimb Summit Reached');
+      modalMsg.textContent = `You reached the summit of "${currentSecret.word}" in ${guessCount} guesses!`;
+      modal.classList.remove('hidden');
+    } else if (heat >= 75) {
       sound.score();
     } else {
-      sound.blip();
+      sound.click();
     }
-
-    const row = document.createElement('div');
-    row.className = 'flex items-center justify-between rounded-lg bg-brand-card border border-brand-border px-3 py-2 text-xs';
-    row.innerHTML = `
-      <span class="font-bold font-mono text-white">${val}</span>
-      <span class="font-mono font-bold ${heat > 75 ? 'text-red-400' : heat > 50 ? 'text-amber-400' : 'text-blue-400'}">${heat}%</span>
-    `;
-    historyEl.prepend(row);
   }
+
+  function renderHistory() {
+    historyEl.innerHTML = '';
+    guesses.forEach((g, rank) => {
+      const row = document.createElement('div');
+      const isTop = rank === 0;
+
+      let heatColor = 'text-sky-400';
+      let border = 'border-brand-border/60';
+      if (g.heat === 100) {
+        heatColor = 'text-emerald-400 font-black';
+        border = 'border-emerald-500/80 bg-emerald-950/40';
+      } else if (g.heat >= 80) {
+        heatColor = 'text-rose-400 font-bold';
+        border = 'border-rose-500/50 bg-rose-950/30';
+      } else if (g.heat >= 60) {
+        heatColor = 'text-amber-400 font-bold';
+      }
+
+      row.className = `flex items-center justify-between rounded-xl bg-brand-card/90 border ${border} px-3.5 py-2 text-xs transition-all`;
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[10px] text-gray-500">#${rank + 1}</span>
+          <span class="font-bold font-mono text-white">${g.word}</span>
+          ${isTop && g.heat > 0 ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-bold">Closest</span>' : ''}
+        </div>
+        <div class="font-mono ${heatColor}">
+          ${g.heat}%
+        </div>
+      `;
+      historyEl.appendChild(row);
+    });
+  }
+
+  hintBtn.addEventListener('click', () => {
+    if (isGameOver || hintsLeft <= 0) return;
+    sound.score();
+    hintsLeft--;
+    hintBtn.textContent = `💡 Hint (${hintsLeft})`;
+    statusEl.textContent = `💡 ${currentSecret.category}: ${currentSecret.hint}`;
+    statusEl.className = 'text-amber-300 font-bold truncate max-w-[200px]';
+  });
 
   submitBtn.addEventListener('click', submitGuess);
   inputEl.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') submitGuess();
   });
+
+  newBtn.addEventListener('click', initSecret);
+  modalBtn.addEventListener('click', initSecret);
+
+  initSecret();
 </script>

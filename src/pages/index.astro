@@ -12,7 +12,7 @@ const portalSchema = {
   '@type': 'WebSite',
   name: 'Pokoly - Free Browser Games & Arcade Portal',
   url: siteUrl,
-  description: 'Play popular online games free with no download. Word puzzles, Suika physics drop, Solitaire, 2048, retro arcade, and minesweeper.',
+  description: 'Play popular online games free with no download. Word puzzles, fruit merge physics drop, Solitaire, 2048, retro arcade, and minesweeper.',
   potentialAction: {
     '@type': 'SearchAction',
     target: `${siteUrl}/?q={search_term_string}`,
@@ -23,7 +23,7 @@ const portalSchema = {
 
 <BaseLayout
   title="Pokoly.com - 100% Free Browser Games, Instant Play & Unblocked"
-  description="Play popular online games free with no download or login. Suika fruit merge, Wordle unlimited, Klondike solitaire, 2048 neon, retro snake, and breakout. Fast 60 FPS on any device."
+  description="Play popular online games free with no download or login. Fruit merge, 5-letter word guess, Klondike solitaire, 2048 neon, retro snake, and brick breaker. Fast 60 FPS on any device."
   canonical={siteUrl}
   schema={portalSchema}
 >
@@ -128,6 +128,46 @@ const portalSchema = {
     <div class="my-8 flex justify-center">
       <AdSlot slot="leaderboard" />
     </div>
+
+    <!-- Trending Gameplay Highlights Showcase (Play Images & Quick Launch) -->
+    <section class="mt-2 mb-8">
+      <div class="flex items-center justify-between pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔥</span>
+          <h2 class="font-display text-lg font-black text-white">Trending Gameplay Showcase</h2>
+        </div>
+        <span class="rounded-full bg-brand-neon/15 px-2.5 py-0.5 font-mono text-[10px] font-bold text-brand-neon border border-brand-neon/30">
+          60 FPS Instant Play
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {GAMES.slice(0, 6).map(g => (
+          <a
+            href={`/games/${g.slug}`}
+            class="group relative flex flex-col items-center rounded-2xl border border-brand-border/60 bg-brand-card/60 p-3 text-center transition-all duration-300 hover:-translate-y-1 hover:border-brand-neon hover:bg-brand-card hover:shadow-xl hover:shadow-brand-neon/15"
+          >
+            <div class="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-dark/80 p-2 shadow-inner group-hover:scale-105 transition-transform">
+              <img
+                src={`/logos/${g.slug}.svg`}
+                alt={`${g.title} play snapshot`}
+                class="h-16 w-16 object-contain drop-shadow-md group-hover:scale-110 transition-transform"
+                loading="lazy"
+              />
+              <span class="absolute bottom-1 right-1 rounded bg-black/80 px-1 font-mono text-[8px] font-bold text-emerald-400">
+                PLAY
+              </span>
+            </div>
+            <div class="mt-2 truncate w-full text-xs font-bold text-white group-hover:text-brand-neon transition-colors">
+              {g.title.split(':')[0]}
+            </div>
+            <div class="mt-0.5 font-mono text-[10px] text-gray-400">
+              👥 {g.playCount}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
 
     <!-- Catalog Header & Search Filter -->
     <section id="catalog" class="mt-8">
@@ -376,7 +416,7 @@ const portalSchema = {
         detail: {
           gameTitle: 'Pokoly Game Studio',
           gameSlug: 'fruit-merge',
-          subdomain: 'suika',
+          subdomain: 'fruits',
           score: 500,
         }
       })

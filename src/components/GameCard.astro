@@ -38,14 +38,45 @@ const { game } = Astro.props;
     </div>
   </div>
 
-  <!-- Visual Graphic / Custom Game Logo -->
-  <a href={`/games/${game.slug}`} class="my-4 flex h-32 w-full items-center justify-center rounded-2xl bg-gradient-to-br from-brand-dark to-brand-card/60 p-2 transition-transform duration-300 group-hover:scale-105 shadow-inner">
+  <!-- Visual Graphic / Custom Game Logo & Play Preview -->
+  <a
+    href={`/games/${game.slug}`}
+    class="relative my-3 flex h-36 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-brand-dark via-brand-card/70 to-brand-dark p-3 transition-all duration-300 group-hover:scale-[1.03] shadow-inner border border-brand-border/40 group-hover:border-brand-neon/60"
+    style={`--accent: ${game.color}`}
+  >
+    <!-- Ambient Themed Radial Glow -->
+    <div
+      class="absolute inset-0 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40 pointer-events-none"
+      style={`background: radial-gradient(circle at center, ${game.color} 0%, transparent 70%);`}
+    ></div>
+
+    <!-- Retro Subtle Grid Pattern -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none"></div>
+
+    <!-- Bespoke Illustrated Logo -->
     <img
       src={`/logos/${game.slug}.svg`}
-      alt={game.title}
-      class="h-24 w-24 object-contain drop-shadow-xl transition-transform duration-300 group-hover:scale-110"
+      alt={`${game.title} Logo & Play Snapshot`}
+      class="relative z-10 h-24 w-24 object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-110"
       loading="lazy"
     />
+
+    <!-- Quick Play Preview Overlay on Hover -->
+    <div class="absolute inset-x-2 bottom-2 z-20 flex items-center justify-between rounded-xl bg-brand-dark/90 backdrop-blur-md px-3 py-1.5 opacity-0 transition-all duration-200 group-hover:opacity-100 border border-brand-border/80">
+      <span class="flex items-center gap-1 font-mono text-[10px] font-bold text-emerald-400">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>60 FPS</span>
+      </span>
+      <span class="flex items-center gap-1 font-display text-[11px] font-black text-brand-neon">
+        <span>Instant Play</span>
+        <span>▶</span>
+      </span>
+    </div>
+
+    <!-- Category Pill Tag -->
+    <span class="absolute top-2 left-2 z-10 rounded-md bg-brand-dark/80 px-2 py-0.5 font-mono text-[9px] font-semibold text-gray-300 uppercase tracking-wider border border-brand-border/50">
+      {game.category}
+    </span>
   </a>
 
   <!-- Title & Description -->

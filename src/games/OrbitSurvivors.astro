@@ -2,84 +2,222 @@
 // Orbit Survivors: Cosmic Horde
 ---
 
-<div id="orbit-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+<div id="orbit-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
     <div>Time: <span id="orbit-time" class="font-mono font-bold text-brand-neon">0s</span></div>
     <div>Level: <span id="orbit-lvl" class="font-mono font-bold text-brand-gold">1</span></div>
     <div>Kills: <span id="orbit-kills" class="font-mono font-bold text-white">0</span></div>
+    <div class="flex items-center gap-1.5">
+      <span class="text-gray-400">HP:</span>
+      <div class="w-16 h-2.5 rounded-full bg-brand-card overflow-hidden border border-brand-border/60">
+        <div id="orbit-hp-bar" class="h-full bg-emerald-400 transition-all duration-150" style="width: 100%;"></div>
+      </div>
+    </div>
   </div>
 
+  <!-- Canvas Viewport -->
   <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
-    <canvas id="orbit-canvas" width="340" height="360" class="block"></canvas>
-    <div id="orbit-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/85 p-6 text-center">
-      <span class="text-4xl">💥</span>
-      <h3 class="text-xl font-bold text-white mt-1">Ship Destroyed</h3>
-      <p class="text-xs text-gray-300 mt-1">Survived: <span id="orbit-final-time" class="text-brand-neon font-bold">0s</span></p>
-      <button id="orbit-restart" class="mt-4 rounded-xl bg-brand-accent px-5 py-2 text-xs font-bold text-white">Relaunch</button>
+    <canvas id="orbit-canvas" width="360" height="400" class="block cursor-crosshair touch-none"></canvas>
+
+    <!-- Level Up Notification Banner -->
+    <div id="orbit-levelup-banner" class="hidden absolute top-4 inset-x-4 rounded-xl border border-brand-gold/60 bg-brand-dark/95 p-2 text-center text-xs font-bold text-brand-gold shadow-lg animate-pulse">
+      ⚡ LEVEL UP! +Laser Fire Rate &amp; Plasma Shield!
     </div>
+
+    <!-- Game Over Overlay -->
+    <div id="orbit-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm p-6 text-center">
+      <span class="text-5xl animate-bounce">💥</span>
+      <h3 class="text-2xl font-black text-white mt-2">Ship Overrun!</h3>
+      <div class="my-3 flex items-center justify-center gap-6 font-mono text-xs">
+        <div>
+          <div class="text-gray-400">Survived</div>
+          <div class="text-2xl font-bold text-brand-neon" id="orbit-final-time">0s</div>
+        </div>
+        <div class="h-8 w-[1px] bg-brand-border/60"></div>
+        <div>
+          <div class="text-gray-400">Total Kills</div>
+          <div class="text-2xl font-bold text-amber-400" id="orbit-final-kills">0</div>
+        </div>
+      </div>
+      <button id="orbit-restart" class="mt-2 rounded-2xl bg-brand-accent px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Relaunch Starship 🚀
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 text-[11px] text-gray-400 text-center">
+    Drag touch / Mouse or use <span class="font-mono text-brand-neon">WASD / Arrows</span> to pilot starship. Auto-aim is armed.
   </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
   const canvas = document.getElementById('orbit-canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
   const timeEl = document.getElementById('orbit-time')!;
   const lvlEl = document.getElementById('orbit-lvl')!;
   const killsEl = document.getElementById('orbit-kills')!;
+  const hpBarEl = document.getElementById('orbit-hp-bar')!;
   const overlay = document.getElementById('orbit-overlay')!;
   const finalTimeEl = document.getElementById('orbit-final-time')!;
+  const finalKillsEl = document.getElementById('orbit-final-kills')!;
   const restartBtn = document.getElementById('orbit-restart')!;
+  const levelupBanner = document.getElementById('orbit-levelup-banner')!;
 
-  let player = { x: 170, y: 180, r: 8, hp: 100 };
-  let enemies: { x: number; y: number; r: number; hp: number }[] = [];
-  let bullets: { x: number; y: number; vx: number; vy: number }[] = [];
+  interface Enemy {
+    x: number;
+    y: number;
+    r: number;
+    hp: number;
+    speed: number;
+    color: string;
+  }
+
+  interface Bullet {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+  }
+
+  interface Gem {
+    x: number;
+    y: number;
+    val: number;
+  }
+
+  interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    alpha: number;
+  }
+
+  let starship = {
+    x: 180,
+    y: 200,
+    r: 9,
+    hp: 100,
+    maxHp: 100,
+    invulnFrames: 0,
+    level: 1,
+    xp: 0,
+    xpNext: 15,
+    cannons: 1,
+    fireInterval: 14,
+    shieldAngle: 0
+  };
+
+  let enemies: Enemy[] = [];
+  let bullets: Bullet[] = [];
+  let gems: Gem[] = [];
+  let particles: Particle[] = [];
+  let keysDown: Record<string, boolean> = {};
+
   let kills = 0;
   let startTime = Date.now();
-  let isGameOver = false;
   let shootTimer = 0;
+  let isGameOver = false;
+  let animId: number | null = null;
 
   function init() {
     isGameOver = false;
-    player = { x: 170, y: 180, r: 8, hp: 100 };
+    starship = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      r: 9,
+      hp: 100,
+      maxHp: 100,
+      invulnFrames: 0,
+      level: 1,
+      xp: 0,
+      xpNext: 15,
+      cannons: 1,
+      fireInterval: 14,
+      shieldAngle: 0
+    };
     enemies = [];
     bullets = [];
+    gems = [];
+    particles = [];
     kills = 0;
     startTime = Date.now();
+    hpBarEl.style.width = '100%';
+    hpBarEl.className = 'h-full bg-emerald-400 transition-all duration-150';
+    lvlEl.textContent = '1';
     overlay.classList.add('hidden');
-    requestAnimationFrame(loop);
+    levelupBanner.classList.add('hidden');
+    player.trackGamePlay('orbit-survivors');
+
+    if (animId) cancelAnimationFrame(animId);
+    loop();
   }
 
   function loop() {
     if (isGameOver) return;
+
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
     timeEl.textContent = `${elapsed}s`;
     killsEl.textContent = kills.toString();
 
-    // Spawn enemies
-    if (Math.random() < 0.08) {
+    // Keyboard motion
+    const speed = 3.2;
+    if (keysDown['KeyW'] || keysDown['ArrowUp']) starship.y = Math.max(starship.r, starship.y - speed);
+    if (keysDown['KeyS'] || keysDown['ArrowDown']) starship.y = Math.min(canvas.height - starship.r, starship.y + speed);
+    if (keysDown['KeyA'] || keysDown['ArrowLeft']) starship.x = Math.max(starship.r, starship.x - speed);
+    if (keysDown['KeyD'] || keysDown['ArrowRight']) starship.x = Math.min(canvas.width - starship.r, starship.x + speed);
+
+    if (starship.invulnFrames > 0) starship.invulnFrames--;
+    starship.shieldAngle += 0.05;
+
+    // Enemy spawn rate scales with time
+    const spawnChance = Math.min(0.20, 0.06 + elapsed * 0.001);
+    if (Math.random() < spawnChance) {
       const angle = Math.random() * Math.PI * 2;
+      const dist = Math.hypot(canvas.width, canvas.height) / 2 + 30;
+      const isBrute = Math.random() < 0.15;
       enemies.push({
-        x: 170 + Math.cos(angle) * 200,
-        y: 180 + Math.sin(angle) * 200,
-        r: 6,
-        hp: 1
+        x: starship.x + Math.cos(angle) * dist,
+        y: starship.y + Math.sin(angle) * dist,
+        r: isBrute ? 10 : 6,
+        hp: isBrute ? 3 : 1,
+        speed: isBrute ? 1.0 : 1.4 + Math.random() * 0.4,
+        color: isBrute ? '#f59e0b' : '#ef4444'
       });
     }
 
     // Auto-fire bullets
     shootTimer++;
-    if (shootTimer % 15 === 0 && enemies.length > 0) {
+    if (shootTimer % starship.fireInterval === 0 && enemies.length > 0) {
       sound.blip();
-      const target = enemies[0];
-      const angle = Math.atan2(target.y - player.y, target.x - player.x);
-      bullets.push({
-        x: player.x,
-        y: player.y,
-        vx: Math.cos(angle) * 7,
-        vy: Math.sin(angle) * 7
+      // Target nearest enemy
+      let nearest = enemies[0];
+      let minDist = Infinity;
+      enemies.forEach(e => {
+        const d = Math.hypot(e.x - starship.x, e.y - starship.y);
+        if (d < minDist) {
+          minDist = d;
+          nearest = e;
+        }
       });
+
+      const baseAngle = Math.atan2(nearest.y - starship.y, nearest.x - starship.x);
+      for (let i = 0; i < starship.cannons; i++) {
+        const spread = (i - (starship.cannons - 1) / 2) * 0.15;
+        const angle = baseAngle + spread;
+        bullets.push({
+          x: starship.x,
+          y: starship.y,
+          vx: Math.cos(angle) * 7.5,
+          vy: Math.sin(angle) * 7.5
+        });
+      }
     }
 
     // Update bullets
@@ -87,67 +225,221 @@
       b.x += b.vx;
       b.y += b.vy;
     });
-    bullets = bullets.filter(b => b.x > 0 && b.x < canvas.width && b.y > 0 && b.y < canvas.height);
+    bullets = bullets.filter(b => b.x > -20 && b.x < canvas.width + 20 && b.y > -20 && b.y < canvas.height + 20);
 
     // Update enemies
     enemies.forEach(e => {
-      const angle = Math.atan2(player.y - e.y, player.x - e.x);
-      e.x += Math.cos(angle) * 1.4;
-      e.y += Math.sin(angle) * 1.4;
+      const angle = Math.atan2(starship.y - e.y, starship.x - e.x);
+      e.x += Math.cos(angle) * e.speed;
+      e.y += Math.sin(angle) * e.speed;
 
-      // Check hit player
-      const dist = Math.hypot(e.x - player.x, e.y - player.y);
-      if (dist < player.r + e.r) {
-        isGameOver = true;
+      // Check collision with orbital shield
+      const shieldX = starship.x + Math.cos(starship.shieldAngle) * 30;
+      const shieldY = starship.y + Math.sin(starship.shieldAngle) * 30;
+      if (Math.hypot(e.x - shieldX, e.y - shieldY) < e.r + 6) {
+        e.hp -= 2;
+        sound.blip();
+      }
+
+      // Check collision with player
+      if (starship.invulnFrames <= 0 && Math.hypot(e.x - starship.x, e.y - starship.y) < starship.r + e.r) {
+        starship.hp = Math.max(0, starship.hp - 20);
+        starship.invulnFrames = 30; // 0.5s immunity
         sound.explosion();
-        finalTimeEl.textContent = `${elapsed}s`;
-        overlay.classList.remove('hidden');
+
+        const pct = (starship.hp / starship.maxHp) * 100;
+        hpBarEl.style.width = `${pct}%`;
+        if (pct < 30) hpBarEl.className = 'h-full bg-red-500 transition-all duration-150';
+        else if (pct < 60) hpBarEl.className = 'h-full bg-amber-400 transition-all duration-150';
+
+        if (starship.hp <= 0) {
+          triggerGameOver(elapsed);
+        }
       }
     });
 
-    // Bullet collisions
-    bullets.forEach(b => {
-      enemies.forEach((e, eIdx) => {
-        if (Math.hypot(b.x - e.x, b.y - e.y) < e.r + 4) {
-          enemies.splice(eIdx, 1);
-          kills++;
+    // Bullet-enemy collisions
+    bullets.forEach((b, bIdx) => {
+      enemies.forEach(e => {
+        if (Math.hypot(b.x - e.x, b.y - e.y) < e.r + 5) {
+          e.hp--;
+          bullets.splice(bIdx, 1);
+
+          // Spark particle
+          particles.push({
+            x: b.x,
+            y: b.y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            color: '#38bdf8',
+            alpha: 1
+          });
         }
       });
     });
 
-    // Draw
-    ctx.fillStyle = '#06070a';
+    // Remove killed enemies & drop XP gems
+    const survivingEnemies: Enemy[] = [];
+    enemies.forEach(e => {
+      if (e.hp <= 0) {
+        kills++;
+        gems.push({ x: e.x, y: e.y, val: 5 });
+      } else {
+        survivingEnemies.push(e);
+      }
+    });
+    enemies = survivingEnemies;
+
+    // Collect gems & level up
+    const remainingGems: Gem[] = [];
+    gems.forEach(g => {
+      const d = Math.hypot(g.x - starship.x, g.y - starship.y);
+      if (d < 70) {
+        // Magnet pull
+        g.x += (starship.x - g.x) * 0.15;
+        g.y += (starship.y - g.y) * 0.15;
+      }
+      if (d < starship.r + 8) {
+        starship.xp += g.val;
+        sound.click();
+
+        // Level Up Check
+        if (starship.xp >= starship.xpNext) {
+          starship.xp -= starship.xpNext;
+          starship.level++;
+          starship.xpNext = Math.floor(starship.xpNext * 1.5);
+          lvlEl.textContent = starship.level.toString();
+          sound.score();
+
+          // Upgrades
+          if (starship.level % 2 === 0 && starship.cannons < 5) starship.cannons++;
+          starship.fireInterval = Math.max(6, starship.fireInterval - 2);
+
+          levelupBanner.classList.remove('hidden');
+          setTimeout(() => levelupBanner.classList.add('hidden'), 2000);
+        }
+      } else {
+        remainingGems.push(g);
+      }
+    });
+    gems = remainingGems;
+
+    // Update particles
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= 0.05;
+    });
+    particles = particles.filter(p => p.alpha > 0);
+
+    // Render Frame
+    draw();
+    animId = requestAnimationFrame(loop);
+  }
+
+  function draw() {
+    ctx.fillStyle = '#060812';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw player
-    ctx.fillStyle = '#8b5cf6';
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
-    ctx.fill();
+    // Starfield grid
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    for (let i = 0; i < 20; i++) {
+      ctx.fillRect((i * 47) % canvas.width, (i * 73) % canvas.height, 1.5, 1.5);
+    }
 
-    // Draw enemies
-    ctx.fillStyle = '#ef4444';
+    // Draw Gems
+    gems.forEach(g => {
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(g.x, g.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw Enemies
     enemies.forEach(e => {
+      ctx.fillStyle = e.color;
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
       ctx.fill();
     });
 
-    // Draw bullets
+    // Draw Bullets
     ctx.fillStyle = '#38bdf8';
     bullets.forEach(b => {
       ctx.beginPath();
-      ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+      ctx.arc(b.x, b.y, 3.5, 0, Math.PI * 2);
       ctx.fill();
     });
 
-    requestAnimationFrame(loop);
+    // Draw Orbital Plasma Shield
+    const shieldX = starship.x + Math.cos(starship.shieldAngle) * 30;
+    const shieldY = starship.y + Math.sin(starship.shieldAngle) * 30;
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(shieldX, shieldY, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw Starship
+    if (starship.invulnFrames % 4 < 2) {
+      ctx.fillStyle = '#8b5cf6';
+      ctx.strokeStyle = '#c084fc';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(starship.x, starship.y, starship.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Cockpit glow
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(starship.x, starship.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw Particles
+    particles.forEach(p => {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function triggerGameOver(elapsed: number) {
+    isGameOver = true;
+    finalTimeEl.textContent = `${elapsed}s`;
+    finalKillsEl.textContent = kills.toString();
+    if (elapsed >= 60) launchConfetti();
+    player.addXP(kills * 5 + elapsed * 2, 'Orbit Survivors Run');
+    overlay.classList.remove('hidden');
+  }
+
+  // Pointer & Touch Controls (Responsive for Mobile & Desktop)
+  function handlePointer(clientX: number, clientY: number) {
+    const rect = canvas.getBoundingClientRect();
+    starship.x = Math.max(starship.r, Math.min(canvas.width - starship.r, clientX - rect.left));
+    starship.y = Math.max(starship.r, Math.min(canvas.height - starship.r, clientY - rect.top));
   }
 
   canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    player.x = e.clientX - rect.left;
-    player.y = e.clientY - rect.top;
+    if (!isGameOver) handlePointer(e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!isGameOver && e.touches.length > 0) {
+      e.preventDefault();
+      handlePointer(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  window.addEventListener('keydown', (e) => {
+    keysDown[e.code] = true;
+  });
+
+  window.addEventListener('keyup', (e) => {
+    keysDown[e.code] = false;
   });
 
   restartBtn.addEventListener('click', init);

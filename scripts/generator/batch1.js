@@ -431,13 +431,13 @@ export const BATCH_1 = [
 `
   },
 
-  // 3. ChronoCross (Timeline Guess)
+  // 3. ChronoTrail (Timeline Guess)
   {
     meta: {
-      id: 'chronocross',
-      slug: 'chronocross',
+      id: 'chronotrail',
+      slug: 'chronotrail',
       subdomain: 'timeline',
-      title: 'ChronoCross: Timeline Guess',
+      title: 'ChronoTrail: Timeline Guess',
       tagline: 'Order 5 historical and pop culture events chronologically from oldest to newest!',
       category: 'puzzle',
       rating: 4.9,
@@ -446,14 +446,14 @@ export const BATCH_1 = [
       badge: 'Brain Viral',
       releaseDate: '2026-02-08',
       keywords: ['history timeline game', 'order events chronologically', 'timeline trivia browser', 'chronology quiz'],
-      description: 'ChronoCross tests your historical perspective. Drag and order 5 events to reveal their true years.',
+      description: 'ChronoTrail tests your historical perspective. Drag and order 5 events to reveal their true years.',
       controls: [{ key: '▲ / ▼', action: 'Move event up or down' }, { key: 'Submit', action: 'Check chronological accuracy' }],
       instructions: ['5 historical events appear in random order.', 'Use buttons to shift them from oldest (top) to newest (bottom).', 'Submit to reveal their true years.'],
       strategies: ['Anchor the oldest and newest events first.', 'Use decade landmarks to slot items.'],
       faqs: [{ question: 'Are dates globally verified?', answer: 'Yes, based on official historical records.' }]
     },
     component: `---
-// ChronoCross: Timeline Guess
+// ChronoTrail: Timeline Guess
 ---
 
 <div id="chrono-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto">
@@ -1403,13 +1403,13 @@ export const BATCH_1 = [
 `
   },
 
-  // 11. NanoBalatro (Micro Poker Roguelike)
+  // 11. NanoJoker (Micro Poker Roguelike)
   {
     meta: {
-      id: 'nanobalatro',
-      slug: 'nanobalatro',
+      id: 'nanojoker',
+      slug: 'nanojoker',
       subdomain: 'nanopoker',
-      title: 'NanoBalatro: Poker Roguelike',
+      title: 'NanoJoker: Poker Roguelike',
       tagline: 'Play poker hands to score Chips × Multiplier and beat escalating Boss Blinds!',
       category: 'card',
       rating: 4.9,
@@ -1417,15 +1417,15 @@ export const BATCH_1 = [
       color: '#f43f5e',
       badge: 'Endless Fun',
       releaseDate: '2026-03-01',
-      keywords: ['balatro web free', 'poker roguelike online', 'poker deckbuilder browser', 'balatro alternative free'],
-      description: 'NanoBalatro brings the viral poker deckbuilding sensation to your browser. Score Chips and Multipliers to defeat bosses.',
+      keywords: ['poker roguelike online', 'poker deckbuilder browser', 'card roguelike free', 'joker poker game'],
+      description: 'NanoJoker brings tactical poker deckbuilding to your browser. Score Chips and Multipliers to defeat escalating Boss Blinds.',
       controls: [{ key: 'Click Cards', action: 'Select up to 5 cards' }, { key: 'Play Hand', action: 'Score poker hand' }, { key: 'Discard', action: 'Draw new cards' }],
       instructions: ['Play 5-card hands (Pairs, Flushes, Straights).', 'Hands earn Chips × Mult.', 'Beat the target Blind score in limited hands.'],
       strategies: ['Pair Joker modifiers with your primary hand type.', 'Save discards for high-tier Flushes and Full Houses.'],
-      faqs: [{ question: 'Is NanoBalatro free?', answer: '100% free with unlimited procedural runs.' }]
+      faqs: [{ question: 'Is NanoJoker free?', answer: '100% free with unlimited procedural runs.' }]
     },
     component: `---
-// NanoBalatro: Poker Roguelike
+// NanoJoker: Poker Roguelike
 ---
 
 <div id="balatro-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto">
@@ -1748,13 +1748,13 @@ export const BATCH_1 = [
 `
   },
 
-  // 13. PeggleDungeon (Pachinko Crawler)
+  // 13. PegDungeon (Pachinko Crawler)
   {
     meta: {
-      id: 'peggledungeon',
-      slug: 'peggledungeon',
+      id: 'pegdungeon',
+      slug: 'pegdungeon',
       subdomain: 'pegdungeon',
-      title: 'PeggleDungeon: Pachinko Crawler',
+      title: 'PegDungeon: Pachinko Crawler',
       tagline: 'Drop bouncing hero orbs to strike pegs, trigger crits, and defeat dungeon bosses!',
       category: 'arcade',
       rating: 4.8,
@@ -1762,15 +1762,15 @@ export const BATCH_1 = [
       color: '#f59e0b',
       badge: 'Pachinko RPG',
       releaseDate: '2026-03-08',
-      keywords: ['peglin browser free', 'pachinko roguelike online', 'peggle rpg unblocked', 'pachinko dungeon crawler'],
-      description: 'Peggle meets dungeon crawler RPG: launch bouncing orbs to strike pegs and damage the goblin boss.',
+      keywords: ['pachinko roguelike online', 'pachinko dungeon crawler', 'bouncing orb rpg', 'peg drop game'],
+      description: 'Pachinko meets dungeon crawler RPG: launch bouncing hero orbs to strike pegs and damage the goblin boss.',
       controls: [{ key: 'Aim Mouse / Touch', action: 'Set launch trajectory' }, { key: 'Click / Tap', action: 'Fire hero ball' }],
       instructions: ['Aim your launcher at the top.', 'Fire balls through peg clusters.', 'Blue pegs deal damage, gold pegs trigger 3× Critical Hits.'],
       strategies: ['Aim for corner banks to hit the maximum number of pegs.'],
       faqs: [{ question: 'Do balls replenish?', answer: 'Yes, sinking balls into the moving bottom bucket returns them!' }]
     },
     component: `---
-// PeggleDungeon: Pachinko Crawler
+// PegDungeon: Pachinko Crawler
 ---
 
 <div id="peggle-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">

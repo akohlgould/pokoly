@@ -2,86 +2,329 @@
 // GeoPixel: Blurry Landmark Quiz
 ---
 
-<div id="geopixel-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
-  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
-    <div>Resolution: <span id="geo-res" class="font-mono font-bold text-brand-neon">4x4</span></div>
-    <div>Score: <span id="geo-score" class="font-mono font-bold text-brand-gold">1000</span></div>
+<div id="geopixel-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto w-full">
+  <!-- Stats Header -->
+  <div class="mb-3 flex w-full items-center justify-between rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div>Round: <span id="geo-round" class="font-mono font-bold text-brand-neon">1/5</span></div>
+    <div>Res: <span id="geo-res" class="font-mono font-bold text-amber-400">4×4</span></div>
+    <div>Score: <span id="geo-score" class="font-mono font-bold text-white">0</span></div>
   </div>
 
+  <!-- Pixel Canvas Container -->
   <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
-    <canvas id="geo-canvas" width="300" height="240" class="block"></canvas>
+    <canvas id="geo-canvas" width="320" height="240" class="block"></canvas>
+
+    <!-- Round Feedback Overlay -->
+    <div id="geo-feedback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm p-4 text-center">
+      <span id="geo-feed-icon" class="text-4xl animate-bounce">🎉</span>
+      <h3 id="geo-feed-title" class="font-display text-xl font-bold text-white mt-1">Correct!</h3>
+      <p id="geo-feed-fact" class="text-xs text-gray-300 mt-1 max-w-[260px] line-clamp-3">The Eiffel Tower was built in 1889 for the World's Fair.</p>
+      <button id="geo-next-btn" class="mt-3 rounded-xl bg-brand-accent px-5 py-2 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Next Landmark →
+      </button>
+    </div>
   </div>
 
+  <!-- Sharpen Action Button -->
   <div class="mt-3 flex gap-2 w-full">
-    <button id="geo-sharpen" class="flex-1 rounded-xl border border-brand-border bg-brand-card py-2 text-xs font-semibold text-gray-200 hover:border-brand-neon">Sharpen (-200 pts)</button>
+    <button id="geo-sharpen" class="w-full rounded-xl border border-brand-border bg-brand-card py-2.5 text-xs font-bold text-gray-200 hover:border-brand-neon hover:text-white transition-all cursor-pointer">
+      🔍 Sharpen Image (-200 pts)
+    </button>
   </div>
 
+  <!-- Multiple Choice Options -->
   <div id="geo-choices" class="grid grid-cols-2 gap-2 mt-3 w-full"></div>
+
+  <!-- Game Complete Modal -->
+  <div id="geo-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span class="text-5xl animate-bounce">🌍</span>
+      <h3 class="text-2xl font-black text-white mt-2">World Tour Complete!</h3>
+      <p id="geo-final-msg" class="text-xs text-gray-300 mt-1">You scored 3,400 points across 5 landmarks!</p>
+      <div class="mt-2 text-xs font-mono text-brand-gold font-bold">+200 XP Awarded</div>
+      <button id="geo-restart-btn" class="mt-4 w-full rounded-2xl bg-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+        Play Another Tour
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
   import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
 
-  const LANDMARKS = [
-    { name: 'Eiffel Tower', colors: ['#475569', '#334155', '#1e293b', '#94a3b8'] },
-    { name: 'Taj Mahal', colors: ['#ffffff', '#f1f5f9', '#cbd5e1', '#38bdf8'] },
-    { name: 'Great Pyramids', colors: ['#d97706', '#b45309', '#78350f', '#fde68a'] },
-    { name: 'Statue of Liberty', colors: ['#10b981', '#059669', '#047857', '#6ee7b7'] }
+  interface Landmark {
+    name: string;
+    fact: string;
+    drawVector: (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
+  }
+
+  const LANDMARKS: Landmark[] = [
+    {
+      name: 'Eiffel Tower',
+      fact: 'Standing 330 meters tall in Paris, it was originally built for the 1889 Exposition Universelle.',
+      drawVector: (c, w, h) => {
+        // Sky gradient
+        const g = c.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, '#0284c7');
+        g.addColorStop(1, '#f97316');
+        c.fillStyle = g;
+        c.fillRect(0, 0, w, h);
+        // Tower silhouette
+        c.fillStyle = '#1e293b';
+        c.beginPath();
+        c.moveTo(w / 2, 20);
+        c.lineTo(w / 2 - 12, 100);
+        c.lineTo(w / 2 - 35, h);
+        c.lineTo(w / 2 - 15, h);
+        c.arc(w / 2, h, 25, Math.PI, 0, false);
+        c.lineTo(w / 2 + 35, h);
+        c.lineTo(w / 2 + 12, 100);
+        c.closePath();
+        c.fill();
+      }
+    },
+    {
+      name: 'Great Pyramids',
+      fact: 'Built over 4,500 years ago in Giza, Egypt, they are the oldest of the Seven Wonders of the Ancient World.',
+      drawVector: (c, w, h) => {
+        // Desert sky
+        c.fillStyle = '#f59e0b';
+        c.fillRect(0, 0, w, h);
+        // Sun
+        c.fillStyle = '#fef08a';
+        c.beginPath();
+        c.arc(w * 0.75, 50, 28, 0, Math.PI * 2);
+        c.fill();
+        // Pyramid 1
+        c.fillStyle = '#b45309';
+        c.beginPath();
+        c.moveTo(w * 0.35, 60);
+        c.lineTo(w * 0.7, h);
+        c.lineTo(0, h);
+        c.closePath();
+        c.fill();
+        // Pyramid 2
+        c.fillStyle = '#78350f';
+        c.beginPath();
+        c.moveTo(w * 0.7, 90);
+        c.lineTo(w, h);
+        c.lineTo(w * 0.4, h);
+        c.closePath();
+        c.fill();
+      }
+    },
+    {
+      name: 'Taj Mahal',
+      fact: 'Commissioned in 1631 by Mughal Emperor Shah Jahan in Agra, India, made entirely of white marble.',
+      drawVector: (c, w, h) => {
+        // Dawn sky
+        c.fillStyle = '#38bdf8';
+        c.fillRect(0, 0, w, h);
+        // Taj Dome & Minarets
+        c.fillStyle = '#f8fafc';
+        c.fillRect(w * 0.3, 100, w * 0.4, h - 100);
+        // Central Dome
+        c.beginPath();
+        c.arc(w * 0.5, 90, 35, Math.PI, 0, false);
+        c.fill();
+        // Minarets
+        c.fillRect(w * 0.15, 60, 10, h - 60);
+        c.fillRect(w * 0.82, 60, 10, h - 60);
+        // Reflecting pool
+        c.fillStyle = '#0284c7';
+        c.fillRect(0, h - 35, w, 35);
+      }
+    },
+    {
+      name: 'Statue of Liberty',
+      fact: 'A gift from France to the United States in 1886, designed by Frédéric Auguste Bartholdi.',
+      drawVector: (c, w, h) => {
+        c.fillStyle = '#0f172a';
+        c.fillRect(0, 0, w, h);
+        // Harbor Water
+        c.fillStyle = '#1e3a8a';
+        c.fillRect(0, h - 50, w, 50);
+        // Statue verdigris copper
+        c.fillStyle = '#10b981';
+        c.fillRect(w * 0.42, 80, 50, h - 130);
+        // Head & Crown
+        c.beginPath();
+        c.arc(w * 0.5, 65, 16, 0, Math.PI * 2);
+        c.fill();
+        // Torch Raised
+        c.fillRect(w * 0.62, 35, 10, 50);
+        c.fillStyle = '#fbbf24';
+        c.beginPath();
+        c.arc(w * 0.67, 30, 8, 0, Math.PI * 2);
+        c.fill();
+      }
+    },
+    {
+      name: 'Mount Fuji',
+      fact: 'Japan’s tallest active volcano at 3,776 meters, renowned for its symmetrical snow-capped cone.',
+      drawVector: (c, w, h) => {
+        // Red sunset
+        c.fillStyle = '#e11d48';
+        c.fillRect(0, 0, w, h);
+        // Sun
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(w * 0.5, 110, 45, 0, Math.PI * 2);
+        c.fill();
+        // Mountain silhouette
+        c.fillStyle = '#1e1b4b';
+        c.beginPath();
+        c.moveTo(w * 0.5, 70);
+        c.lineTo(w * 0.85, h);
+        c.lineTo(w * 0.15, h);
+        c.closePath();
+        c.fill();
+        // Snow cap
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.moveTo(w * 0.5, 70);
+        c.lineTo(w * 0.6, 110);
+        c.lineTo(w * 0.4, 110);
+        c.closePath();
+        c.fill();
+      }
+    }
   ];
 
-  let currentLandmark = LANDMARKS[2]; // Pyramids
+  let currentRound = 0;
+  let totalScore = 0;
+  let roundScore = 1000;
   let resolution = 4;
-  let score = 1000;
+  let currentLandmark = LANDMARKS[0];
 
   const canvas = document.getElementById('geo-canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;
+  const roundEl = document.getElementById('geo-round')!;
   const resEl = document.getElementById('geo-res')!;
   const scoreEl = document.getElementById('geo-score')!;
   const sharpenBtn = document.getElementById('geo-sharpen')!;
   const choicesEl = document.getElementById('geo-choices')!;
+  const feedbackEl = document.getElementById('geo-feedback')!;
+  const feedTitle = document.getElementById('geo-feed-title')!;
+  const feedFact = document.getElementById('geo-feed-fact')!;
+  const feedIcon = document.getElementById('geo-feed-icon')!;
+  const nextBtn = document.getElementById('geo-next-btn')!;
+  const modal = document.getElementById('geo-modal')!;
+  const finalMsgEl = document.getElementById('geo-final-msg')!;
+  const restartBtn = document.getElementById('geo-restart-btn')!;
 
-  function draw() {
-    resEl.textContent = `${resolution}x${resolution}`;
-    scoreEl.textContent = score.toString();
+  // Offscreen buffer for rendering high-res art
+  const offscreen = document.createElement('canvas');
+  offscreen.width = 320;
+  offscreen.height = 240;
+  const offCtx = offscreen.getContext('2d')!;
 
-    const blockSize = canvas.width / resolution;
-    for (let x = 0; x < resolution; x++) {
-      for (let y = 0; y < resolution; y++) {
-        const c = currentLandmark.colors[(x + y) % currentLandmark.colors.length];
-        ctx.fillStyle = c;
-        ctx.fillRect(x * blockSize, y * (canvas.height / resolution), blockSize, canvas.height / resolution);
-      }
-    }
+  function startSession() {
+    currentRound = 0;
+    totalScore = 0;
+    scoreEl.textContent = '0';
+    modal.classList.add('hidden');
+    loadRound();
+    player.trackGamePlay('geopixel');
+  }
+
+  function loadRound() {
+    feedbackEl.classList.add('hidden');
+    currentLandmark = LANDMARKS[currentRound % LANDMARKS.length];
+    resolution = 4;
+    roundScore = 1000;
+    roundEl.textContent = `${currentRound + 1}/5`;
+    resEl.textContent = `${resolution}×${resolution}`;
+
+    // Render landmark into offscreen buffer
+    currentLandmark.drawVector(offCtx, offscreen.width, offscreen.height);
+    renderPixelated();
+    renderChoices();
+  }
+
+  function renderPixelated() {
+    ctx.imageSmoothingEnabled = false;
+
+    // Scale down to resolution
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = resolution;
+    tempCanvas.height = Math.round(resolution * (canvas.height / canvas.width));
+    const tempCtx = tempCanvas.getContext('2d')!;
+
+    tempCtx.drawImage(offscreen, 0, 0, tempCanvas.width, tempCanvas.height);
+
+    // Draw scaled up back to main canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, canvas.width, canvas.height);
   }
 
   function renderChoices() {
     choicesEl.innerHTML = '';
-    LANDMARKS.forEach(lm => {
+    const pool = [...LANDMARKS].sort(() => Math.random() - 0.5);
+    // Ensure correct is included
+    const choices = [currentLandmark];
+    pool.forEach(p => {
+      if (choices.length < 4 && p.name !== currentLandmark.name) choices.push(p);
+    });
+    choices.sort(() => Math.random() - 0.5);
+
+    choices.forEach(c => {
       const btn = document.createElement('button');
-      btn.className = 'rounded-xl border border-brand-border bg-brand-card p-3 text-xs font-bold text-white hover:border-brand-neon';
-      btn.textContent = lm.name;
-      btn.addEventListener('click', () => {
-        if (lm.name === currentLandmark.name) {
-          sound.victory();
-          alert(`🎉 Correct! Scored ${score} pts!`);
-        } else {
-          sound.gameOver();
-          alert('❌ Wrong landmark! Try again.');
-        }
-      });
+      btn.className = 'rounded-xl border border-brand-border bg-brand-card p-3 text-xs font-bold text-white hover:border-brand-neon hover:text-brand-neon transition-all cursor-pointer';
+      btn.textContent = c.name;
+      btn.addEventListener('click', () => handleGuess(c.name));
       choicesEl.appendChild(btn);
     });
+  }
+
+  function handleGuess(name: string) {
+    // Reveal full resolution
+    resolution = 64;
+    renderPixelated();
+
+    if (name === currentLandmark.name) {
+      sound.victory();
+      totalScore += roundScore;
+      scoreEl.textContent = totalScore.toString();
+      feedIcon.textContent = '🎉';
+      feedTitle.textContent = `Correct! (+${roundScore} pts)`;
+      feedTitle.className = 'font-display text-xl font-bold text-emerald-400 mt-1';
+    } else {
+      sound.gameOver();
+      feedIcon.textContent = '❌';
+      feedTitle.textContent = `It was ${currentLandmark.name}!`;
+      feedTitle.className = 'font-display text-xl font-bold text-rose-400 mt-1';
+    }
+
+    feedFact.textContent = currentLandmark.fact;
+    feedbackEl.classList.remove('hidden');
   }
 
   sharpenBtn.addEventListener('click', () => {
     sound.click();
     if (resolution < 32) {
       resolution *= 2;
-      score = Math.max(100, score - 200);
-      draw();
+      roundScore = Math.max(200, roundScore - 200);
+      resEl.textContent = `${resolution}×${resolution}`;
+      renderPixelated();
     }
   });
 
-  draw();
-  renderChoices();
+  nextBtn.addEventListener('click', () => {
+    currentRound++;
+    if (currentRound >= 5) {
+      launchConfetti();
+      player.addXP(200, 'GeoPixel Quiz Master');
+      finalMsgEl.textContent = `You scored ${totalScore} points across 5 landmarks!`;
+      modal.classList.remove('hidden');
+    } else {
+      loadRound();
+    }
+  });
+
+  restartBtn.addEventListener('click', startSession);
+
+  startSession();
 </script>

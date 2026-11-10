@@ -56,7 +56,7 @@ export const ALL_BADGES: { id: string; name: string; desc: string; icon: string 
   { id: 'try_3_genres', name: 'Genre Hopper', desc: 'Played 3 different game categories', icon: '🧭' },
   { id: 'brag_shared', name: 'Social Star', desc: 'Shared a high score or challenged a friend', icon: '📣' },
   { id: 'score_2048', name: 'Neon Fusion', desc: 'Reached 2048 in Neon 2048', icon: '✨' },
-  { id: 'melon_made', name: 'Giant Watermelon', desc: 'Fused the ultimate Watermelon in Suika', icon: '🍉' },
+  { id: 'melon_made', name: 'Giant Watermelon', desc: 'Fused the ultimate Watermelon in Fruit Merge', icon: '🍉' },
   { id: 'word_ace', name: 'Lexicon King', desc: 'Solved Word Guess on attempt 1, 2, or 3', icon: '💡' },
 ];
 

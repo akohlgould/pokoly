@@ -3,33 +3,32 @@ import { CATEGORIES } from '../data/games';
 import PlayerBar from './PlayerBar.astro';
 ---
 
-<header class="sticky top-0 z-40 border-b border-brand-border/80 bg-brand-dark/95 backdrop-blur-md">
-  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
-    <div class="flex items-center gap-6">
-      <a href="/" class="group flex items-center gap-2.5" aria-label="Pokoly Home">
+<header class="sticky top-0 z-40 border-b border-zinc-800 bg-[#090a0f]">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6">
+    <div class="flex items-center gap-5">
+      <a href="/" class="group flex items-center gap-2" aria-label="Pokoly Home">
         <img
           src="/logos/pokoly-icon.svg"
           alt="Pokoly Logo"
-          class="h-10 w-10 rounded-2xl shadow-lg shadow-indigo-500/20 transition-all duration-200 group-hover:scale-105 group-hover:shadow-cyan-500/30"
-          width="40"
-          height="40"
+          class="h-7 w-7 rounded border border-zinc-800"
+          width="28"
+          height="28"
         />
-        <div class="flex flex-col">
-          <span class="font-display text-xl font-black tracking-tight text-white group-hover:text-brand-neon transition-colors">
-            Pokoly<span class="text-brand-pink">.com</span>
+        <div class="flex items-baseline gap-1.5">
+          <span class="font-sans text-sm font-bold tracking-tight text-white group-hover:text-zinc-300 transition-colors">
+            Pokoly
           </span>
-          <span class="text-[9px] font-mono tracking-wider text-gray-400 uppercase -mt-1">Free Browser Games</span>
+          <span class="font-mono text-[9px] tracking-wider text-zinc-500 uppercase">Arcade</span>
         </div>
       </a>
 
       <!-- Desktop Nav categories -->
-      <nav class="hidden lg:flex items-center gap-1 text-xs font-medium text-gray-300">
+      <nav class="hidden lg:flex items-center gap-1">
         {CATEGORIES.slice(1).map(cat => (
           <a
             href={`/categories/${cat.id}/`}
-            class="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition-colors hover:bg-brand-card hover:text-white"
+            class="flex items-center gap-1 rounded border border-transparent px-2 py-1 font-mono text-[11px] text-zinc-400 transition-colors hover:border-zinc-800 hover:bg-zinc-900/60 hover:text-zinc-200"
           >
-            <span>{cat.icon}</span>
             <span>{cat.name}</span>
           </a>
         ))}
@@ -37,25 +36,24 @@ import PlayerBar from './PlayerBar.astro';
     </div>
 
     <!-- Center/Right: Gamification Streak + Level + Sound + Random -->
-    <div class="flex items-center gap-2 sm:gap-3">
+    <div class="flex items-center gap-2">
       <!-- Player Streak & Level Progress -->
       <PlayerBar />
 
       <!-- Random Game Quick Button -->
       <button
         id="random-game-btn"
-        class="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-brand-border bg-brand-card px-2.5 py-1.5 text-xs font-medium text-gray-200 transition-all hover:border-brand-neon hover:text-white active:scale-95"
+        class="hidden sm:inline-flex items-center gap-1 rounded border border-zinc-800 bg-[#0d0f17] px-2 py-1 font-mono text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white cursor-pointer"
         title="Play a surprise random game"
       >
-        <span>🎲</span>
-        <span class="hidden md:inline">Surprise</span>
+        <span>🎲 Random</span>
       </button>
 
       <!-- Sound Toggle -->
       <button
         id="global-audio-toggle"
         title="Toggle Sound Effects"
-        class="flex h-8 w-8 items-center justify-center rounded-xl border border-brand-border bg-brand-card text-xs text-gray-300 transition-colors hover:border-brand-border hover:text-white"
+        class="flex h-7 w-7 items-center justify-center rounded border border-zinc-800 bg-[#0d0f17] text-xs text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200 cursor-pointer"
       >
         <span id="audio-icon">🔊</span>
       </button>
@@ -85,7 +83,7 @@ import PlayerBar from './PlayerBar.astro';
     randomBtn.addEventListener('click', () => {
       const chosen = GAMES[Math.floor(Math.random() * GAMES.length)];
       if (chosen) {
-        window.location.href = `/games/${chosen.slug}`;
+        window.location.href = `/games/${chosen.slug}/`;
       }
     });
   }

@@ -1,26 +1,26 @@
 ---
-// Player Profile Bar: Clean, minimal streak & trophies trigger
+// Player Profile Bar: High-contrast, minimal streak & level status
 ---
 
-<div class="flex items-center gap-1.5 text-xs">
+<div class="flex items-center gap-1.5">
   <!-- Daily Streak Badge -->
   <button
     id="nav-streak-btn"
-    class="flex items-center gap-1 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300 transition-all hover:bg-amber-500/20 active:scale-95 cursor-pointer"
+    class="flex items-center gap-1 rounded border border-zinc-800 bg-[#0d0f17] px-2 py-1 font-mono text-[11px] text-amber-400 transition-colors hover:border-zinc-700 cursor-pointer"
     title="Daily Streak"
   >
     <span>🔥</span>
-    <span id="nav-streak-text" class="font-mono text-[11px]">1d</span>
+    <span id="nav-streak-text">1d</span>
   </button>
 
   <!-- Quests & Level Pill -->
   <button
     id="nav-quests-btn"
-    class="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-gray-300 transition-all hover:border-brand-neon/60 hover:text-white active:scale-95 cursor-pointer"
+    class="flex items-center gap-1.5 rounded border border-zinc-800 bg-[#0d0f17] px-2 py-1 font-mono text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white cursor-pointer"
     title="Quests & Achievements"
   >
     <span>🏆</span>
-    <span id="nav-level-badge" class="font-mono text-[11px] text-brand-neon font-bold">L1</span>
+    <span id="nav-level-badge" class="font-bold text-zinc-200">L1</span>
   </button>
 </div>
 

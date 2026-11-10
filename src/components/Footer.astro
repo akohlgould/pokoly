@@ -2,42 +2,43 @@
 import { GAMES, CATEGORIES } from '../data/games';
 ---
 
-<footer class="border-t border-brand-border/80 bg-brand-dark pt-12 pb-16 text-gray-400">
+<footer class="border-t border-zinc-800 bg-[#090a0f] pt-10 pb-14 text-zinc-400">
   <div class="mx-auto max-w-7xl px-4 sm:px-6">
-    <div class="grid grid-cols-1 gap-10 md:grid-cols-4 lg:grid-cols-5">
-      <!-- Col 1: Brand & Mission -->
-      <div class="md:col-span-2">
-        <a href="/" class="flex items-center gap-2.5" aria-label="Pokoly Home">
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-4 lg:grid-cols-5">
+      <!-- Col 1: Brand & Specs -->
+      <div class="md:col-span-2 space-y-3">
+        <a href="/" class="flex items-center gap-2" aria-label="Pokoly Home">
           <img
             src="/logos/pokoly-icon.svg"
             alt="Pokoly Logo"
-            class="h-9 w-9 rounded-xl shadow-md"
-            width="36"
-            height="36"
+            class="h-7 w-7 rounded border border-zinc-800"
+            width="28"
+            height="28"
           />
-          <span class="font-display text-xl font-black tracking-tight text-white">
-            Pokoly<span class="text-brand-pink">.com</span>
+          <span class="font-sans text-base font-bold tracking-tight text-white">
+            Pokoly
           </span>
         </a>
-        <p class="mt-3 max-w-sm text-sm text-gray-400 leading-relaxed">
-          The instant-play web game platform with zero downloads, zero account requirements, and 100% free browser games. Optimized for fast loading on phones, tablets, and desktops.
+        <p class="max-w-sm text-xs text-zinc-400 leading-relaxed">
+          Open browser arcade platform. 82 client-side Canvas and WebGL games compiled for zero-latency execution. Zero tracking cookies, zero user logins, and local state persistence.
         </p>
-        <div class="mt-4 flex items-center gap-3 text-xs text-gray-500">
-          <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-emerald-400">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            Zero Server Latency
+        <div class="flex items-center gap-2 pt-1 font-mono text-[11px] text-zinc-500">
+          <span class="inline-flex items-center gap-1.5 rounded border border-zinc-800 bg-zinc-900 px-2 py-0.5 text-zinc-300">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            Cloudflare Pages Edge
           </span>
-          <span>⚡ Client-Side WebGL</span>
+          <span>•</span>
+          <span>WebGL 2.0 / Canvas</span>
         </div>
       </div>
 
       <!-- Col 2: Categories -->
       <div>
-        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Game Genres</h3>
-        <ul class="mt-3 space-y-2 text-xs">
+        <h3 class="font-mono text-[11px] font-semibold tracking-wider text-zinc-200 uppercase">Categories</h3>
+        <ul class="mt-2.5 space-y-1.5 font-mono text-xs">
           {CATEGORIES.slice(1).map(cat => (
             <li>
-              <a href={`/categories/${cat.id}/`} class="transition-colors hover:text-brand-neon">
+              <a href={`/categories/${cat.id}/`} class="text-zinc-400 transition-colors hover:text-white">
                 {cat.name}
               </a>
             </li>
@@ -47,39 +48,39 @@ import { GAMES, CATEGORIES } from '../data/games';
 
       <!-- Col 3: Popular Games -->
       <div>
-        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Popular Games</h3>
-        <ul class="mt-3 space-y-2 text-xs">
+        <h3 class="font-mono text-[11px] font-semibold tracking-wider text-zinc-200 uppercase">Indexed Games</h3>
+        <ul class="mt-2.5 space-y-1.5 font-sans text-xs">
           {GAMES.slice(0, 5).map(game => (
             <li>
-              <a href={`/games/${game.slug}/`} class="flex items-center gap-1.5 transition-colors hover:text-white">
-                <span class="text-gray-300 hover:text-brand-neon">{game.title.split(':')[0]}</span>
+              <a href={`/games/${game.slug}/`} class="text-zinc-400 transition-colors hover:text-white">
+                {game.title.split(':')[0]}
               </a>
             </li>
           ))}
         </ul>
       </div>
 
-      <!-- Col 4: Legal & Ad Compliance -->
+      <!-- Col 4: Legal & Specifications -->
       <div>
-        <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Legal & Contact</h3>
-        <ul class="mt-3 space-y-2 text-xs">
-          <li><a href="/privacy/" class="transition-colors hover:text-white">Privacy Policy</a></li>
-          <li><a href="/terms/" class="transition-colors hover:text-white">Terms of Service</a></li>
-          <li><a href="/about/" class="transition-colors hover:text-white">About Pokoly</a></li>
-          <li><a href="/unblocked/" class="transition-colors hover:text-white">Unblocked Games Guide</a></li>
-          <li><a href="mailto:contact@pokoly.com" class="transition-colors hover:text-white">Contact & Support</a></li>
+        <h3 class="font-mono text-[11px] font-semibold tracking-wider text-zinc-200 uppercase">Documentation</h3>
+        <ul class="mt-2.5 space-y-1.5 font-sans text-xs">
+          <li><a href="/privacy/" class="text-zinc-400 transition-colors hover:text-white">Privacy Policy</a></li>
+          <li><a href="/terms/" class="text-zinc-400 transition-colors hover:text-white">Terms of Service</a></li>
+          <li><a href="/about/" class="text-zinc-400 transition-colors hover:text-white">Architecture & About</a></li>
+          <li><a href="/unblocked/" class="text-zinc-400 transition-colors hover:text-white">Unblocked Routing Guide</a></li>
+          <li><a href="mailto:contact@pokoly.com" class="text-zinc-400 transition-colors hover:text-white">contact@pokoly.com</a></li>
         </ul>
       </div>
     </div>
 
-    <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-brand-border/40 pt-8 sm:flex-row text-xs text-gray-500">
-      <p>© 2026 Pokoly.com. All rights reserved. High performance browser game platform.</p>
-      <div class="flex items-center gap-4">
-        <span>Fast Edge CDN</span>
+    <div class="mt-10 flex flex-col items-center justify-between gap-3 border-t border-zinc-800/80 pt-6 sm:flex-row font-mono text-[11px] text-zinc-500">
+      <p>© 2026 Pokoly.com. Standalone WebGL &amp; Canvas compilation.</p>
+      <div class="flex items-center gap-3 text-zinc-400">
+        <span>60 Hz Loop</span>
         <span>•</span>
-        <span>HTML5 Canvas</span>
+        <span>Zero Telemetry</span>
         <span>•</span>
-        <span>No Lag</span>
+        <span>W3C Standards</span>
       </div>
     </div>
   </div>

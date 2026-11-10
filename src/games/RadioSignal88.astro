@@ -1,0 +1,461 @@
+---
+// RadioSignal88: Post-Apocalyptic Analog Frequency Triangulation
+---
+
+<div id="radio-root" class="relative flex flex-col items-center justify-center p-2 select-none max-w-4xl mx-auto w-full font-mono">
+  <!-- Vintage Military Radio Chassis Frame -->
+  <div class="w-full rounded-3xl border-4 border-[#3c3f30] bg-[#1a1c15] p-4 sm:p-6 shadow-2xl text-amber-200/90 relative overflow-hidden">
+    <!-- Steel Screws in Corners -->
+    <div class="absolute top-2 left-2 text-[#5a5c48] text-xs">⨁</div>
+    <div class="absolute top-2 right-2 text-[#5a5c48] text-xs">⨁</div>
+    <div class="absolute bottom-2 left-2 text-[#5a5c48] text-xs">⨁</div>
+    <div class="absolute bottom-2 right-2 text-[#5a5c48] text-xs">⨁</div>
+
+    <!-- Receiver Top Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#3c3f30] pb-3 text-xs">
+      <div class="flex items-center gap-3">
+        <div class="flex h-3 w-3 rounded-full bg-emerald-500 shadow-md shadow-emerald-500/50 animate-pulse"></div>
+        <span class="font-bold tracking-widest text-amber-400 text-sm">SURVIVOR RECEIVER MK-88</span>
+        <span class="text-[10px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded border border-stone-700">ANALOG HETERODYNE</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span class="text-xs">Beacons Located: <span id="rs-beacons-found" class="font-bold text-emerald-400">0 / 3</span></span>
+        <button id="rs-reset-btn" class="rounded border border-[#5a5c48] bg-[#282a20] px-2.5 py-1 text-xs text-stone-300 hover:text-white transition-colors">
+          Reset Unit
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Control Panel: Screen + VU Meter + Oscilloscope -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
+      <!-- 1. Green Cathode Ray Oscilloscope -->
+      <div class="rounded-2xl border-2 border-[#3c3f30] bg-[#08120b] p-3 shadow-inner">
+        <div class="flex items-center justify-between text-[10px] text-emerald-500/70 border-b border-emerald-900/40 pb-1">
+          <span>SIGNAL OSCILLOSCOPE</span>
+          <span id="rs-lock-status" class="text-red-400 font-bold">NO LOCK</span>
+        </div>
+        <canvas id="rs-osc-canvas" width="220" height="90" class="w-full h-24 mt-2 block"></canvas>
+        <div class="mt-2 text-[10px] text-emerald-600 flex justify-between font-mono">
+          <span>BAND: VHF / FM</span>
+          <span id="rs-snr">SNR: 0 dB</span>
+        </div>
+      </div>
+
+      <!-- 2. Analog VU Meter Needle -->
+      <div class="rounded-2xl border-2 border-[#3c3f30] bg-[#24271e] p-3 text-center shadow-inner flex flex-col justify-between">
+        <div class="text-[10px] font-bold text-stone-400 tracking-wider">SIGNAL STRENGTH (VU)</div>
+        <div class="relative h-20 w-full overflow-hidden flex items-end justify-center">
+          <!-- Dial Gauge Arc -->
+          <div class="absolute inset-x-2 bottom-0 h-16 border-t-2 border-stone-500 rounded-t-full"></div>
+          <div class="absolute bottom-1 text-[9px] text-stone-400 flex justify-between w-4/5">
+            <span>0</span>
+            <span>20</span>
+            <span>40</span>
+            <span>60</span>
+            <span>80</span>
+            <span class="text-red-400 font-bold">100%</span>
+          </div>
+          <!-- Needle -->
+          <div id="rs-vu-needle" class="h-16 w-0.5 bg-red-500 origin-bottom transition-transform duration-100 transform -rotate-45 shadow-sm"></div>
+          <div class="absolute bottom-0 h-3 w-3 rounded-full bg-stone-800 border border-stone-600"></div>
+        </div>
+        <div class="text-xs font-bold font-mono text-amber-300" id="rs-strength-val">STRENGTH: 0%</div>
+      </div>
+
+      <!-- 3. Tactical Wasteland Sector Map -->
+      <div class="rounded-2xl border-2 border-[#3c3f30] bg-[#0c120e] p-3 shadow-inner">
+        <div class="flex items-center justify-between text-[10px] text-stone-400 border-b border-stone-800 pb-1">
+          <span>TRIANGULATION RADAR</span>
+          <span class="text-amber-400 font-bold">SECTOR 88</span>
+        </div>
+        <canvas id="rs-map-canvas" width="220" height="90" class="w-full h-24 mt-2 block rounded-lg bg-black/60"></canvas>
+        <div class="mt-2 text-[10px] text-stone-400 flex justify-between">
+          <span id="rs-coord-display">GRID: -- / --</span>
+          <span class="text-emerald-400 font-bold" id="rs-decode-prompt">READY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analog Frequency Tuning Dial & Azimuth Controls -->
+    <div class="space-y-4 rounded-2xl border-2 border-[#3c3f30] bg-[#22241b] p-4">
+      <!-- Frequency Dial -->
+      <div>
+        <div class="flex items-center justify-between text-xs font-bold text-amber-300 mb-1.5">
+          <span>FREQUENCY TUNER (88.0 MHz – 108.0 MHz)</span>
+          <span id="rs-freq-readout" class="font-mono text-base text-amber-400 bg-black/60 px-3 py-0.5 rounded border border-[#5a5c48]">
+            88.0 MHz
+          </span>
+        </div>
+        <input
+          id="rs-freq-slider"
+          type="range"
+          min="88.0"
+          max="108.0"
+          step="0.1"
+          value="88.0"
+          class="w-full h-3 bg-stone-900 rounded-lg appearance-none cursor-ew-resize accent-amber-500"
+        />
+        <!-- Frequency Ruler Ticks -->
+        <div class="flex justify-between text-[9px] text-stone-400 mt-1 font-mono">
+          <span>88.0</span>
+          <span>92.0</span>
+          <span>96.0</span>
+          <span>100.0</span>
+          <span>104.0</span>
+          <span>108.0</span>
+        </div>
+      </div>
+
+      <!-- Antenna Direction Azimuth Slider -->
+      <div>
+        <div class="flex items-center justify-between text-xs font-bold text-amber-300 mb-1.5">
+          <span>DIRECTIONAL ANTENNA AZIMUTH (0° – 360°)</span>
+          <span id="rs-azimuth-readout" class="font-mono text-sm text-cyan-400 bg-black/60 px-3 py-0.5 rounded border border-[#5a5c48]">
+            0° NORTH
+          </span>
+        </div>
+        <input
+          id="rs-azimuth-slider"
+          type="range"
+          min="0"
+          max="360"
+          step="1"
+          value="0"
+          class="w-full h-3 bg-stone-900 rounded-lg appearance-none cursor-ew-resize accent-cyan-500"
+        />
+      </div>
+
+      <!-- Decode Button -->
+      <button
+        id="rs-decode-btn"
+        class="w-full rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-950 hover:scale-[1.01] active:scale-95 transition-all opacity-50 cursor-not-allowed"
+      >
+        🔒 TUNE SIGNAL STRENGTH &gt; 85% TO DECODE BEACON
+      </button>
+    </div>
+
+    <!-- Decoded Log Stream -->
+    <div class="mt-4 rounded-xl border border-[#3c3f30] bg-[#12140f] p-3 text-xs text-stone-300">
+      <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1">Decoded Transmission Audio Transcripts:</div>
+      <div id="rs-log-feed" class="space-y-1.5 font-mono text-[11px] text-stone-400 max-h-24 overflow-y-auto">
+        <div>[SYSTEM]: Receiver powered. Sweep frequencies to detect emergency survivor beacons.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Triangulation Victory Modal -->
+  <div id="rs-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-emerald-500/50 bg-[#0d160f] p-6 max-w-sm w-full text-center shadow-2xl shadow-emerald-950 font-mono">
+      <span id="rs-modal-icon" class="text-5xl">📻</span>
+      <h3 id="rs-modal-title" class="text-2xl font-black text-white mt-3 font-display">Triangulation Complete!</h3>
+      <p id="rs-modal-msg" class="text-xs text-stone-300 mt-2 leading-relaxed">All three emergency beacons decoded. Extraction coordinates verified for the survivor enclave.</p>
+      <div id="rs-modal-score" class="mt-3 text-sm text-emerald-400 font-bold">+300 XP Earned</div>
+      <button id="rs-modal-btn" class="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-950 hover:scale-105 active:scale-95 transition-transform">
+        Log Next Transmission Frequency →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const freqSlider = document.getElementById('rs-freq-slider') as HTMLInputElement;
+  const azimuthSlider = document.getElementById('rs-azimuth-slider') as HTMLInputElement;
+  const freqReadout = document.getElementById('rs-freq-readout')!;
+  const azimuthReadout = document.getElementById('rs-azimuth-readout')!;
+  const vuNeedle = document.getElementById('rs-vu-needle')!;
+  const strengthVal = document.getElementById('rs-strength-val')!;
+  const lockStatus = document.getElementById('rs-lock-status')!;
+  const snrEl = document.getElementById('rs-snr')!;
+  const coordDisplay = document.getElementById('rs-coord-display')!;
+  const decodePrompt = document.getElementById('rs-decode-prompt')!;
+  const decodeBtn = document.getElementById('rs-decode-btn') as HTMLButtonElement;
+  const beaconsFoundEl = document.getElementById('rs-beacons-found')!;
+  const logFeed = document.getElementById('rs-log-feed')!;
+  const resetBtn = document.getElementById('rs-reset-btn')!;
+
+  const oscCanvas = document.getElementById('rs-osc-canvas') as HTMLCanvasElement;
+  const oscCtx = oscCanvas.getContext('2d')!;
+
+  const mapCanvas = document.getElementById('rs-map-canvas') as HTMLCanvasElement;
+  const mapCtx = mapCanvas.getContext('2d')!;
+
+  const modal = document.getElementById('rs-modal')!;
+  const modalIcon = document.getElementById('rs-modal-icon')!;
+  const modalTitle = document.getElementById('rs-modal-title')!;
+  const modalMsg = document.getElementById('rs-modal-msg')!;
+  const modalScore = document.getElementById('rs-modal-score')!;
+  const modalBtn = document.getElementById('rs-modal-btn')!;
+
+  // 3 Target Beacons in the wasteland
+  interface Beacon {
+    id: string;
+    freq: number;       // Target MHz
+    azimuth: number;    // Target angle (0-360)
+    name: string;
+    message: string;
+    mapX: number;
+    mapY: number;
+    decoded: boolean;
+  }
+
+  const BEACONS: Beacon[] = [
+    {
+      id: 'alpha',
+      freq: 92.4,
+      azimuth: 45,
+      name: 'Weather Station 4',
+      message: 'Generator fuel critical. Heavy snow falling. Survivors holding in basement vault.',
+      mapX: 160,
+      mapY: 25,
+      decoded: false
+    },
+    {
+      id: 'nomad',
+      freq: 99.1,
+      azimuth: 220,
+      name: 'Convoy Echo',
+      message: 'Bridge washed out at Red Gorge. Need extraction transport for medical evac.',
+      mapX: 45,
+      mapY: 70,
+      decoded: false
+    },
+    {
+      id: 'orbital',
+      freq: 105.8,
+      azimuth: 135,
+      name: 'Satellite Link Relay',
+      message: 'Telemetry synchronized. Safe Haven perimeter clear at Sector 88.',
+      mapX: 175,
+      mapY: 65,
+      decoded: false
+    }
+  ];
+
+  let currentFreq = 88.0;
+  let currentAzimuth = 0;
+  let signalStrength = 0; // 0 to 1
+  let activeMatchedBeacon: Beacon | null = null;
+  let phase = 0;
+  let decodedCount = 0;
+
+  function calculateSignalStrength() {
+    activeMatchedBeacon = null;
+    let maxStr = 0;
+
+    for (const b of BEACONS) {
+      if (b.decoded) continue;
+
+      // Distance in MHz
+      const freqDiff = Math.abs(currentFreq - b.freq);
+      // Distance in angle (circular 360)
+      let angleDiff = Math.abs(currentAzimuth - b.azimuth);
+      if (angleDiff > 180) angleDiff = 360 - angleDiff;
+
+      if (freqDiff < 1.2 && angleDiff < 45) {
+        const freqFactor = Math.max(0, 1 - freqDiff / 1.2);
+        const angleFactor = Math.max(0, 1 - angleDiff / 45);
+        const str = freqFactor * angleFactor;
+
+        if (str > maxStr) {
+          maxStr = str;
+          activeMatchedBeacon = b;
+        }
+      }
+    }
+
+    signalStrength = maxStr;
+    const pct = Math.round(signalStrength * 100);
+
+    // Update needle (-45 deg is 0%, +45 deg is 100%)
+    const needleDeg = -45 + (pct / 100) * 90;
+    vuNeedle.style.transform = `rotate(${needleDeg}deg)`;
+    strengthVal.textContent = `STRENGTH: ${pct}%`;
+
+    // Audio static and tone feedback
+    if (signalStrength > 0.4) {
+      sound.playTone(550 + pct * 4, 'sine', 0.05, 0.04);
+    }
+
+    // Status display
+    if (signalStrength >= 0.85 && activeMatchedBeacon) {
+      lockStatus.textContent = 'SIGNAL LOCKED';
+      lockStatus.className = 'text-emerald-400 font-bold animate-pulse';
+      snrEl.textContent = `SNR: +${Math.round(signalStrength * 24)} dB`;
+      coordDisplay.textContent = `LOC: [${activeMatchedBeacon.mapX}, ${activeMatchedBeacon.mapY}]`;
+      decodePrompt.textContent = 'TRANSMISSION READY';
+
+      decodeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      decodeBtn.textContent = `🔓 DECODE BEACON [${activeMatchedBeacon.freq} MHz]`;
+    } else {
+      lockStatus.textContent = signalStrength > 0.2 ? 'NOISE DETECTED' : 'NO LOCK';
+      lockStatus.className = signalStrength > 0.2 ? 'text-amber-400 font-bold' : 'text-red-400 font-bold';
+      snrEl.textContent = `SNR: ${Math.round(signalStrength * 10)} dB`;
+      coordDisplay.textContent = 'GRID: -- / --';
+      decodePrompt.textContent = 'TUNING';
+
+      decodeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      decodeBtn.textContent = '🔒 TUNE SIGNAL STRENGTH > 85% TO DECODE BEACON';
+    }
+  }
+
+  freqSlider.addEventListener('input', () => {
+    currentFreq = parseFloat(freqSlider.value);
+    freqReadout.textContent = `${currentFreq.toFixed(1)} MHz`;
+    calculateSignalStrength();
+  });
+
+  azimuthSlider.addEventListener('input', () => {
+    currentAzimuth = parseInt(azimuthSlider.value);
+    const cardinals = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+    const card = cardinals[Math.round(currentAzimuth / 45)];
+    azimuthReadout.textContent = `${currentAzimuth}° ${card}`;
+    calculateSignalStrength();
+  });
+
+  decodeBtn.addEventListener('click', () => {
+    if (signalStrength < 0.85 || !activeMatchedBeacon || activeMatchedBeacon.decoded) return;
+
+    activeMatchedBeacon.decoded = true;
+    decodedCount++;
+    beaconsFoundEl.textContent = `${decodedCount} / ${BEACONS.length}`;
+
+    sound.victory();
+    player.addScore('radiosignal88', 200);
+
+    // Append to transcript log
+    const logItem = document.createElement('div');
+    logItem.className = 'text-emerald-300 border-l-2 border-emerald-500 pl-2 py-0.5';
+    logItem.textContent = `[${activeMatchedBeacon.freq} MHz • ${activeMatchedBeacon.name}]: "${activeMatchedBeacon.message}"`;
+    logFeed.appendChild(logItem);
+    logFeed.scrollTop = logFeed.scrollHeight;
+
+    calculateSignalStrength();
+
+    if (decodedCount >= BEACONS.length) {
+      launchConfetti();
+      player.addXP(300);
+      modalIcon.textContent = '📻';
+      modalTitle.textContent = 'All Beacons Decoded!';
+      modalMsg.textContent = 'Full wasteland radio triangulation complete. Safe Haven coordinates synchronized!';
+      modalScore.textContent = '+300 XP • Wasteland Triangulation Mastered';
+      modalBtn.textContent = 'Restart Triangulation Sweep';
+      modal.classList.remove('hidden');
+    }
+  });
+
+  function renderOscilloscope() {
+    oscCtx.fillStyle = '#050c07';
+    oscCtx.fillRect(0, 0, oscCanvas.width, oscCanvas.height);
+
+    // Reticle
+    oscCtx.strokeStyle = 'rgba(16, 185, 129, 0.15)';
+    oscCtx.lineWidth = 1;
+    for (let x = 0; x < oscCanvas.width; x += 22) {
+      oscCtx.beginPath();
+      oscCtx.moveTo(x, 0);
+      oscCtx.lineTo(x, oscCanvas.height);
+      oscCtx.stroke();
+    }
+    for (let y = 0; y < oscCanvas.height; y += 15) {
+      oscCtx.beginPath();
+      oscCtx.moveTo(0, y);
+      oscCtx.lineTo(oscCanvas.width, y);
+      oscCtx.stroke();
+    }
+
+    // Waveform
+    oscCtx.strokeStyle = signalStrength > 0.7 ? '#34d399' : '#059669';
+    oscCtx.lineWidth = 2;
+    oscCtx.beginPath();
+
+    for (let x = 0; x < oscCanvas.width; x++) {
+      // Noise component fades as signal strength increases
+      const noise = (1 - signalStrength) * (Math.random() - 0.5) * 35;
+      const wave = Math.sin((x + phase * 20) * 0.12) * (signalStrength * 28);
+      const y = oscCanvas.height / 2 + wave + noise;
+
+      if (x === 0) oscCtx.moveTo(x, y);
+      else oscCtx.lineTo(x, y);
+    }
+    oscCtx.stroke();
+  }
+
+  function renderMap() {
+    mapCtx.fillStyle = '#060a08';
+    mapCtx.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+
+    // Radar concentric circles
+    mapCtx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+    mapCtx.lineWidth = 1;
+    mapCtx.beginPath();
+    mapCtx.arc(110, 45, 35, 0, Math.PI * 2);
+    mapCtx.arc(110, 45, 20, 0, Math.PI * 2);
+    mapCtx.stroke();
+
+    // Antenna Azimuth Line
+    const rad = (currentAzimuth * Math.PI) / 180 - Math.PI / 2;
+    mapCtx.strokeStyle = '#22d3ee';
+    mapCtx.lineWidth = 1.5;
+    mapCtx.beginPath();
+    mapCtx.moveTo(110, 45);
+    mapCtx.lineTo(110 + Math.cos(rad) * 45, 45 + Math.sin(rad) * 45);
+    mapCtx.stroke();
+
+    // Decoded Beacons
+    BEACONS.forEach(b => {
+      mapCtx.save();
+      mapCtx.fillStyle = b.decoded ? '#34d399' : (b === activeMatchedBeacon && signalStrength > 0.6 ? '#f59e0b' : 'rgba(255, 255, 255, 0.15)');
+      mapCtx.beginPath();
+      mapCtx.arc(b.mapX, b.mapY, b.decoded ? 5 : 3, 0, Math.PI * 2);
+      mapCtx.fill();
+
+      if (b.decoded) {
+        mapCtx.strokeStyle = '#34d399';
+        mapCtx.beginPath();
+        mapCtx.arc(b.mapX, b.mapY, 9, 0, Math.PI * 2);
+        mapCtx.stroke();
+      }
+      mapCtx.restore();
+    });
+  }
+
+  function loop() {
+    phase += 0.08;
+    renderOscilloscope();
+    renderMap();
+    requestAnimationFrame(loop);
+  }
+
+  function resetGame() {
+    BEACONS.forEach(b => b.decoded = false);
+    decodedCount = 0;
+    beaconsFoundEl.textContent = '0 / 3';
+    freqSlider.value = '88.0';
+    azimuthSlider.value = '0';
+    currentFreq = 88.0;
+    currentAzimuth = 0;
+    freqReadout.textContent = '88.0 MHz';
+    azimuthReadout.textContent = '0° N';
+    logFeed.innerHTML = '<div>[SYSTEM]: Receiver re-calibrated. Ready for frequency sweep.</div>';
+    calculateSignalStrength();
+    modal.classList.add('hidden');
+    player.trackGamePlay('radiosignal88');
+  }
+
+  resetBtn.addEventListener('click', () => {
+    sound.click();
+    resetGame();
+  });
+
+  modalBtn.addEventListener('click', () => {
+    resetGame();
+  });
+
+  resetGame();
+  loop();
+</script>

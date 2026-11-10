@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="gs-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="40%" stop-color="#a855f7" />
+          <stop offset="100%" stop-color="#4f46e5" />
+        </radialGradient>
+        <filter id="gs-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#a855f7" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#080a18" />
+      <!-- 4 Quadrant Crosshair Dividers -->
+      <line x1="60" y1="16" x2="60" y2="104" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4,4" opacity="0.6" />
+      <line x1="16" y1="60" x2="104" y2="60" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4,4" opacity="0.6" />
+      <!-- Quadrant Gravity Directional Vectors -->
+      <path d="M38 32 L38 48 M34 44 L38 48 L42 44" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M88 38 L72 38 M76 34 L72 38 L76 42" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M32 82 L48 82 M44 78 L48 82 L44 86" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M82 88 L82 72 M78 76 L82 72 L86 76" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Curving Spliced Slingshot Trajectory -->
+      <path d="M26 38 Q60 55 85 82" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,4" />
+      <!-- Quantum Singularity Sphere -->
+      <circle cx="58" cy="54" r="11" fill="url(#gs-core)" filter="url(#gs-glow)" />
+      <circle cx="56" cy="52" r="3" fill="#ffffff" />
+      <!-- Wormhole Portal Goal -->
+      <circle cx="85" cy="82" r="7" fill="none" stroke="#22d3ee" stroke-width="2" />
+    </svg>

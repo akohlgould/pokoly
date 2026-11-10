@@ -3674,6 +3674,133 @@ export const GAMES: GameMeta[] = [
         "answer": "50+ animal, bird, and vessel silhouettes!"
       }
     ]
+  },
+  {
+    id: "gravitysplice",
+    slug: "gravitysplice",
+    subdomain: "splice",
+    title: "Gravity Splice: 4-Way Gravitational Puzzle",
+    tagline: "Fling quantum spheres across four quadrants, each running conflicting gravitational vectors!",
+    category: "physics",
+    rating: 4.9,
+    playCount: "820K",
+    color: "#a855f7",
+    badge: "Spatial Gravity",
+    releaseDate: "2026-11-10",
+    keywords: [
+      "gravity splice puzzle",
+      "4 quadrant gravity game",
+      "spatial physics slingshot",
+      "curved gravity trajectory puzzle",
+      "gravitational vector game"
+    ],
+    description: "An ingenious spatial physics puzzle where reality is severed into four quadrants, each exerting independent gravitational forces (down, left, right, and up). Drag and aim slingshots to slingshot your quantum sphere through gravitational boundaries, orbit around the central singularity node, collect all 3 quantum resonance cores, and slip into the goal wormhole.",
+    controls: [
+      { key: "Click & Drag Backward", action: "Aim and pull slingshot trajectory" },
+      { key: "Release Click / Touch", action: "Launch sphere into gravitational slipstream" },
+      { key: "Recall Sphere Button", action: "Instantly recall ball to launcher pedestal" },
+      { key: "R Key", action: "Reset chamber" }
+    ],
+    instructions: [
+      "Analyze the gravity direction arrows stamped on each of the 4 quadrants.",
+      "Pull backward on the glowing sphere to see the slingshot trajectory forecast line.",
+      "Release to fling the sphere—as it crosses quadrant borders, gravity immediately curves its flight path.",
+      "Collect all 3 golden Quantum Cores to stabilize the exit wormhole receptacle."
+    ],
+    strategies: [
+      "Use opposing quadrants to create continuous circular slingshot loops around the center crosshair.",
+      "Gentle launches often work better than maximum power when navigating tight barrier corridors."
+    ],
+    faqs: [
+      {
+        question: "Does gravity change instantly when crossing borders?",
+        answer: "Yes! The moment the sphere center crosses the quadrant crosshair, the local gravity vector of that quadrant instantly applies at 60 FPS."
+      }
+    ]
+  },
+  {
+    id: "onebuttonsamurai",
+    slug: "onebuttonsamurai",
+    subdomain: "samurai",
+    title: "One-Button Samurai: Reflex Duel",
+    tagline: "Unsheathe, focus, and strike in a single frame. Pure tension reflex duels under the blood moon!",
+    category: "arcade",
+    rating: 4.9,
+    playCount: "1.3M",
+    color: "#ef4444",
+    badge: "1-Button Reflex",
+    releaseDate: "2026-11-10",
+    keywords: [
+      "one button samurai game",
+      "reflex duel browser game",
+      "samurai quick draw online",
+      "sumi-e sword duel game",
+      "instant kill reflex arcade"
+    ],
+    description: "A pure, atmospheric reflex duel rendered in traditional Japanese sumi-e ink wash style. Under a rising blood moon and drifting sakura petals, face off against master swordsmen. Control everything with a single button: hold to focus and unsheathe; release the exact millisecond the crimson strike kanji (斬) flashes. First clean strike wins—one frame separates glory from defeat.",
+    controls: [
+      { key: "Hold [Space] or [Tap]", action: "Focus stance and draw blade back" },
+      { key: "Release on Signal (斬)", action: "Unleash instantaneous fatal strike" },
+      { key: "R Key", action: "Bow and reset duel" }
+    ],
+    instructions: [
+      "Hold Spacebar or hold your finger down on the screen to adopt the quick-draw iaijutsu stance.",
+      "Wait patiently in the bamboo wind—releasing too early results in a false start and instant counter-strike.",
+      "The instant the red strike signal flashes, release immediately to cut down your opponent before their blade connects."
+    ],
+    strategies: [
+      "Listen to the subtle blade scrape and watch the opponent eyes—different masters have varying windup delays.",
+      "Stay calm: panicking on false twitches will forfeit your honor streak."
+    ],
+    faqs: [
+      {
+        question: "Can I play this on touchscreens?",
+        answer: "Yes! Any touch or click acts as the single duel button."
+      }
+    ]
+  },
+  {
+    id: "radiosignal88",
+    slug: "radiosignal88",
+    subdomain: "radio",
+    title: "Radio Signal 88: Wasteland Triangulation",
+    tagline: "Sweep analog frequencies and rotate azimuth antennas to triangulate lost distress beacons across the wasteland!",
+    category: "puzzle",
+    rating: 4.8,
+    playCount: "670K",
+    color: "#10b981",
+    badge: "Analog Mystery",
+    releaseDate: "2026-11-10",
+    keywords: [
+      "radio signal 88 game",
+      "analog radio tuner puzzle",
+      "wasteland triangulation mystery",
+      "shortwave frequency game",
+      "morse code distress beacon"
+    ],
+    description: "Operate a heavy vintage vacuum-tube heterodyne receiver inside an underground fallout shelter. Turn the analog frequency dial from 88.0 to 108.0 MHz while sweeping your directional azimuth antenna to maximize the needle on the analog VU signal strength meter. Decode static-drenched distress transmissions and triangulate the coordinates of the lost Safe Haven enclave.",
+    controls: [
+      { key: "Frequency Slider / Drag", action: "Tune receiver frequency (88.0 - 108.0 MHz)" },
+      { key: "Azimuth Slider / Drag", action: "Rotate directional antenna azimuth (0° - 360°)" },
+      { key: "Decode Beacon Button", action: "Decrypt transmission when signal strength exceeds 85%" },
+      { key: "R Key", action: "Re-calibrate radio unit" }
+    ],
+    instructions: [
+      "Slide the frequency dial to scan for broadcast carrier waves across the VHF band.",
+      "When the oscilloscope detects audio waveforms or static fades, adjust the antenna azimuth to lock direction.",
+      "Push Signal Strength above 85% to activate the DECODE BEACON terminal.",
+      "Decode all 3 emergency beacons to triangulate the safe haven extraction sector."
+    ],
+    strategies: [
+      "Roughly find the frequency first where static quiets down, then fine-tune the azimuth angle to spike the VU meter needle.",
+      "Read the decoded transcript logs for lore clues about survivor outposts."
+    ],
+    faqs: [
+      {
+        question: "Does the radio use real audio synthesis?",
+        answer: "Yes! The game procedurally generates heterodyne carrier whistles, radio static crackle, and signal tones via the Web Audio API."
+      }
+    ]
   }
 ];
 

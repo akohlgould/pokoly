@@ -1199,6 +1199,100 @@ const LOGOS = {
       <circle cx="48" cy="98" r="2.5" fill="#38bdf8" />
       <circle cx="72" cy="104" r="2" fill="#38bdf8" />
     </svg>
+  `,
+
+  'gravitysplice': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="gs-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="40%" stop-color="#a855f7" />
+          <stop offset="100%" stop-color="#4f46e5" />
+        </radialGradient>
+        <filter id="gs-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#a855f7" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#080a18" />
+      <!-- 4 Quadrant Crosshair Dividers -->
+      <line x1="60" y1="16" x2="60" y2="104" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4,4" opacity="0.6" />
+      <line x1="16" y1="60" x2="104" y2="60" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4,4" opacity="0.6" />
+      <!-- Quadrant Gravity Directional Vectors -->
+      <path d="M38 32 L38 48 M34 44 L38 48 L42 44" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M88 38 L72 38 M76 34 L72 38 L76 42" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M32 82 L48 82 M44 78 L48 82 L44 86" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M82 88 L82 72 M78 76 L82 72 L86 76" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <!-- Curving Spliced Slingshot Trajectory -->
+      <path d="M26 38 Q60 55 85 82" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,4" />
+      <!-- Quantum Singularity Sphere -->
+      <circle cx="58" cy="54" r="11" fill="url(#gs-core)" filter="url(#gs-glow)" />
+      <circle cx="56" cy="52" r="3" fill="#ffffff" />
+      <!-- Wormhole Portal Goal -->
+      <circle cx="85" cy="82" r="7" fill="none" stroke="#22d3ee" stroke-width="2" />
+    </svg>
+  `,
+
+  'onebuttonsamurai': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="sam-moon" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="50%" stop-color="#fef08a" />
+          <stop offset="100%" stop-color="#dc2626" />
+        </radialGradient>
+        <filter id="sam-slash-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ef4444" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0c0709" />
+      <!-- Rising Crimson Blood Moon -->
+      <circle cx="60" cy="58" r="38" fill="url(#sam-moon)" opacity="0.85" />
+      <!-- Silhouette Bamboo Leaves in Wind -->
+      <path d="M22 20 Q32 30 20 40 Q28 32 22 20 Z" fill="#1c1214" />
+      <path d="M98 25 Q88 35 100 45 Q92 37 98 25 Z" fill="#1c1214" />
+      <!-- Curved Katana Blade -->
+      <path d="M20 98 Q50 65 98 22" stroke="#e2e8f0" stroke-width="4.5" fill="none" stroke-linecap="round" />
+      <!-- White Steel Edge Reflection -->
+      <path d="M22 96 Q50 65 96 24" stroke="#ffffff" stroke-width="2" fill="none" />
+      <!-- Lightning Ink Slash FX (斬) -->
+      <path d="M30 35 L88 85" stroke="#ef4444" stroke-width="5" stroke-linecap="round" filter="url(#sam-slash-glow)" />
+      <!-- Red Hilt & Tsuba Guard -->
+      <rect x="16" y="94" width="12" height="12" rx="2" fill="#991b1b" stroke="#fca5a5" stroke-width="1.5" />
+      <!-- Flying Sakura Petals -->
+      <circle cx="36" cy="62" r="3" fill="#f472b6" />
+      <circle cx="82" cy="74" r="2.5" fill="#f472b6" />
+    </svg>
+  `,
+
+  'radiosignal88': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="rs-brass" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#44403c" />
+          <stop offset="100%" stop-color="#1c1917" />
+        </linearGradient>
+        <filter id="rs-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#34d399" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#1c1e17" />
+      <!-- Military Faceplate Border -->
+      <rect x="14" y="14" width="92" height="92" rx="14" fill="url(#rs-brass)" stroke="#57534e" stroke-width="2" />
+      <!-- Green Cathode Radar Screen -->
+      <circle cx="60" cy="52" r="28" fill="#052e16" stroke="#10b981" stroke-width="2" filter="url(#rs-glow)" />
+      <!-- Radar Crosshairs -->
+      <line x1="60" y1="24" x2="60" y2="80" stroke="#047857" stroke-width="1.5" />
+      <line x1="32" y1="52" x2="88" y2="52" stroke="#047857" stroke-width="1.5" />
+      <circle cx="60" cy="52" r="16" fill="none" stroke="#047857" stroke-width="1" stroke-dasharray="3,3" />
+      <!-- Triangulated Beacon Blip & Radar Sweep Sweep -->
+      <line x1="60" y1="52" x2="80" y2="34" stroke="#34d399" stroke-width="2" />
+      <circle cx="72" cy="42" r="3.5" fill="#34d399" filter="url(#rs-glow)" />
+      <!-- Analog Tuning Ruler / Frequency Dial -->
+      <rect x="24" y="86" width="72" height="12" rx="3" fill="#0c0a09" stroke="#78716c" stroke-width="1.5" />
+      <!-- Dial Needle -->
+      <line x1="56" y1="87" x2="56" y2="97" stroke="#ef4444" stroke-width="2" />
+      <text x="60" y="95" font-family="monospace" font-weight="bold" font-size="6" fill="#a8a29e" text-anchor="middle">88.0 MHz</text>
+    </svg>
   `
 };
 

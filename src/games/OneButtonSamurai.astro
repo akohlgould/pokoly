@@ -1,0 +1,478 @@
+---
+// OneButtonSamurai: 1-Button Reflex Duel
+---
+
+<div id="samurai-root" class="relative flex flex-col items-center justify-center p-2 select-none max-w-4xl mx-auto w-full font-serif">
+  <!-- HUD Header -->
+  <div class="mb-3 flex w-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-900/40 bg-[#0d090a]/95 px-4 py-2.5 text-xs shadow-xl text-stone-300">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="text-red-500">⚔️</span>
+        <span class="text-stone-400">Duelist:</span>
+        <span id="sam-opponent-name" class="font-bold text-stone-100">The Ronin</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-amber-500">🏆</span>
+        <span class="text-stone-400">Honorable Victories:</span>
+        <span id="sam-streak" class="font-bold text-amber-400">0</span>
+      </div>
+    </div>
+
+    <!-- Tension Status -->
+    <div class="flex items-center gap-2 font-mono">
+      <span class="text-[11px] text-stone-400">Stance:</span>
+      <span id="sam-status-badge" class="px-2 py-0.5 rounded bg-stone-800 text-stone-300 text-[10px] font-bold">
+        SHEATHED
+      </span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="sam-reset-btn" class="rounded-xl border border-red-900/40 bg-stone-900 px-3 py-1 text-xs text-stone-400 hover:text-white transition-colors">
+        Bow &amp; Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Duel Arena Canvas -->
+  <div class="relative w-full overflow-hidden rounded-3xl border-2 border-red-950/60 bg-[#080608] shadow-2xl">
+    <canvas id="sam-canvas" width="800" height="460" class="w-full h-auto block cursor-pointer"></canvas>
+
+    <!-- Signal Banner (STRIKE! / 斬) -->
+    <div id="sam-signal-banner" class="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden flex-col items-center">
+      <div class="text-6xl font-black text-red-600 drop-shadow-[0_0_25px_rgba(239,68,68,0.9)] animate-ping">
+        斬
+      </div>
+      <div class="mt-2 text-xl font-bold font-mono tracking-widest text-white drop-shadow-md">
+        RELEASE TO STRIKE!
+      </div>
+    </div>
+
+    <!-- Bottom Controls Hint -->
+    <div class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-red-900/30 bg-black/80 px-5 py-1.5 text-xs text-stone-300 backdrop-blur-md font-mono">
+      [Hold Space / Hold Tap] to Focus &amp; Unsheathe • [Release] Exactly on Signal to Strike
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="sam-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-red-800/60 bg-[#120a0b] p-6 max-w-sm w-full text-center shadow-2xl shadow-red-950 font-serif">
+      <span id="sam-modal-icon" class="text-5xl">🎌</span>
+      <h3 id="sam-modal-title" class="text-2xl font-black text-white mt-3">Clean Strike!</h3>
+      <p id="sam-modal-msg" class="text-xs text-stone-300 mt-2 leading-relaxed">Your blade sliced through the autumn wind before the enemy could unsheathe.</p>
+      <div id="sam-modal-score" class="mt-3 text-sm font-mono text-red-400 font-bold">+280 XP Earned</div>
+      <button id="sam-modal-btn" class="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-700 to-rose-900 py-3 text-xs font-bold text-white shadow-lg shadow-red-950 hover:scale-105 active:scale-95 transition-transform font-mono">
+        Face Next Master →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('sam-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const opponentNameEl = document.getElementById('sam-opponent-name')!;
+  const streakEl = document.getElementById('sam-streak')!;
+  const statusBadge = document.getElementById('sam-status-badge')!;
+  const signalBanner = document.getElementById('sam-signal-banner')!;
+  const resetBtn = document.getElementById('sam-reset-btn')!;
+
+  const modal = document.getElementById('sam-modal')!;
+  const modalIcon = document.getElementById('sam-modal-icon')!;
+  const modalTitle = document.getElementById('sam-modal-title')!;
+  const modalMsg = document.getElementById('sam-modal-msg')!;
+  const modalScore = document.getElementById('sam-modal-score')!;
+  const modalBtn = document.getElementById('sam-modal-btn')!;
+
+  const OPPONENTS = [
+    { name: 'The Wandering Ronin', minDelay: 2000, maxDelay: 3500, reactionWindow: 480, speed: 1.0 },
+    { name: 'The Swift Kunoichi', minDelay: 1500, maxDelay: 2800, reactionWindow: 390, speed: 1.3 },
+    { name: 'The Iron Monk', minDelay: 2800, maxDelay: 4600, reactionWindow: 350, speed: 1.1 },
+    { name: 'The Shadow Shogun', minDelay: 1200, maxDelay: 2600, reactionWindow: 290, speed: 1.6 }
+  ];
+
+  let currentOpponentIndex = 0;
+  let victoryStreak = 0;
+  let duelState: 'WAITING' | 'READY_WAIT' | 'SIGNAL_FLASH' | 'RESOLVED' = 'WAITING';
+  let signalTimestamp = 0;
+  let duelTimeout: any = null;
+  let isHolding = false;
+  let chargeTime = 0;
+
+  // Slash Animation FX
+  interface SlashLine {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    alpha: number;
+    winner: 'player' | 'enemy';
+  }
+  let slashFx: SlashLine | null = null;
+
+  // Falling Sakura Petals
+  interface Petal {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    angle: number;
+  }
+  let petals: Petal[] = [];
+  for (let i = 0; i < 35; i++) {
+    petals.push({
+      x: Math.random() * 800,
+      y: Math.random() * 460,
+      vx: 1 + Math.random() * 1.5,
+      vy: 0.8 + Math.random() * 1.2,
+      size: 4 + Math.random() * 4,
+      angle: Math.random() * Math.PI * 2
+    });
+  }
+
+  function startDuel(opponentIdx: number) {
+    clearTimeout(duelTimeout);
+    currentOpponentIndex = opponentIdx % OPPONENTS.length;
+    const opp = OPPONENTS[currentOpponentIndex];
+    opponentNameEl.textContent = opp.name;
+    streakEl.textContent = victoryStreak.toString();
+
+    duelState = 'READY_WAIT';
+    statusBadge.textContent = 'FOCUSING...';
+    statusBadge.className = 'px-2 py-0.5 rounded bg-stone-800 text-stone-300 text-[10px] font-bold';
+    signalBanner.classList.add('hidden');
+    slashFx = null;
+    modal.classList.add('hidden');
+
+    // Random strike timing
+    const delay = opp.minDelay + Math.random() * (opp.maxDelay - opp.minDelay);
+    duelTimeout = setTimeout(() => {
+      triggerStrikeSignal();
+    }, delay);
+
+    player.trackGamePlay('onebuttonsamurai');
+  }
+
+  function triggerStrikeSignal() {
+    if (duelState !== 'READY_WAIT') return;
+    duelState = 'SIGNAL_FLASH';
+    signalTimestamp = performance.now();
+    signalBanner.classList.remove('hidden');
+    statusBadge.textContent = 'STRIKE NOW!';
+    statusBadge.className = 'px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold animate-pulse';
+
+    // Metal clash bell sound
+    sound.playTone(880, 'triangle', 0.2, 0.3);
+
+    // Opponent strike timeout (if player fails to react in time)
+    const opp = OPPONENTS[currentOpponentIndex];
+    duelTimeout = setTimeout(() => {
+      if (duelState === 'SIGNAL_FLASH') {
+        enemyStrikes();
+      }
+    }, opp.reactionWindow);
+  }
+
+  function onActionPress() {
+    if (duelState === 'RESOLVED') return;
+    isHolding = true;
+    chargeTime = 0;
+
+    // Drawing blade tension sound
+    sound.playTone(280, 'sine', 0.1, 0.15);
+  }
+
+  function onActionRelease() {
+    if (!isHolding || duelState === 'RESOLVED') return;
+    isHolding = false;
+
+    if (duelState === 'READY_WAIT') {
+      // Released too early! False start / Feint
+      clearTimeout(duelTimeout);
+      falseStart();
+    } else if (duelState === 'SIGNAL_FLASH') {
+      // Clean strike!
+      clearTimeout(duelTimeout);
+      const reactionTime = Math.round(performance.now() - signalTimestamp);
+      playerStrikes(reactionTime);
+    }
+  }
+
+  function playerStrikes(reactionTime: number) {
+    duelState = 'RESOLVED';
+    signalBanner.classList.add('hidden');
+    victoryStreak++;
+    streakEl.textContent = victoryStreak.toString();
+
+    // Katana slice sound
+    sound.victory();
+    sound.playTone(1200, 'sawtooth', 0.15, 0.3);
+
+    slashFx = {
+      x1: 180,
+      y1: 340,
+      x2: 660,
+      y2: 240,
+      alpha: 1.0,
+      winner: 'player'
+    };
+
+    launchConfetti();
+    player.addScore('onebuttonsamurai', 300);
+    player.addXP(280);
+
+    setTimeout(() => {
+      modalIcon.textContent = '⚔️';
+      modalTitle.textContent = 'Ippon! Victory!';
+      modalMsg.textContent = `Instant strike delivered in ${reactionTime}ms. Honorable slice executed!`;
+      modalScore.textContent = `+280 XP • Reaction: ${reactionTime}ms`;
+      modalBtn.textContent = 'Next Master Duelist →';
+      modal.classList.remove('hidden');
+    }, 700);
+  }
+
+  function enemyStrikes() {
+    duelState = 'RESOLVED';
+    signalBanner.classList.add('hidden');
+    victoryStreak = 0;
+    streakEl.textContent = '0';
+
+    sound.gameOver();
+    sound.playTone(180, 'sawtooth', 0.3, 0.3);
+
+    slashFx = {
+      x1: 620,
+      y1: 250,
+      x2: 160,
+      y2: 360,
+      alpha: 1.0,
+      winner: 'enemy'
+    };
+
+    setTimeout(() => {
+      modalIcon.textContent = '💀';
+      modalTitle.textContent = 'Cut Down!';
+      modalMsg.textContent = `${OPPONENTS[currentOpponentIndex].name} drew blade faster. Honor lost in the wind.`;
+      modalScore.textContent = 'Reflex was too slow.';
+      modalBtn.textContent = 'Rise & Duel Again';
+      modal.classList.remove('hidden');
+    }, 700);
+  }
+
+  function falseStart() {
+    duelState = 'RESOLVED';
+    victoryStreak = 0;
+    streakEl.textContent = '0';
+    sound.gameOver();
+
+    slashFx = {
+      x1: 620,
+      y1: 250,
+      x2: 160,
+      y2: 360,
+      alpha: 1.0,
+      winner: 'enemy'
+    };
+
+    setTimeout(() => {
+      modalIcon.textContent = '⚠️';
+      modalTitle.textContent = 'Drawn Too Early!';
+      modalMsg.textContent = 'You unsheathed before the opponent committed to strike. Your guard was dropped.';
+      modalScore.textContent = 'Patience is the foundation of the blade.';
+      modalBtn.textContent = 'Bow & Try Again';
+      modal.classList.remove('hidden');
+    }, 600);
+  }
+
+  // Keyboard controls
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !e.repeat) {
+      e.preventDefault();
+      onActionPress();
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      onActionRelease();
+    }
+  });
+
+  // Pointer / Touch controls
+  canvas.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    onActionPress();
+  });
+
+  window.addEventListener('pointerup', () => {
+    onActionRelease();
+  });
+
+  function update() {
+    if (isHolding) {
+      chargeTime++;
+    }
+
+    // Petals
+    petals.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.angle += 0.02;
+
+      if (p.x > 820) p.x = -20;
+      if (p.y > 480) p.y = -20;
+    });
+
+    // Slash FX fade
+    if (slashFx) {
+      slashFx.alpha = Math.max(0, slashFx.alpha - 0.04);
+    }
+  }
+
+  function render() {
+    ctx.fillStyle = '#0a080c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Giant Glowing Moon
+    ctx.save();
+    const grad = ctx.createRadialGradient(400, 160, 20, 400, 160, 120);
+    grad.addColorStop(0, '#fef08a');
+    grad.addColorStop(0.4, '#fde047');
+    grad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(400, 160, 120, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fef9c3';
+    ctx.beginPath();
+    ctx.arc(400, 160, 70, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Distant Bamboo Silhouettes (Sumi-e ink style)
+    ctx.fillStyle = '#140f18';
+    for (let i = 0; i < 20; i++) {
+      const bx = i * 42 + (i % 3) * 12;
+      ctx.fillRect(bx, 100, 8, 300);
+      // Nodes
+      ctx.fillRect(bx - 3, 160, 14, 4);
+      ctx.fillRect(bx - 3, 230, 14, 4);
+      ctx.fillRect(bx - 3, 300, 14, 4);
+    }
+
+    // Ground Grass / Mist
+    ctx.fillStyle = '#060408';
+    ctx.fillRect(0, 370, canvas.width, 90);
+
+    // Draw Player Samurai Silhouette (Left side)
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = isHolding ? 15 : 0;
+
+    // Body & Hakama pants
+    ctx.beginPath();
+    ctx.moveTo(200, 290); // head top
+    ctx.arc(200, 280, 12, 0, Math.PI * 2); // Head
+    ctx.fill();
+
+    // Torso / Kimono
+    ctx.fillStyle = '#e2e8f0';
+    ctx.beginPath();
+    ctx.moveTo(188, 295);
+    ctx.lineTo(212, 295);
+    ctx.lineTo(220, 370);
+    ctx.lineTo(180, 370);
+    ctx.closePath();
+    ctx.fill();
+
+    // Katana Sheath at waist
+    ctx.strokeStyle = '#f87171';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(192, 335);
+    ctx.lineTo(isHolding ? 230 : 220, isHolding ? 330 : 345);
+    ctx.stroke();
+    ctx.restore();
+
+    // Draw Opponent Samurai Silhouette (Right side)
+    ctx.save();
+    ctx.fillStyle = duelState === 'SIGNAL_FLASH' ? '#ef4444' : '#94a3b8';
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur = duelState === 'SIGNAL_FLASH' ? 20 : 0;
+
+    // Enemy Head
+    ctx.beginPath();
+    ctx.arc(600, 280, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Enemy Body
+    ctx.beginPath();
+    ctx.moveTo(588, 295);
+    ctx.lineTo(612, 295);
+    ctx.lineTo(620, 370);
+    ctx.lineTo(580, 370);
+    ctx.closePath();
+    ctx.fill();
+
+    // Enemy Katana
+    ctx.strokeStyle = duelState === 'SIGNAL_FLASH' ? '#ffffff' : '#475569';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(608, 335);
+    ctx.lineTo(570, 345);
+    ctx.stroke();
+    ctx.restore();
+
+    // Sakura Petals
+    ctx.save();
+    ctx.fillStyle = '#f472b6';
+    petals.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    // Slash Ink Line
+    if (slashFx && slashFx.alpha > 0) {
+      ctx.save();
+      ctx.strokeStyle = slashFx.winner === 'player' ? '#ffffff' : '#ef4444';
+      ctx.lineWidth = 6;
+      ctx.globalAlpha = slashFx.alpha;
+      ctx.shadowColor = slashFx.winner === 'player' ? '#38bdf8' : '#dc2626';
+      ctx.shadowBlur = 25;
+
+      ctx.beginPath();
+      ctx.moveTo(slashFx.x1, slashFx.y1);
+      ctx.lineTo(slashFx.x2, slashFx.y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  modalBtn.addEventListener('click', () => {
+    startDuel(currentOpponentIndex + 1);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    sound.click();
+    startDuel(currentOpponentIndex);
+  });
+
+  startDuel(0);
+  loop();
+</script>

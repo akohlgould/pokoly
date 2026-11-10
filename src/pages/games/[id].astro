@@ -33,6 +33,7 @@ import GeoThermal from '../../games/GeoThermal.astro';
 import Geopixel from '../../games/Geopixel.astro';
 import Gravifold from '../../games/Gravifold.astro';
 import GravityForge from '../../games/GravityForge.astro';
+import GravitySplice from '../../games/GravitySplice.astro';
 import HexaSort from '../../games/HexaSort.astro';
 import IdleFactory from '../../games/IdleFactory.astro';
 import InfiniteMinesweeper from '../../games/InfiniteMinesweeper.astro';
@@ -56,6 +57,7 @@ import Neon2048 from '../../games/Neon2048.astro';
 import NeuroLink from '../../games/NeuroLink.astro';
 import Numberdrop from '../../games/Numberdrop.astro';
 import OrbitSurvivors from '../../games/OrbitSurvivors.astro';
+import OneButtonSamurai from '../../games/OneButtonSamurai.astro';
 import Pegdungeon from '../../games/Pegdungeon.astro';
 import PenumbraNull from '../../games/PenumbraNull.astro';
 import PerfectSlash from '../../games/PerfectSlash.astro';
@@ -64,6 +66,7 @@ import PipeMaster from '../../games/PipeMaster.astro';
 import PrismPulse from '../../games/PrismPulse.astro';
 import QuantumWeave from '../../games/QuantumWeave.astro';
 import QuickDraw from '../../games/QuickDraw.astro';
+import RadioSignal88 from '../../games/RadioSignal88.astro';
 import RagdollMoonshot from '../../games/RagdollMoonshot.astro';
 import Semanticlimb from '../../games/Semanticlimb.astro';
 import SpeedPark from '../../games/SpeedPark.astro';
@@ -130,7 +133,7 @@ const { game } = Astro.props;
   {(game.id === 'cyber-raid' || game.slug === 'cyber-raid' || game.id === 'cyberraid' || game.id === 'CyberRaid') && <CyberRaid />}
   {(game.id === 'cyber-snake' || game.slug === 'cyber-snake' || game.id === 'cybersnake' || game.id === 'CyberSnake') && <CyberSnake />}
   {(game.id === 'cymatica' || game.slug === 'cymatica' || game.id === 'cymatica' || game.id === 'Cymatica') && <Cymatica />}
-  {(game.id === 'dice-forge-tactics' || game.slug === 'dice-forge-tactics' || game.id === 'diceforgetactics' || game.id === 'DiceForgeTactics') && <DiceForgeTactics />}
+  {(game.id === 'diceforge-tactics' || game.slug === 'diceforge-tactics' || game.id === 'dice-forge-tactics' || game.slug === 'dice-forge-tactics' || game.id === 'diceforgetactics' || game.id === 'DiceForgeTactics') && <DiceForgeTactics />}
   {(game.id === 'domino-cascade' || game.slug === 'domino-cascade' || game.id === 'dominocascade' || game.id === 'DominoCascade') && <DominoCascade />}
   {(game.id === 'drift-line' || game.slug === 'drift-line' || game.id === 'driftline' || game.id === 'DriftLine') && <DriftLine />}
   {(game.id === 'echo-location' || game.slug === 'echo-location' || game.id === 'echolocation' || game.id === 'EchoLocation') && <EchoLocation />}
@@ -142,6 +145,7 @@ const { game } = Astro.props;
   {(game.id === 'geopixel' || game.slug === 'geopixel' || game.id === 'geopixel' || game.id === 'Geopixel') && <Geopixel />}
   {(game.id === 'gravifold' || game.slug === 'gravifold' || game.id === 'gravifold' || game.id === 'Gravifold') && <Gravifold />}
   {(game.id === 'gravity-forge' || game.slug === 'gravity-forge' || game.id === 'gravityforge' || game.id === 'GravityForge') && <GravityForge />}
+  {(game.id === 'gravity-splice' || game.slug === 'gravity-splice' || game.id === 'gravitysplice' || game.id === 'GravitySplice') && <GravitySplice />}
   {(game.id === 'hexa-sort' || game.slug === 'hexa-sort' || game.id === 'hexasort' || game.id === 'HexaSort') && <HexaSort />}
   {(game.id === 'idle-factory' || game.slug === 'idle-factory' || game.id === 'idlefactory' || game.id === 'IdleFactory') && <IdleFactory />}
   {(game.id === 'infinite-minesweeper' || game.slug === 'infinite-minesweeper' || game.id === 'infiniteminesweeper' || game.id === 'InfiniteMinesweeper') && <InfiniteMinesweeper />}
@@ -157,7 +161,7 @@ const { game } = Astro.props;
   {(game.id === 'maze-master' || game.slug === 'maze-master' || game.id === 'mazemaster' || game.id === 'MazeMaster') && <MazeMaster />}
   {(game.id === 'micro-rogue' || game.slug === 'micro-rogue' || game.id === 'microrogue' || game.id === 'MicroRogue') && <MicroRogue />}
   {(game.id === 'minesweeper' || game.slug === 'minesweeper' || game.id === 'minesweeper' || game.id === 'Minesweeper') && <Minesweeper />}
-  {(game.id === 'mini-metro-planner' || game.slug === 'mini-metro-planner' || game.id === 'minimetroplanner' || game.id === 'MiniMetroPlanner') && <MiniMetroPlanner />}
+  {(game.id === 'minimetro-planner' || game.slug === 'minimetro-planner' || game.id === 'mini-metro-planner' || game.slug === 'mini-metro-planner' || game.id === 'minimetroplanner' || game.id === 'MiniMetroPlanner') && <MiniMetroPlanner />}
   {(game.id === 'mini-tower' || game.slug === 'mini-tower' || game.id === 'minitower' || game.id === 'MiniTower') && <MiniTower />}
   {(game.id === 'morpho-flora' || game.slug === 'morpho-flora' || game.id === 'morphoflora' || game.id === 'MorphoFlora') && <MorphoFlora />}
   {(game.id === 'nanojoker' || game.slug === 'nanojoker' || game.id === 'nanojoker' || game.id === 'Nanojoker') && <Nanojoker />}
@@ -165,6 +169,7 @@ const { game } = Astro.props;
   {(game.id === 'neuro-link' || game.slug === 'neuro-link' || game.id === 'neurolink' || game.id === 'NeuroLink') && <NeuroLink />}
   {(game.id === 'numberdrop' || game.slug === 'numberdrop' || game.id === 'numberdrop' || game.id === 'Numberdrop') && <Numberdrop />}
   {(game.id === 'orbit-survivors' || game.slug === 'orbit-survivors' || game.id === 'orbitsurvivors' || game.id === 'OrbitSurvivors') && <OrbitSurvivors />}
+  {(game.id === 'one-button-samurai' || game.slug === 'one-button-samurai' || game.id === 'onebuttonsamurai' || game.id === 'OneButtonSamurai') && <OneButtonSamurai />}
   {(game.id === 'pegdungeon' || game.slug === 'pegdungeon' || game.id === 'pegdungeon' || game.id === 'Pegdungeon') && <Pegdungeon />}
   {(game.id === 'penumbra-null' || game.slug === 'penumbra-null' || game.id === 'penumbranull' || game.id === 'PenumbraNull') && <PenumbraNull />}
   {(game.id === 'perfect-slash' || game.slug === 'perfect-slash' || game.id === 'perfectslash' || game.id === 'PerfectSlash') && <PerfectSlash />}
@@ -173,6 +178,7 @@ const { game } = Astro.props;
   {(game.id === 'prism-pulse' || game.slug === 'prism-pulse' || game.id === 'prismpulse' || game.id === 'PrismPulse') && <PrismPulse />}
   {(game.id === 'quantum-weave' || game.slug === 'quantum-weave' || game.id === 'quantumweave' || game.id === 'QuantumWeave') && <QuantumWeave />}
   {(game.id === 'quick-draw' || game.slug === 'quick-draw' || game.id === 'quickdraw' || game.id === 'QuickDraw') && <QuickDraw />}
+  {(game.id === 'radio-signal-88' || game.slug === 'radio-signal-88' || game.id === 'radiosignal88' || game.id === 'RadioSignal88') && <RadioSignal88 />}
   {(game.id === 'ragdoll-moonshot' || game.slug === 'ragdoll-moonshot' || game.id === 'ragdollmoonshot' || game.id === 'RagdollMoonshot') && <RagdollMoonshot />}
   {(game.id === 'semanticlimb' || game.slug === 'semanticlimb' || game.id === 'semanticlimb' || game.id === 'Semanticlimb') && <Semanticlimb />}
   {(game.id === 'speed-park' || game.slug === 'speed-park' || game.id === 'speedpark' || game.id === 'SpeedPark') && <SpeedPark />}

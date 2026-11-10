@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import QuestsModal from '../components/QuestsModal.astro';
 import MarketingModal from '../components/MarketingModal.astro';
+import { AD_CONFIG } from '../config/ads';
 
 interface Props {
   title: string;
@@ -55,6 +56,14 @@ const {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+
+    {AD_CONFIG.enabled && AD_CONFIG.provider === 'adsense' && AD_CONFIG.adsenseClientId && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CONFIG.adsenseClientId}`}
+        crossorigin="anonymous"
+      ></script>
+    )}
 
     {schema && (
       <script type="application/ld+json" set:html={JSON.stringify(schema)} />

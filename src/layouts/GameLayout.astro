@@ -45,7 +45,7 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
       </div>
     </div>
 
-    <!-- Top Breadcrumb & Viral Subdomain Bar -->
+    <!-- Top Breadcrumb & Status Bar -->
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
       <nav class="flex items-center gap-2 text-gray-400">
         <a href="/" class="hover:text-white">Home</a>
@@ -56,15 +56,10 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
       </nav>
 
       <div class="flex items-center gap-2">
-        <span class="text-gray-400">Direct Subdomain:</span>
-        <a
-          href={`https://${game.subdomain}.pokoly.com`}
-          target="_blank"
-          class="rounded-lg bg-brand-border/60 px-2.5 py-1 font-mono text-[11px] text-brand-neon hover:bg-brand-border transition-colors flex items-center gap-1"
-        >
-          <span>{game.subdomain}.pokoly.com</span>
-          <span class="text-[9px]">↗</span>
-        </a>
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[11px] text-emerald-400">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          <span>Instant Play</span>
+        </span>
       </div>
     </div>
 
@@ -105,7 +100,6 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
                 id="btn-challenge-friend"
                 data-title={game.title}
                 data-slug={game.slug}
-                data-subdomain={game.subdomain}
                 class="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-brand-accent px-3 py-1.5 font-bold text-white shadow-md shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
                 title="Challenge Friends or Embed Game"
               >
@@ -201,8 +195,10 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
                   <div class="truncate text-xs font-bold text-white group-hover:text-brand-neon">
                     {rel.title}
                   </div>
-                  <div class="truncate font-mono text-[10px] text-gray-400">
-                    {rel.subdomain}.pokoly.com
+                  <div class="truncate font-mono text-[10px] text-gray-400 flex items-center gap-1.5">
+                    <span class="capitalize">{rel.category}</span>
+                    <span>•</span>
+                    <span class="text-amber-400">★ {rel.rating}</span>
                   </div>
                 </div>
               </a>
@@ -374,14 +370,12 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
   challengeBtn?.addEventListener('click', () => {
     const title = challengeBtn.getAttribute('data-title') || document.title;
     const slug = challengeBtn.getAttribute('data-slug') || gameSlug;
-    const subdomain = challengeBtn.getAttribute('data-subdomain') || 'play';
 
     window.dispatchEvent(
       new CustomEvent('open-marketing-modal', {
         detail: {
           gameTitle: title,
           gameSlug: slug,
-          subdomain: subdomain,
           score: 100,
         }
       })

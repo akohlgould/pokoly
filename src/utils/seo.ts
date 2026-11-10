@@ -3,7 +3,6 @@ import type { GameMeta } from '../data/games';
 export function generateGameSchema(game: GameMeta, siteUrl: string) {
   const cleanSiteUrl = siteUrl.replace(/\/$/, '');
   const gameUrl = `${cleanSiteUrl}/games/${game.slug}/`;
-  const subdomainUrl = `https://${game.subdomain}.pokoly.com`;
   const imageUrl = `${cleanSiteUrl}/logos/${game.slug}.svg`;
 
   return [
@@ -15,7 +14,6 @@ export function generateGameSchema(game: GameMeta, siteUrl: string) {
       description: game.description,
       url: gameUrl,
       image: imageUrl,
-      sameAs: [subdomainUrl],
       genre: [game.category, 'Casual Game', 'Browser Game'],
       gamePlatform: ['Web Browser', 'Mobile Browser', 'Desktop Browser', 'PWA'],
       applicationCategory: 'BrowserGame',

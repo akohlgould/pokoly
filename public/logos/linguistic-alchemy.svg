@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0a0714" />
+      <!-- Alchemical Crucible Flask -->
+      <path d="M48 25 H72 V45 L90 85 A8 8 0 0 1 82 95 H38 A8 8 0 0 1 30 85 L48 45 Z" fill="#1e1035" stroke="#a855f7" stroke-width="2.5" />
+      <!-- Transmutation Runes -->
+      <text x="60" y="80" font-family="serif" font-size="22" font-weight="bold" fill="#ec4899" text-anchor="middle">Ω</text>
+      <circle cx="60" cy="58" r="3" fill="#38bdf8" />
+      <circle cx="52" cy="70" r="2.5" fill="#facc15" />
+      <circle cx="68" cy="72" r="2" fill="#34d399" />
+    </svg>

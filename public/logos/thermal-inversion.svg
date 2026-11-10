@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="ti-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0284c7" />
+          <stop offset="100%" stop-color="#ea580c" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#070914" />
+      <!-- Dual Thermometer / Inverted Flux -->
+      <path d="M40 30 Q60 50 40 90" fill="none" stroke="#0284c7" stroke-width="6" stroke-linecap="round" />
+      <path d="M80 30 Q60 50 80 90" fill="none" stroke="#ea580c" stroke-width="6" stroke-linecap="round" />
+      <circle cx="60" cy="60" r="14" fill="#1e1b4b" stroke="#ffffff" stroke-width="2" />
+      <text x="60" y="64" font-family="monospace" font-size="10" font-weight="bold" fill="#38bdf8" text-anchor="middle">0 K</text>
+    </svg>

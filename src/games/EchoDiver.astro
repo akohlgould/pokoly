@@ -1,0 +1,254 @@
+---
+// EchoDiver.astro - Abyssal Sonar Cartography & Echolocation
+---
+
+<div id="sonar-container" class="relative w-full max-w-4xl mx-auto bg-[#020306] rounded-2xl overflow-hidden border border-emerald-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(16,185,129,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#070b10]/95 border-b border-emerald-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-xl shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+        📡
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent font-black">ECHO DIVER</span>
+          <span class="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-300 rounded-md border border-emerald-500/40">ABYSSAL SONAR</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">ACOUSTIC ECHOLOCATION &bull; DEPTH 8,400M</div>
+      </div>
+    </div>
+
+    <!-- Center Gauge: Hull Integrity -->
+    <div class="flex items-center gap-4 bg-[#080d14] px-4 py-1.5 rounded-xl border border-emerald-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">HULL:</span>
+        <span id="ed-hull" class="font-bold text-emerald-400 font-mono ml-1 text-sm">100%</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">SONAR:</span>
+        <span id="ed-sonar-state" class="font-bold text-cyan-400 font-mono ml-1 text-sm">READY [SPACE]</span>
+      </div>
+    </div>
+
+    <button id="ed-ping-btn" class="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black rounded-xl text-xs transition-all active:scale-95 shadow-md">
+      EMIT PING
+    </button>
+  </div>
+
+  <!-- Main Canvas Playfield -->
+  <div class="relative w-full h-[460px] sm:h-[500px] bg-[#010204] overflow-hidden flex items-center justify-center">
+    <canvas id="ed-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
+
+    <div class="absolute top-4 left-4 max-w-xs pointer-events-none bg-[#050a0e]/80 backdrop-blur-md p-3 rounded-xl border border-emerald-500/20 text-[11px] text-slate-300 shadow-lg">
+      <span class="text-emerald-400 font-bold">ACOUSTIC PROTOCOL:</span>
+      <span class="text-white ml-1">The trench is pitch black! Press SPACE or tap EMIT PING to reveal trench walls. Use WASD / Arrows to navigate to the Hydrothermal Beacon!</span>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="ed-victory-modal" class="absolute inset-0 bg-[#010204]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#081216] border border-emerald-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(16,185,129,0.3)]">
+        <span class="text-4xl animate-bounce">🌊</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">BEACON REACHED!</h2>
+        <p class="text-xs text-slate-300 mb-4">Abyssal trench cartography complete. Submarine safely docked at the deep hydrothermal research station!</p>
+        
+        <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#04080a] p-3 rounded-xl border border-emerald-500/20">
+          <div>REWARD: <span class="text-emerald-400 font-bold text-sm">+250 XP</span></div>
+        </div>
+
+        <button id="ed-next-btn" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+          NEXT TRENCH DEPTH &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('ed-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const hullEl = document.getElementById('ed-hull')!;
+  const pingBtn = document.getElementById('ed-ping-btn')!;
+  const victoryModal = document.getElementById('ed-victory-modal')!;
+  const nextBtn = document.getElementById('ed-next-btn')!;
+
+  interface Wall { x1: number; y1: number; x2: number; y2: number; }
+  interface SonarWave { x: number; y: number; r: number; alpha: number; }
+
+  let sub = { x: 50, y: 250, vx: 0, vy: 0 };
+  let walls: Wall[] = [];
+  let beacon = { x: 0, y: 0, r: 24 };
+  let sonarWaves: SonarWave[] = [];
+  let hull = 100;
+  let isWon = false;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function init() {
+    const { width, height } = getLogicalSize();
+    sub = { x: 60, y: height / 2, vx: 0, vy: 0 };
+    beacon = { x: width - 80, y: height / 2, r: 24 };
+    hull = 100;
+    isWon = false;
+    sonarWaves = [];
+    hullEl.textContent = '100%';
+    victoryModal.classList.add('hidden');
+
+    // Create Sinuous Abyssal Trench Obstacles
+    walls = [
+      { x1: width * 0.25, y1: 0, x2: width * 0.35, y2: height * 0.45 },
+      { x1: width * 0.35, y1: height * 0.55, x2: width * 0.25, y2: height },
+      { x1: width * 0.6, y1: 0, x2: width * 0.5, y2: height * 0.4 },
+      { x1: width * 0.5, y1: height * 0.6, x2: width * 0.65, y2: height }
+    ];
+
+    emitPing();
+  }
+
+  function emitPing() {
+    sonarWaves.push({ x: sub.x, y: sub.y, r: 10, alpha: 1.0 });
+    sound.playTone(880, 'sine', 0.4, 0.2);
+    setTimeout(() => sound.playTone(440, 'sine', 0.3, 0.1), 80);
+  }
+
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    // Ink-black abyss
+    ctx.fillStyle = '#010204';
+    ctx.fillRect(0, 0, width, height);
+
+    if (!isWon) {
+      sub.x += sub.vx;
+      sub.y += sub.vy;
+      sub.vx *= 0.92;
+      sub.vy *= 0.92;
+
+      // Keep sub inside screen
+      sub.x = Math.max(20, Math.min(width - 20, sub.x));
+      sub.y = Math.max(20, Math.min(height - 20, sub.y));
+
+      // Check collision with beacon
+      if (Math.hypot(sub.x - beacon.x, sub.y - beacon.y) < beacon.r + 14) {
+        isWon = true;
+        sound.victory();
+        launchConfetti();
+        player.addXp(250);
+        victoryModal.classList.remove('hidden');
+      }
+
+      // Check collision with walls
+      walls.forEach(w => {
+        const dist = Math.abs((w.y2 - w.y1) * sub.x - (w.x2 - w.x1) * sub.y + w.x2 * w.y1 - w.y2 * w.x1) / Math.hypot(w.y2 - w.y1, w.x2 - w.x1);
+        if (dist < 14 && sub.x >= Math.min(w.x1, w.x2) - 10 && sub.x <= Math.max(w.x1, w.x2) + 10 && sub.y >= Math.min(w.y1, w.y2) - 10 && sub.y <= Math.max(w.y1, w.y2) + 10) {
+          hull = Math.max(0, hull - 1);
+          hullEl.textContent = `${hull}%`;
+          if (hull <= 0) init();
+        }
+      });
+    }
+
+    // Update & Draw Sonar Waves
+    for (let i = sonarWaves.length - 1; i >= 0; i--) {
+      const sw = sonarWaves[i];
+      sw.r += 6;
+      sw.alpha -= 0.009;
+
+      ctx.strokeStyle = `rgba(52, 211, 153, ${sw.alpha})`;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (sw.alpha <= 0) sonarWaves.splice(i, 1);
+    }
+
+    // Draw Walls only when touched by active sonar wave!
+    walls.forEach(w => {
+      let maxVisibility = 0.05; // Faint default
+      sonarWaves.forEach(sw => {
+        const d = Math.hypot((w.x1 + w.x2) / 2 - sw.x, (w.y1 + w.y2) / 2 - sw.y);
+        if (Math.abs(d - sw.r) < 50) {
+          maxVisibility = Math.max(maxVisibility, sw.alpha * 0.9);
+        }
+      });
+
+      ctx.strokeStyle = `rgba(16, 185, 129, ${maxVisibility})`;
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(w.x1, w.y1);
+      ctx.lineTo(w.x2, w.y2);
+      ctx.stroke();
+    });
+
+    // Draw Hydrothermal Beacon (Pulsing warm cyan/gold)
+    ctx.beginPath();
+    ctx.arc(beacon.x, beacon.y, beacon.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.2)';
+    ctx.fill();
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw Submarine (Glow Dot)
+    ctx.beginPath();
+    ctx.arc(sub.x, sub.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
+    ctx.shadowColor = '#34d399';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    requestAnimationFrame(tick);
+  }
+
+  // Keyboard controls
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ') {
+      emitPing();
+    } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+      sub.vy -= 1.8;
+    } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+      sub.vy += 1.8;
+    } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      sub.vx -= 1.8;
+    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      sub.vx += 1.8;
+    }
+  });
+
+  pingBtn.addEventListener('click', emitPing);
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const angle = Math.atan2(y - sub.y, x - sub.x);
+    sub.vx += Math.cos(angle) * 2.2;
+    sub.vy += Math.sin(angle) * 2.2;
+  });
+
+  nextBtn.addEventListener('click', init);
+  window.addEventListener('resize', resize);
+
+  resize();
+  init();
+  requestAnimationFrame(tick);
+</script>

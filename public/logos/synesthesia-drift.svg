@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sd-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f43f5e" />
+          <stop offset="50%" stop-color="#fbbf24" />
+          <stop offset="100%" stop-color="#06b6d4" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#05060e" />
+      <!-- Speed Highway -->
+      <path d="M60 15 L20 105 L100 105 Z" fill="#0f172a" stroke="url(#sd-grad)" stroke-width="2.5" />
+      <line x1="60" y1="15" x2="60" y2="105" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,6" />
+      <!-- Delta Ship -->
+      <polygon points="60,65 52,85 60,80 68,85" fill="#f43f5e" />
+    </svg>

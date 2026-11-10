@@ -1,17 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <defs>
-    <linearGradient id="grad-diceforge-tactics" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#e11d48" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#0a0f1d" />
-    </linearGradient>
-    <filter id="glow-diceforge-tactics" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#e11d48" flood-opacity="0.6" />
-    </filter>
-  </defs>
-  <rect width="120" height="120" rx="26" fill="#070a14" />
-  <rect x="12" y="12" width="96" height="96" rx="20" fill="url(#grad-diceforge-tactics)" stroke="#e11d48" stroke-width="2" opacity="0.4" />
-  <circle cx="60" cy="52" r="30" fill="#e11d48" fill-opacity="0.15" filter="url(#glow-diceforge-tactics)" />
-  <text x="60" y="60" font-size="34" text-anchor="middle" dominant-baseline="middle">🎲</text>
-  <rect x="24" y="86" width="72" height="18" rx="6" fill="#000000" fill-opacity="0.6" stroke="#e11d48" stroke-width="1" />
-  <text x="60" y="99" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#ffffff" text-anchor="middle" letter-spacing="1">DICE</text>
-</svg>
+      <defs>
+        <linearGradient id="df-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2a0812" />
+          <stop offset="100%" stop-color="#0f0206" />
+        </linearGradient>
+        <linearGradient id="df-top" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f43f5e" />
+          <stop offset="100%" stop-color="#e11d48" />
+        </linearGradient>
+        <linearGradient id="df-left" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#be123c" />
+          <stop offset="100%" stop-color="#9f1239" />
+        </linearGradient>
+        <linearGradient id="df-right" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#881337" />
+          <stop offset="100%" stop-color="#4c0519" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#df-bg)" />
+      <!-- Isometric 3D Dice -->
+      <g transform="translate(0, 4)">
+        <polygon points="60,24 92,42 60,60 28,42" fill="url(#df-top)" stroke="#fda4af" stroke-width="1.5" />
+        <polygon points="28,42 60,60 60,96 28,78" fill="url(#df-left)" stroke="#fda4af" stroke-width="1.5" />
+        <polygon points="60,60 92,42 92,78 60,96" fill="url(#df-right)" stroke="#fda4af" stroke-width="1.5" />
+        <!-- Top Face Pips -->
+        <circle cx="60" cy="42" r="3.5" fill="#ffffff" />
+        <!-- Left Face Pips -->
+        <circle cx="40" cy="64" r="3" fill="#ffffff" opacity="0.9" />
+        <circle cx="48" cy="74" r="3" fill="#ffffff" opacity="0.9" />
+        <!-- Right Face Pips -->
+        <circle cx="74" cy="62" r="3" fill="#ffffff" opacity="0.9" />
+        <circle cx="80" cy="74" r="3" fill="#ffffff" opacity="0.9" />
+        <circle cx="68" cy="84" r="3" fill="#ffffff" opacity="0.9" />
+      </g>
+    </svg>

@@ -1,17 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <defs>
-    <linearGradient id="grad-cyberraid" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#0a0f1d" />
-    </linearGradient>
-    <filter id="glow-cyberraid" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.6" />
-    </filter>
-  </defs>
-  <rect width="120" height="120" rx="26" fill="#070a14" />
-  <rect x="12" y="12" width="96" height="96" rx="20" fill="url(#grad-cyberraid)" stroke="#06b6d4" stroke-width="2" opacity="0.4" />
-  <circle cx="60" cy="52" r="30" fill="#06b6d4" fill-opacity="0.15" filter="url(#glow-cyberraid)" />
-  <text x="60" y="60" font-size="34" text-anchor="middle" dominant-baseline="middle">🃏</text>
-  <rect x="24" y="86" width="72" height="18" rx="6" fill="#000000" fill-opacity="0.6" stroke="#06b6d4" stroke-width="1" />
-  <text x="60" y="99" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#ffffff" text-anchor="middle" letter-spacing="1">DECK</text>
-</svg>
+      <defs>
+        <linearGradient id="cr-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#081b29" />
+          <stop offset="100%" stop-color="#02080d" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#cr-bg)" />
+      <!-- Angled Deck of Cards -->
+      <rect x="26" y="24" width="46" height="68" rx="8" fill="#0e334a" stroke="#0284c7" stroke-width="1.5" transform="rotate(-10 49 58)" />
+      <rect x="42" y="22" width="50" height="74" rx="8" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2" transform="rotate(8 67 59)" />
+      <!-- Card Cyber Glyph -->
+      <circle cx="68" cy="54" r="14" fill="#0284c7" fill-opacity="0.4" stroke="#7dd3fc" stroke-width="1.5" />
+      <polygon points="68,44 76,58 60,58" fill="#38bdf8" />
+    </svg>

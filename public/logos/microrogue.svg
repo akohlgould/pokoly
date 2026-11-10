@@ -1,17 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <defs>
-    <linearGradient id="grad-microrogue" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f1f5f9" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#0a0f1d" />
-    </linearGradient>
-    <filter id="glow-microrogue" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#f1f5f9" flood-opacity="0.6" />
-    </filter>
-  </defs>
-  <rect width="120" height="120" rx="26" fill="#070a14" />
-  <rect x="12" y="12" width="96" height="96" rx="20" fill="url(#grad-microrogue)" stroke="#f1f5f9" stroke-width="2" opacity="0.4" />
-  <circle cx="60" cy="52" r="30" fill="#f1f5f9" fill-opacity="0.15" filter="url(#glow-microrogue)" />
-  <text x="60" y="60" font-size="34" text-anchor="middle" dominant-baseline="middle">♟️</text>
-  <rect x="24" y="86" width="72" height="18" rx="6" fill="#000000" fill-opacity="0.6" stroke="#f1f5f9" stroke-width="1" />
-  <text x="60" y="99" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#ffffff" text-anchor="middle" letter-spacing="1">1-BIT</text>
-</svg>
+      <defs>
+        <linearGradient id="mr-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#18181b" />
+          <stop offset="100%" stop-color="#09090b" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#mr-bg)" />
+      <!-- 1-Bit Pixel Rogue Helmet -->
+      <rect x="34" y="30" width="52" height="42" rx="10" fill="#27272a" stroke="#e4e4e7" stroke-width="3" />
+      <!-- Horns / Crest -->
+      <polygon points="34,36 24,18 42,28" fill="#e4e4e7" />
+      <polygon points="86,36 96,18 78,28" fill="#e4e4e7" />
+      <!-- Glowing Eye Visor -->
+      <rect x="42" y="46" width="36" height="8" rx="2" fill="#ef4444" />
+      <!-- Crossed Daggers -->
+      <path d="M42 82 L78 82 M60 72 L60 92" stroke="#e4e4e7" stroke-width="3" stroke-linecap="round" />
+    </svg>

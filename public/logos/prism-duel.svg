@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#040610" />
+      <!-- Incident White Beam -->
+      <line x1="12" y1="60" x2="52" y2="60" stroke="#ffffff" stroke-width="4" />
+      <!-- Prism Triangle -->
+      <polygon points="58,35 78,75 38,75" fill="#2e1065" stroke="#d946ef" stroke-width="2" />
+      <!-- Split Beams -->
+      <line x1="68" y1="60" x2="108" y2="40" stroke="#ef4444" stroke-width="3" />
+      <line x1="68" y1="60" x2="108" y2="80" stroke="#06b6d4" stroke-width="3" />
+    </svg>

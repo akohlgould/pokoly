@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sw-core" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#06b6d4" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#03060f" />
+      <!-- Hadron Confinement Ring -->
+      <circle cx="60" cy="60" r="38" fill="none" stroke="#1e293b" stroke-width="8" />
+      <circle cx="60" cy="60" r="38" fill="none" stroke="#0284c7" stroke-width="2" stroke-dasharray="6,4" />
+      <!-- 3 Quarks -->
+      <circle cx="60" cy="42" r="7" fill="#10b981" />
+      <circle cx="46" cy="72" r="7" fill="#10b981" />
+      <circle cx="74" cy="72" r="7" fill="#06b6d4" />
+      <!-- Gluon Lines -->
+      <line x1="60" y1="42" x2="46" y2="72" stroke="#ffffff" stroke-width="1.5" />
+      <line x1="60" y1="42" x2="74" y2="72" stroke="#ffffff" stroke-width="1.5" />
+      <line x1="46" y1="72" x2="74" y2="72" stroke="#ffffff" stroke-width="1.5" />
+    </svg>

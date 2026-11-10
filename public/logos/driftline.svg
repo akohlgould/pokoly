@@ -1,17 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <defs>
-    <linearGradient id="grad-driftline" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#0a0f1d" />
-    </linearGradient>
-    <filter id="glow-driftline" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#f43f5e" flood-opacity="0.6" />
-    </filter>
-  </defs>
-  <rect width="120" height="120" rx="26" fill="#070a14" />
-  <rect x="12" y="12" width="96" height="96" rx="20" fill="url(#grad-driftline)" stroke="#f43f5e" stroke-width="2" opacity="0.4" />
-  <circle cx="60" cy="52" r="30" fill="#f43f5e" fill-opacity="0.15" filter="url(#glow-driftline)" />
-  <text x="60" y="60" font-size="34" text-anchor="middle" dominant-baseline="middle">🏎️</text>
-  <rect x="24" y="86" width="72" height="18" rx="6" fill="#000000" fill-opacity="0.6" stroke="#f43f5e" stroke-width="1" />
-  <text x="60" y="99" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#ffffff" text-anchor="middle" letter-spacing="1">DRIFT</text>
-</svg>
+      <defs>
+        <linearGradient id="dl-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#2a0614" />
+          <stop offset="100%" stop-color="#0d0206" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#dl-bg)" />
+      <!-- Asphalt Corner Curve -->
+      <path d="M20 100 Q60 80 80 20" fill="none" stroke="#334155" stroke-width="26" stroke-linecap="round" />
+      <path d="M20 100 Q60 80 80 20" fill="none" stroke="#f43f5e" stroke-width="2" stroke-dasharray="6,6" />
+      <!-- Drifting Sports Car Silhouette -->
+      <g transform="translate(48, 54) rotate(-35)">
+        <rect x="-12" y="-22" width="24" height="44" rx="7" fill="#f43f5e" stroke="#fda4af" stroke-width="2" />
+        <rect x="-9" y="-12" width="18" height="14" rx="3" fill="#0f172a" />
+        <!-- Headlights -->
+        <circle cx="-7" cy="-20" r="2.5" fill="#fef08a" />
+        <circle cx="7" cy="-20" r="2.5" fill="#fef08a" />
+      </g>
+      <!-- Tire Smoke Arc -->
+      <circle cx="34" cy="74" r="8" fill="#fda4af" opacity="0.3" filter="blur(3px)" />
+    </svg>

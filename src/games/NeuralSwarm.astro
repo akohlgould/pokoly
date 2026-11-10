@@ -1,0 +1,264 @@
+---
+// NeuralSwarm.astro - Bioluminescent Subterranean Mycelium Network
+---
+
+<div id="mycelium-container" class="relative w-full max-w-4xl mx-auto bg-[#070b0c] rounded-2xl overflow-hidden border border-teal-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(20,184,166,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0c1417]/95 border-b border-teal-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/40 flex items-center justify-center text-teal-400 font-bold text-xl shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+        🍄
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-teal-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent font-black">NEURAL SWARM</span>
+          <span class="px-2 py-0.5 text-[10px] bg-teal-500/20 text-teal-300 rounded-md border border-teal-500/40">MYCELIAL WEB</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">HYPHAE NUTRIENT ROUTING NETWORK</div>
+      </div>
+    </div>
+
+    <!-- Center Metric: Mother Trees Nourished -->
+    <div class="flex items-center gap-4 bg-[#0a1114] px-4 py-1.5 rounded-xl border border-teal-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">MOTHER TREES:</span>
+        <span id="ns-trees" class="font-bold text-teal-300 font-mono ml-1 text-sm">0/3</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">SUGAR SPORES:</span>
+        <span id="ns-spores" class="font-bold text-emerald-400 font-mono ml-1 text-sm">120</span>
+      </div>
+    </div>
+
+    <button id="ns-pulse-btn" class="px-3 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-600 text-slate-950 font-black rounded-xl text-xs transition-all active:scale-95 shadow-md">
+      PULSE SPORES
+    </button>
+  </div>
+
+  <!-- Main Canvas -->
+  <div class="relative w-full h-[460px] sm:h-[500px] bg-[#040809] overflow-hidden flex items-center justify-center">
+    <canvas id="ns-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
+
+    <div class="absolute top-4 left-4 max-w-xs pointer-events-none bg-[#091316]/80 backdrop-blur-md p-3 rounded-xl border border-teal-500/20 text-[11px] text-slate-300 shadow-lg">
+      <span class="text-teal-400 font-bold">MYCELIAL PATHWAY:</span>
+      <span class="text-white ml-1">Click adjacent nodes to branch hyphae tendrils. Send nutrient pulses from the Central Mushroom to all 3 Mother Trees!</span>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="ns-victory-modal" class="absolute inset-0 bg-[#040809]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#0b171a] border border-teal-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(20,184,166,0.3)]">
+        <span class="text-4xl animate-bounce">🌲</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">CANOPY BIO-BLOOM!</h2>
+        <p class="text-xs text-slate-300 mb-4">The forest floor pulse synchronized. Ancient mother trees fully revitalized!</p>
+        
+        <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#060c0e] p-3 rounded-xl border border-teal-500/20">
+          <div>HARVEST XP: <span class="text-teal-400 font-bold text-sm">+250 XP</span></div>
+        </div>
+
+        <button id="ns-next-btn" class="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+          NEXT FOREST BIOME &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('ns-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const treesEl = document.getElementById('ns-trees')!;
+  const sporesEl = document.getElementById('ns-spores')!;
+  const pulseBtn = document.getElementById('ns-pulse-btn')!;
+  const victoryModal = document.getElementById('ns-victory-modal')!;
+  const nextBtn = document.getElementById('ns-next-btn')!;
+
+  interface Node {
+    id: number;
+    x: number;
+    y: number;
+    isRoot?: boolean;
+    isTree?: boolean;
+    nourished?: boolean;
+  }
+
+  interface Edge {
+    u: number;
+    v: number;
+  }
+
+  interface Pulse {
+    u: number;
+    v: number;
+    progress: number;
+  }
+
+  let nodes: Node[] = [];
+  let edges: Edge[] = [];
+  let pulses: Pulse[] = [];
+  let selectedNodeId: number | null = null;
+  let sporeCount = 120;
+  let isWon = false;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function init() {
+    const { width, height } = getLogicalSize();
+    isWon = false;
+    sporeCount = 120;
+    pulses = [];
+    edges = [];
+    selectedNodeId = null;
+    treesEl.textContent = '0/3';
+    sporesEl.textContent = '120';
+    victoryModal.classList.add('hidden');
+
+    // Central Spore Heart + Intermediate Nodes + 3 Mother Trees
+    nodes = [
+      { id: 0, x: width * 0.5, y: height * 0.75, isRoot: true }, // Mushroom Heart
+      { id: 1, x: width * 0.3, y: height * 0.5 },
+      { id: 2, x: width * 0.5, y: height * 0.45 },
+      { id: 3, x: width * 0.7, y: height * 0.5 },
+      { id: 4, x: width * 0.2, y: height * 0.2, isTree: true }, // Tree 1
+      { id: 5, x: width * 0.5, y: height * 0.15, isTree: true }, // Tree 2
+      { id: 6, x: width * 0.8, y: height * 0.2, isTree: true }, // Tree 3
+    ];
+  }
+
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    // Deep soil substrate
+    ctx.fillStyle = '#050a0b';
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw Hyphae Tendril Edges
+    edges.forEach(e => {
+      const u = nodes.find(n => n.id === e.u)!;
+      const v = nodes.find(n => n.id === e.v)!;
+      ctx.strokeStyle = '#0d9488';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(u.x, u.y);
+      ctx.lineTo(v.x, v.y);
+      ctx.stroke();
+    });
+
+    // Update & Draw Nutrient Pulses
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      const p = pulses[i];
+      p.progress += 0.025;
+      const u = nodes.find(n => n.id === p.u)!;
+      const v = nodes.find(n => n.id === p.v)!;
+      const px = u.x + (v.x - u.x) * p.progress;
+      const py = u.y + (v.y - u.y) * p.progress;
+
+      ctx.beginPath();
+      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#34d399';
+      ctx.shadowColor = '#10b981';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      if (p.progress >= 1) {
+        pulses.splice(i, 1);
+        if (v.isTree && !v.nourished) {
+          v.nourished = true;
+          sound.score();
+          const count = nodes.filter(n => n.isTree && n.nourished).length;
+          treesEl.textContent = `${count}/3`;
+          if (count === 3 && !isWon) {
+            isWon = true;
+            sound.victory();
+            launchConfetti();
+            player.addXp(250);
+            victoryModal.classList.remove('hidden');
+          }
+        }
+      }
+    }
+
+    // Draw Spore Nodes
+    nodes.forEach(n => {
+      ctx.save();
+      ctx.translate(n.x, n.y);
+
+      ctx.beginPath();
+      const r = n.isRoot ? 18 : (n.isTree ? 16 : 10);
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      if (n.isRoot) ctx.fillStyle = '#14b8a6';
+      else if (n.isTree) ctx.fillStyle = n.nourished ? '#22c55e' : '#eab308';
+      else ctx.fillStyle = n.id === selectedNodeId ? '#38bdf8' : '#0f766e';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.restore();
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  // Pointer click to link hyphae
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const hit = nodes.find(n => Math.hypot(n.x - x, n.y - y) < 24);
+    if (hit) {
+      if (selectedNodeId === null) {
+        selectedNodeId = hit.id;
+        sound.click();
+      } else {
+        if (selectedNodeId !== hit.id) {
+          // Check if edge already exists
+          const exists = edges.some(e => (e.u === selectedNodeId && e.v === hit.id) || (e.u === hit.id && e.v === selectedNodeId));
+          if (!exists && sporeCount >= 15) {
+            edges.push({ u: selectedNodeId, v: hit.id });
+            sporeCount -= 15;
+            sporesEl.textContent = sporeCount.toString();
+            sound.score();
+          }
+        }
+        selectedNodeId = null;
+      }
+    } else {
+      selectedNodeId = null;
+    }
+  });
+
+  pulseBtn.addEventListener('click', () => {
+    // Send pulses across all edges connected from the root
+    edges.forEach(e => {
+      pulses.push({ u: e.u, v: e.v, progress: 0 });
+    });
+    sound.blip();
+  });
+
+  nextBtn.addEventListener('click', init);
+  window.addEventListener('resize', resize);
+
+  resize();
+  init();
+  requestAnimationFrame(tick);
+</script>

@@ -83,6 +83,17 @@ import Vowelshift from '../../games/Vowelshift.astro';
 import WordGuess from '../../games/WordGuess.astro';
 import Wordhedge from '../../games/Wordhedge.astro';
 
+import ChronoOrigami from '../../games/ChronoOrigami.astro';
+import SynesthesiaDrift from '../../games/SynesthesiaDrift.astro';
+import ThermalInversion from '../../games/ThermalInversion.astro';
+import ShadowCaster from '../../games/ShadowCaster.astro';
+import SubatomicWeaver from '../../games/SubatomicWeaver.astro';
+import LinguisticAlchemy from '../../games/LinguisticAlchemy.astro';
+import GravityWell from '../../games/GravityWell.astro';
+import NeuralSwarm from '../../games/NeuralSwarm.astro';
+import PrismDuel from '../../games/PrismDuel.astro';
+import EchoDiver from '../../games/EchoDiver.astro';
+
 export function getStaticPaths() {
   return GAMES.map(game => ({
     params: { id: game.slug },
@@ -194,4 +205,15 @@ const { game } = Astro.props;
   {(game.id === 'vowelshift' || game.slug === 'vowelshift' || game.id === 'vowelshift' || game.id === 'Vowelshift') && <Vowelshift />}
   {(game.id === 'word-guess' || game.slug === 'word-guess' || game.id === 'wordguess' || game.id === 'WordGuess') && <WordGuess />}
   {(game.id === 'wordhedge' || game.slug === 'wordhedge' || game.id === 'wordhedge' || game.id === 'Wordhedge') && <Wordhedge />}
+
+  {(game.id === 'chrono-origami' || game.slug === 'chrono-origami' || game.id === 'chronoorigami' || game.id === 'ChronoOrigami') && <ChronoOrigami />}
+  {(game.id === 'synesthesia-drift' || game.slug === 'synesthesia-drift' || game.id === 'synesthesiadrift' || game.id === 'SynesthesiaDrift') && <SynesthesiaDrift />}
+  {(game.id === 'thermal-inversion' || game.slug === 'thermal-inversion' || game.id === 'thermalinversion' || game.id === 'ThermalInversion') && <ThermalInversion />}
+  {(game.id === 'shadow-caster' || game.slug === 'shadow-caster' || game.id === 'shadowcaster' || game.id === 'ShadowCaster') && <ShadowCaster />}
+  {(game.id === 'subatomic-weaver' || game.slug === 'subatomic-weaver' || game.id === 'subatomicweaver' || game.id === 'SubatomicWeaver') && <SubatomicWeaver />}
+  {(game.id === 'linguistic-alchemy' || game.slug === 'linguistic-alchemy' || game.id === 'linguisticalchemy' || game.id === 'LinguisticAlchemy') && <LinguisticAlchemy />}
+  {(game.id === 'gravity-well' || game.slug === 'gravity-well' || game.id === 'gravitywell' || game.id === 'GravityWell') && <GravityWell />}
+  {(game.id === 'neural-swarm' || game.slug === 'neural-swarm' || game.id === 'neural-swarm' || game.id === 'NeuralSwarm') && <NeuralSwarm />}
+  {(game.id === 'prism-duel' || game.slug === 'prism-duel' || game.id === 'prismduel' || game.id === 'PrismDuel') && <PrismDuel />}
+  {(game.id === 'echo-diver' || game.slug === 'echo-diver' || game.id === 'echodiver' || game.id === 'EchoDiver') && <EchoDiver />}
 </GameLayout>

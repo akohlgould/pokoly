@@ -1,0 +1,263 @@
+---
+// GravityWell.astro - Ergosphere Frame-Dragging Slingshot
+---
+
+<div id="gw-container" class="relative w-full max-w-4xl mx-auto bg-[#040409] rounded-2xl overflow-hidden border border-indigo-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(99,102,241,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0a0a18]/95 border-b border-indigo-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/40 flex items-center justify-center text-indigo-400 font-bold text-xl shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+        🕳️
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent font-black">GRAVITY WELL</span>
+          <span class="px-2 py-0.5 text-[10px] bg-indigo-500/20 text-indigo-300 rounded-md border border-indigo-500/40">ERGOSPHERE SLING</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">RELATIVISTIC ORBITAL MECHANICS</div>
+      </div>
+    </div>
+
+    <!-- Center Gauge: Radiation Harvested -->
+    <div class="flex items-center gap-4 bg-[#08081a] px-4 py-1.5 rounded-xl border border-indigo-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">BUOYS:</span>
+        <span id="gw-buoys" class="font-bold text-indigo-300 font-mono ml-1 text-sm">0/4</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">THRUST FUEL:</span>
+        <span id="gw-fuel" class="font-bold text-emerald-400 font-mono ml-1 text-sm">100%</span>
+      </div>
+    </div>
+
+    <button id="gw-reset-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all">
+      RE-ORBIT
+    </button>
+  </div>
+
+  <!-- Main Canvas -->
+  <div class="relative w-full h-[460px] sm:h-[500px] bg-[#020205] overflow-hidden flex items-center justify-center">
+    <canvas id="gw-canvas" class="w-full h-full block touch-none"></canvas>
+
+    <div class="absolute top-4 left-4 max-w-xs pointer-events-none bg-[#070714]/80 backdrop-blur-md p-3 rounded-xl border border-indigo-500/20 text-[11px] text-slate-300 shadow-lg">
+      <span class="text-indigo-400 font-bold">FLIGHT PROTOCOL:</span>
+      <span class="text-white ml-1">Hold SPACE / Touch to fire retro-thrusters. Slingshot around the event horizon to harvest all 4 quantum buoys!</span>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="gw-victory-modal" class="absolute inset-0 bg-[#020205]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#0b0b1a] border border-indigo-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(99,102,241,0.3)]">
+        <span class="text-4xl animate-bounce">🌌</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">HAWKING RADIATION HARVESTED!</h2>
+        <p class="text-xs text-slate-300 mb-4">Ergosphere slingshot maneuver successful. Telemetry probe escaped the event horizon!</p>
+        
+        <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#060610] p-3 rounded-xl border border-indigo-500/20">
+          <div>REWARD: <span class="text-indigo-400 font-bold text-sm">+250 XP</span></div>
+        </div>
+
+        <button id="gw-next-btn" class="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+          NEXT ORBIT &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('gw-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const buoysEl = document.getElementById('gw-buoys')!;
+  const fuelEl = document.getElementById('gw-fuel')!;
+  const victoryModal = document.getElementById('gw-victory-modal')!;
+  const nextBtn = document.getElementById('gw-next-btn')!;
+  const resetBtn = document.getElementById('gw-reset-btn')!;
+
+  interface Buoy { x: number; y: number; harvested: boolean; }
+
+  let ship = { x: 0, y: 0, vx: 0, vy: 0, trail: [] as { x: number; y: number }[] };
+  let buoys: Buoy[] = [];
+  let fuel = 100;
+  let isThrusting = false;
+  let isWon = false;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function init() {
+    const { width, height } = getLogicalSize();
+    const cx = width / 2;
+    const cy = height / 2;
+
+    ship = {
+      x: cx,
+      y: cy - 170,
+      vx: 3.8,
+      vy: 0,
+      trail: []
+    };
+
+    fuel = 100;
+    isWon = false;
+    fuelEl.textContent = '100%';
+    buoysEl.textContent = '0/4';
+    victoryModal.classList.add('hidden');
+
+    // 4 Buoys around the event horizon
+    buoys = [
+      { x: cx + 120, y: cy, harvested: false },
+      { x: cx - 120, y: cy, harvested: false },
+      { x: cx, y: cy + 130, harvested: false },
+      { x: cx, y: cy - 130, harvested: false }
+    ];
+  }
+
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    const cx = width / 2;
+    const cy = height / 2;
+
+    // Space backdrop
+    ctx.fillStyle = '#020206';
+    ctx.fillRect(0, 0, width, height);
+
+    // Accretion Disk Glow
+    const diskGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 140);
+    diskGrad.addColorStop(0, '#000000');
+    diskGrad.addColorStop(0.25, '#312e81');
+    diskGrad.addColorStop(0.5, '#4f46e5');
+    diskGrad.addColorStop(0.8, '#06b6d4');
+    diskGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = diskGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 140, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Event Horizon (Black Void)
+    ctx.beginPath();
+    ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+    ctx.fillStyle = '#000000';
+    ctx.fill();
+    ctx.strokeStyle = '#818cf8';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    if (!isWon) {
+      // Gravitational Attraction F = G*M / r^2
+      const dx = cx - ship.x;
+      const dy = cy - ship.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Frame dragging angular velocity
+      const dragFactor = 80 / (dist * dist + 100);
+      ship.vx += -dy * dragFactor * 0.016;
+      ship.vy += dx * dragFactor * 0.016;
+
+      const gravForce = 1200 / (dist * dist + 200);
+      ship.vx += (dx / dist) * gravForce;
+      ship.vy += (dy / dist) * gravForce;
+
+      if (isThrusting && fuel > 0) {
+        // Thruster pushes outwards
+        ship.vx -= (dx / dist) * 0.25;
+        ship.vy -= (dy / dist) * 0.25;
+        fuel = Math.max(0, fuel - 0.4);
+        fuelEl.textContent = `${Math.round(fuel)}%`;
+      }
+
+      ship.x += ship.vx;
+      ship.y += ship.vy;
+
+      ship.trail.push({ x: ship.x, y: ship.y });
+      if (ship.trail.length > 40) ship.trail.shift();
+
+      // Check collision with event horizon
+      if (dist < 42) {
+        sound.playTone(100, 'sawtooth', 0.3, 0.2);
+        init();
+      }
+
+      // Check buoy collection
+      buoys.forEach(b => {
+        if (!b.harvested && Math.hypot(ship.x - b.x, ship.y - b.y) < 22) {
+          b.harvested = true;
+          sound.score();
+          const harvestedCount = buoys.filter(x => x.harvested).length;
+          buoysEl.textContent = `${harvestedCount}/4`;
+          if (harvestedCount === 4) {
+            isWon = true;
+            sound.victory();
+            launchConfetti();
+            player.addXp(250);
+            victoryModal.classList.remove('hidden');
+          }
+        }
+      });
+    }
+
+    // Draw Buoys
+    buoys.forEach(b => {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = b.harvested ? '#10b981' : '#f59e0b';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    // Draw Ship Trail
+    ctx.beginPath();
+    for (let i = 0; i < ship.trail.length; i++) {
+      const pt = ship.trail[i];
+      if (i === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw Ship
+    ctx.beginPath();
+    ctx.arc(ship.x, ship.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ') isThrusting = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === ' ') isThrusting = false;
+  });
+
+  canvas.addEventListener('pointerdown', () => { isThrusting = true; });
+  canvas.addEventListener('pointerup', () => { isThrusting = false; });
+
+  resetBtn.addEventListener('click', init);
+  nextBtn.addEventListener('click', init);
+  window.addEventListener('resize', resize);
+
+  resize();
+  init();
+  requestAnimationFrame(tick);
+</script>

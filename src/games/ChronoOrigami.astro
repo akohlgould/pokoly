@@ -1,0 +1,480 @@
+---
+// ChronoOrigami.astro - 4D Crease & Spatial Topology Folding Puzzle
+---
+
+<div id="origami-container" class="relative w-full max-w-4xl mx-auto bg-[#070913] rounded-2xl overflow-hidden border border-violet-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(139,92,246,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0c1022]/95 border-b border-violet-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/40 flex items-center justify-center text-violet-300 font-bold text-xl shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+        📐
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-violet-400 via-fuchsia-300 to-indigo-400 bg-clip-text text-transparent font-black">CHRONO ORIGAMI</span>
+          <span id="origami-level-badge" class="px-2 py-0.5 text-[10px] bg-violet-500/20 text-violet-300 rounded-md border border-violet-500/40">SECTOR 1</span>
+        </div>
+        <div id="origami-level-title" class="text-[10px] sm:text-xs text-slate-400">PLANAR TOPOLOGY FOLD &bull; AXIS OF REFLECTION</div>
+      </div>
+    </div>
+
+    <!-- Center Metric: Folds Remaining -->
+    <div class="hidden sm:flex items-center gap-4 bg-[#080d1e] px-4 py-1.5 rounded-xl border border-violet-500/30">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-slate-400 font-bold">FOLDS:</span>
+        <span id="origami-folds-count" class="font-bold text-violet-300 text-xs font-mono">1 / 1</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-slate-400 font-bold">STATE:</span>
+        <span id="origami-fold-state" class="font-bold text-emerald-400 text-xs font-mono">UNFOLDED</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button id="origami-toggle-fold" class="px-3 py-1.5 bg-violet-950/50 hover:bg-violet-900/60 text-violet-200 border border-violet-500/40 rounded-xl text-xs font-bold transition-all active:scale-95">
+        FOLD SPACE (F)
+      </button>
+      <button id="origami-launch-btn" class="px-3 py-1.5 bg-gradient-to-r from-violet-500 to-indigo-600 hover:brightness-110 text-white rounded-xl text-xs font-bold transition-all active:scale-95">
+        FIRE PHOTON
+      </button>
+      <button id="origami-reset-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all">
+        RESET
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas Playfield -->
+  <div class="relative w-full h-[480px] sm:h-[530px] bg-[#05060f] overflow-hidden flex items-center justify-center">
+    <canvas id="origami-canvas" class="w-full h-full cursor-crosshair block touch-none"></canvas>
+
+    <!-- Objective overlay -->
+    <div class="absolute top-3 left-3 sm:left-6 max-w-sm pointer-events-none">
+      <div class="bg-[#090d1f]/85 backdrop-blur-md border border-violet-500/20 px-3.5 py-2 rounded-xl text-slate-300 text-[11px] shadow-lg">
+        <span class="text-violet-300 font-bold">OBJECTIVE:</span>
+        <span id="origami-objective-text" class="text-slate-200 ml-1">Drag to slice a crease line across space, then FOLD to bridge the photon beam to the Singularity Core!</span>
+      </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="origami-victory-modal" class="absolute inset-0 bg-[#04060f]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#0e0f26] border border-violet-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(139,92,246,0.3)]">
+        <div class="w-16 h-16 rounded-2xl bg-violet-500/20 border border-violet-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+          ✨
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black text-white mb-1 tracking-wide">TOPOLOGY COLLAPSED!</h2>
+        <p class="text-xs sm:text-sm text-violet-200 mb-4" id="origami-victory-desc">Dimensional crease bridged the cosmic abyss. Singularity energized!</p>
+        
+        <div class="flex justify-center gap-4 text-xs font-mono mb-6 bg-[#090b1c] p-3 rounded-xl border border-violet-500/20">
+          <div>FOLDS: <span id="origami-stat-folds" class="text-violet-300 font-bold">1</span></div>
+          <div>ACCURACY: <span class="text-emerald-400 font-bold">100%</span></div>
+          <div>XP EARNED: <span class="text-amber-400 font-bold">+250 XP</span></div>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+          <button id="origami-next-btn" class="px-5 py-2.5 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 hover:brightness-110 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95">
+            NEXT SECTOR &rarr;
+          </button>
+          <button id="origami-replay-btn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl border border-slate-600 transition-all">
+            RETRY
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('origami-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const levelBadge = document.getElementById('origami-level-badge')!;
+  const levelTitle = document.getElementById('origami-level-title')!;
+  const objectiveText = document.getElementById('origami-objective-text')!;
+  const foldsCountEl = document.getElementById('origami-folds-count')!;
+  const foldStateEl = document.getElementById('origami-fold-state')!;
+  const toggleFoldBtn = document.getElementById('origami-toggle-fold')!;
+  const launchBtn = document.getElementById('origami-launch-btn')!;
+  const resetBtn = document.getElementById('origami-reset-btn')!;
+  const victoryModal = document.getElementById('origami-victory-modal')!;
+  const victoryDesc = document.getElementById('origami-victory-desc')!;
+  const statFolds = document.getElementById('origami-stat-folds')!;
+  const nextBtn = document.getElementById('origami-next-btn')!;
+  const replayBtn = document.getElementById('origami-replay-btn')!;
+
+  interface Point { x: number; y: number; }
+  interface Wall { x1: number; y1: number; x2: number; y2: number; }
+  interface Photon { x: number; y: number; vx: number; vy: number; trail: Point[]; active: boolean; }
+
+  interface Level {
+    name: string;
+    subtitle: string;
+    objective: string;
+    victoryText: string;
+    emitter: { x: number; y: number; angle: number };
+    target: { x: number; y: number; r: number };
+    walls: Wall[];
+    suggestedCrease?: { p1: Point; p2: Point };
+  }
+
+  const LEVELS: Level[] = [
+    {
+      name: "SECTOR 1",
+      subtitle: "PLANAR TOPOLOGY FOLD • AXIS OF REFLECTION",
+      objective: "Draw a vertical crease line down the center, then press FOLD SPACE so the beam reflects onto the Core!",
+      victoryText: "Sector 1 Cleared! Space folded along the crease axis.",
+      emitter: { x: 0.15, y: 0.5, angle: 0 },
+      target: { x: 0.85, y: 0.2, r: 24 },
+      walls: [
+        { x1: 0.5, y1: 0.1, x2: 0.5, y2: 0.9 } // Impassable void rift
+      ]
+    },
+    {
+      name: "SECTOR 2",
+      subtitle: "DIAGONAL SEAM • HYPERBOLIC MIRROR",
+      objective: "Slice a diagonal crease to warp the laser past dual barrier shields directly into the Singularity!",
+      victoryText: "Hyperbolic seam folded with surgical precision!",
+      emitter: { x: 0.2, y: 0.8, angle: -Math.PI / 2 },
+      target: { x: 0.8, y: 0.8, r: 24 },
+      walls: [
+        { x1: 0.1, y1: 0.45, x2: 0.9, y2: 0.45 }
+      ]
+    },
+    {
+      name: "SECTOR 3",
+      subtitle: "PARADOX CHASM • QUADRANT OVERLAY",
+      objective: "Bridge two disjointed platform dimensions by folding the upper quadrant over the lower quadrant!",
+      victoryText: "Dimensional paradox solved! The origami matrix stabilized.",
+      emitter: { x: 0.15, y: 0.25, angle: 0.2 },
+      target: { x: 0.85, y: 0.75, r: 22 },
+      walls: [
+        { x1: 0.45, y1: 0.1, x2: 0.45, y2: 0.9 },
+        { x1: 0.1, y1: 0.55, x2: 0.9, y2: 0.55 }
+      ]
+    }
+  ];
+
+  let currentLevelIdx = 0;
+  let creaseStart: Point | null = null;
+  let creaseEnd: Point | null = null;
+  let activeCrease: { p1: Point; p2: Point } | null = null;
+  let isFolded = false;
+  let foldProgress = 0; // 0 to 1
+  let photon: Photon | null = null;
+  let isLevelWon = false;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function loadLevel(idx: number) {
+    currentLevelIdx = idx;
+    isLevelWon = false;
+    isFolded = false;
+    foldProgress = 0;
+    photon = null;
+    activeCrease = null;
+    creaseStart = null;
+    creaseEnd = null;
+
+    const lvl = LEVELS[currentLevelIdx];
+    levelBadge.textContent = lvl.name;
+    levelTitle.textContent = lvl.subtitle;
+    objectiveText.textContent = lvl.objective;
+    foldsCountEl.textContent = "1 / 1";
+    foldStateEl.textContent = "UNFOLDED";
+    foldStateEl.className = "font-bold text-emerald-400 text-xs font-mono";
+    victoryModal.classList.add('hidden');
+  }
+
+  // Geometric reflection of point (x,y) across line (p1 -> p2)
+  function reflectPoint(p: Point, p1: Point, p2: Point): Point {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return { x: p.x, y: p.y };
+
+    const t = ((p.x - p1.x) * dx + (p.y - p1.y) * dy) / lenSq;
+    const projX = p1.x + t * dx;
+    const projY = p1.y + t * dy;
+
+    return {
+      x: 2 * projX - p.x,
+      y: 2 * projY - p.y
+    };
+  }
+
+  function firePhoton() {
+    const { width, height } = getLogicalSize();
+    const lvl = LEVELS[currentLevelIdx];
+    const speed = 7;
+    photon = {
+      x: lvl.emitter.x * width,
+      y: lvl.emitter.y * height,
+      vx: Math.cos(lvl.emitter.angle) * speed,
+      vy: Math.sin(lvl.emitter.angle) * speed,
+      trail: [],
+      active: true
+    };
+    sound.blip();
+  }
+
+  function toggleFold() {
+    if (!activeCrease) {
+      sound.playTone(200, 'square', 0.1, 0.1);
+      return;
+    }
+    isFolded = !isFolded;
+    foldStateEl.textContent = isFolded ? "SPACE FOLDED" : "UNFOLDED";
+    foldStateEl.className = isFolded 
+      ? "font-bold text-violet-300 text-xs font-mono animate-pulse" 
+      : "font-bold text-emerald-400 text-xs font-mono";
+    sound.playTone(isFolded ? 440 : 330, 'sine', 0.15, 0.2);
+  }
+
+  // Draw loop
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    // Deep cosmic grid
+    ctx.fillStyle = '#060814';
+    ctx.fillRect(0, 0, width, height);
+
+    // Background grid lines
+    ctx.strokeStyle = '#1e1b4b';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < width; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0); ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y); ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    const lvl = LEVELS[currentLevelIdx];
+    const emitPos = { x: lvl.emitter.x * width, y: lvl.emitter.y * height };
+    let tgtPos = { x: lvl.target.x * width, y: lvl.target.y * height };
+
+    // Smooth fold transition
+    foldProgress += ((isFolded ? 1 : 0) - foldProgress) * 0.15;
+
+    // If folded and active crease exists, compute folded space reflection overlay
+    if (activeCrease && foldProgress > 0.01) {
+      // Draw fold crease seam
+      ctx.save();
+      ctx.strokeStyle = `rgba(168, 85, 247, ${0.4 + foldProgress * 0.5})`;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      // Extend crease across entire screen
+      const dx = activeCrease.p2.x - activeCrease.p1.x;
+      const dy = activeCrease.p2.y - activeCrease.p1.y;
+      ctx.moveTo(activeCrease.p1.x - dx * 10, activeCrease.p1.y - dy * 10);
+      ctx.lineTo(activeCrease.p2.x + dx * 10, activeCrease.p2.y + dy * 10);
+      ctx.stroke();
+      ctx.restore();
+
+      // Folded paper shadow effect
+      ctx.fillStyle = `rgba(88, 28, 135, ${foldProgress * 0.25})`;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // Draw active drawing crease
+    if (creaseStart && creaseEnd) {
+      ctx.strokeStyle = '#ec4899';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(creaseStart.x, creaseStart.y);
+      ctx.lineTo(creaseEnd.x, creaseEnd.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw Barrier Walls
+    lvl.walls.forEach(w => {
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(w.x1 * width, w.y1 * height);
+      ctx.lineTo(w.x2 * width, w.y2 * height);
+      ctx.stroke();
+    });
+
+    // Draw Target Singularity Core
+    let renderTgt = tgtPos;
+    if (activeCrease && foldProgress > 0.5) {
+      renderTgt = reflectPoint(tgtPos, activeCrease.p1, activeCrease.p2);
+    }
+
+    ctx.save();
+    ctx.translate(renderTgt.x, renderTgt.y);
+    ctx.beginPath();
+    ctx.arc(0, 0, lvl.target.r + Math.sin(Date.now() * 0.005) * 4, 0, Math.PI * 2);
+    ctx.strokeStyle = '#a855f7';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, lvl.target.r * 0.6, 0, Math.PI * 2);
+    ctx.fillStyle = '#7c3aed';
+    ctx.fill();
+    ctx.restore();
+
+    // Draw Photon Emitter
+    ctx.save();
+    ctx.translate(emitPos.x, emitPos.y);
+    ctx.beginPath();
+    ctx.arc(0, 0, 14, 0, Math.PI * 2);
+    ctx.fillStyle = '#22d3ee';
+    ctx.fill();
+    ctx.strokeStyle = '#0891b2';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Gun nozzle
+    ctx.rotate(lvl.emitter.angle);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, -3, 16, 6);
+    ctx.restore();
+
+    // Update and draw photon beam
+    if (photon && photon.active) {
+      photon.trail.push({ x: photon.x, y: photon.y });
+      if (photon.trail.length > 25) photon.trail.shift();
+
+      photon.x += photon.vx;
+      photon.y += photon.vy;
+
+      // Draw trail
+      ctx.beginPath();
+      for (let i = 0; i < photon.trail.length; i++) {
+        const pt = photon.trail[i];
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Check collision with walls
+      lvl.walls.forEach(w => {
+        const wx1 = w.x1 * width, wy1 = w.y1 * height, wx2 = w.x2 * width, wy2 = w.y2 * height;
+        const dist = Math.abs((wy2 - wy1) * photon!.x - (wx2 - wx1) * photon!.y + wx2 * wy1 - wy2 * wx1) / Math.hypot(wy2 - wy1, wx2 - wx1);
+        if (dist < 8 && photon!.x >= Math.min(wx1, wx2) - 10 && photon!.x <= Math.max(wx1, wx2) + 10 && photon!.y >= Math.min(wy1, wy2) - 10 && photon!.y <= Math.max(wy1, wy2) + 10) {
+          photon!.active = false;
+          sound.playTone(150, 'sawtooth', 0.2, 0.15);
+        }
+      });
+
+      // Check collision with Singularity Target
+      const distToTgt = Math.hypot(photon.x - renderTgt.x, photon.y - renderTgt.y);
+      if (distToTgt < lvl.target.r + 8 && !isLevelWon) {
+        photon.active = false;
+        isLevelWon = true;
+        sound.victory();
+        launchConfetti();
+        player.addXp(250);
+        victoryModal.classList.remove('hidden');
+      }
+
+      // Check boundaries
+      if (photon.x < 0 || photon.x > width || photon.y < 0 || photon.y > height) {
+        photon.active = false;
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  // Pointer Events for Crease Dragging
+  canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    creaseStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    creaseEnd = { ...creaseStart };
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (creaseStart) {
+      const rect = canvas.getBoundingClientRect();
+      creaseEnd = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (creaseStart && creaseEnd) {
+      const dist = Math.hypot(creaseEnd.x - creaseStart.x, creaseEnd.y - creaseStart.y);
+      if (dist > 30) {
+        activeCrease = { p1: creaseStart, p2: creaseEnd };
+        sound.click();
+      }
+      creaseStart = null;
+      creaseEnd = null;
+    }
+  });
+
+  // Touch Events
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    creaseStart = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    creaseEnd = { ...creaseStart };
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (creaseStart) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      creaseEnd = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => {
+    if (creaseStart && creaseEnd) {
+      const dist = Math.hypot(creaseEnd.x - creaseStart.x, creaseEnd.y - creaseStart.y);
+      if (dist > 30) {
+        activeCrease = { p1: creaseStart, p2: creaseEnd };
+        sound.click();
+      }
+      creaseStart = null;
+      creaseEnd = null;
+    }
+  });
+
+  toggleFoldBtn.addEventListener('click', toggleFold);
+  launchBtn.addEventListener('click', firePhoton);
+  resetBtn.addEventListener('click', () => loadLevel(currentLevelIdx));
+  nextBtn.addEventListener('click', () => loadLevel((currentLevelIdx + 1) % LEVELS.length));
+  replayBtn.addEventListener('click', () => loadLevel(currentLevelIdx));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'f' || e.key === 'F') toggleFold();
+    else if (e.key === ' ') firePhoton();
+    else if (e.key === 'r' || e.key === 'R') loadLevel(currentLevelIdx);
+  });
+
+  window.addEventListener('resize', resize);
+  resize();
+  loadLevel(0);
+  requestAnimationFrame(tick);
+</script>

@@ -1,0 +1,240 @@
+---
+// ShadowCaster.astro - Anamorphic Light Projection & Silhouette Puzzle
+---
+
+<div id="shadow-container" class="relative w-full max-w-4xl mx-auto bg-[#07080e] rounded-2xl overflow-hidden border border-amber-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(245,158,11,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0c0d18]/95 border-b border-amber-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+        💡
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-amber-400 via-yellow-300 to-orange-400 bg-clip-text text-transparent font-black">SHADOW CASTER</span>
+          <span class="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 rounded-md border border-amber-500/40">ANAMORPHIC</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">PERSPECTIVE ALIGNMENT &bull; ORBITAL LIGHT</div>
+      </div>
+    </div>
+
+    <!-- Center Gauge: Silhouette Match -->
+    <div class="flex items-center gap-4 bg-[#0a0c1a] px-4 py-1.5 rounded-xl border border-amber-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">MATCH:</span>
+        <span id="sc-match" class="font-bold text-amber-400 font-mono ml-1 text-sm">0%</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+        <div id="sc-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-75" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <button id="sc-reset-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all">
+      RESET ANGLE
+    </button>
+  </div>
+
+  <!-- Main Canvas -->
+  <div class="relative w-full h-[460px] sm:h-[500px] bg-[#030408] overflow-hidden flex items-center justify-center">
+    <canvas id="sc-canvas" class="w-full h-full block touch-none cursor-grab active:cursor-grabbing"></canvas>
+
+    <div class="absolute top-4 left-4 max-w-xs pointer-events-none bg-[#090b16]/80 backdrop-blur-md p-3 rounded-xl border border-amber-500/20 text-[11px] text-slate-300 shadow-lg">
+      <span class="text-amber-400 font-bold">TARGET GLYPH:</span>
+      <span class="text-white ml-1">Rotate spotlight until the disparate 3D shadows merge into the Key silhouette!</span>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="sc-victory-modal" class="absolute inset-0 bg-[#030408]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#0e1020] border border-amber-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(245,158,11,0.3)]">
+        <span class="text-4xl animate-pulse">🗝️</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">SILHOUETTE FUSED!</h2>
+        <p class="text-xs text-slate-300 mb-4">Anamorphic shadow alignment complete. The vault lock opened!</p>
+        
+        <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#080a14] p-3 rounded-xl border border-amber-500/20">
+          <div>REWARD: <span class="text-amber-400 font-bold text-sm">+250 XP</span></div>
+        </div>
+
+        <button id="sc-next-btn" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+          NEXT VAULT &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('sc-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const matchEl = document.getElementById('sc-match')!;
+  const barEl = document.getElementById('sc-bar')!;
+  const victoryModal = document.getElementById('sc-victory-modal')!;
+  const nextBtn = document.getElementById('sc-next-btn')!;
+  const resetBtn = document.getElementById('sc-reset-btn')!;
+
+  interface Point3D { x: number; y: number; z: number; }
+
+  // Target Key Shape vertices in 3D
+  const vertices: Point3D[] = [
+    // Shaft
+    { x: -80, y: 0, z: 0 }, { x: 40, y: 0, z: 0 },
+    // Ring handle
+    { x: -80, y: -30, z: 20 }, { x: -80, y: 30, z: -20 },
+    // Teeth
+    { x: 20, y: 25, z: 10 }, { x: 40, y: 25, z: -10 }
+  ];
+
+  let rotX = 1.2;
+  let rotY = 0.8;
+  let isDragging = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+  let isWon = false;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function init() {
+    rotX = (Math.random() - 0.5) * 2 + 1.2;
+    rotY = (Math.random() - 0.5) * 2 + 0.8;
+    isWon = false;
+    victoryModal.classList.add('hidden');
+  }
+
+  function rotateY(p: Point3D, angle: number): Point3D {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return { x: p.x * cos + p.z * sin, y: p.y, z: -p.x * sin + p.z * cos };
+  }
+
+  function rotateX(p: Point3D, angle: number): Point3D {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return { x: p.x, y: p.y * cos - p.z * sin, z: p.y * sin + p.z * cos };
+  }
+
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    // Dark chamber wall
+    ctx.fillStyle = '#06070e';
+    ctx.fillRect(0, 0, width, height);
+
+    // Projected Shadow Wall (Background)
+    const wallGrad = ctx.createRadialGradient(width / 2, height / 2, 40, width / 2, height / 2, width * 0.6);
+    wallGrad.addColorStop(0, '#1c1810');
+    wallGrad.addColorStop(1, '#05060b');
+    ctx.fillStyle = wallGrad;
+    ctx.fillRect(40, 30, width - 80, height - 60);
+    ctx.strokeStyle = '#332715';
+    ctx.strokeRect(40, 30, width - 80, height - 60);
+
+    // Compute 3D transformation
+    const transformed = vertices.map(v => {
+      let p = rotateY(v, rotY);
+      p = rotateX(p, rotX);
+      return p;
+    });
+
+    const cx = width / 2;
+    const cy = height / 2;
+
+    // Draw projected 2D shadow on the wall
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.lineWidth = 16;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Shadow lines
+    ctx.beginPath();
+    ctx.moveTo(transformed[0].x, transformed[0].y);
+    ctx.lineTo(transformed[1].x, transformed[1].y);
+    ctx.moveTo(transformed[0].x, transformed[0].y);
+    ctx.lineTo(transformed[2].x, transformed[2].y);
+    ctx.lineTo(transformed[3].x, transformed[3].y);
+    ctx.closePath();
+    ctx.moveTo(transformed[4].x, transformed[4].y);
+    ctx.lineTo(transformed[4].x, transformed[4].y - 25);
+    ctx.moveTo(transformed[5].x, transformed[5].y);
+    ctx.lineTo(transformed[5].x, transformed[5].y - 25);
+    ctx.stroke();
+    ctx.fill();
+
+    // Draw Floating 3D Wireframe in foreground (Golden Luminescence)
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2.5;
+    ctx.fillStyle = '#f59e0b';
+
+    transformed.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y - 40, 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.restore();
+
+    // Calculate match metric: Target angle is rotX ~= 0, rotY ~= 0
+    const devX = Math.abs(Math.sin(rotX));
+    const devY = Math.abs(Math.sin(rotY));
+    const match = Math.max(0, Math.min(100, Math.round((1 - (devX + devY) / 1.4) * 100)));
+
+    matchEl.textContent = `${match}%`;
+    barEl.style.width = `${match}%`;
+
+    if (match >= 94 && !isWon) {
+      isWon = true;
+      sound.victory();
+      launchConfetti();
+      player.addXp(250);
+      victoryModal.classList.remove('hidden');
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (isDragging && !isWon) {
+      const dx = e.clientX - lastMouseX;
+      const dy = e.clientY - lastMouseY;
+      rotY += dx * 0.01;
+      rotX += dy * 0.01;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    }
+  });
+
+  window.addEventListener('pointerup', () => { isDragging = false; });
+  resetBtn.addEventListener('click', init);
+  nextBtn.addEventListener('click', init);
+  window.addEventListener('resize', resize);
+
+  resize();
+  init();
+  requestAnimationFrame(tick);
+</script>

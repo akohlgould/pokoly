@@ -1293,6 +1293,174 @@ const LOGOS = {
       <line x1="56" y1="87" x2="56" y2="97" stroke="#ef4444" stroke-width="2" />
       <text x="60" y="95" font-family="monospace" font-weight="bold" font-size="6" fill="#a8a29e" text-anchor="middle">88.0 MHz</text>
     </svg>
+  `,
+
+  'chrono-origami': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="co-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#8b5cf6" />
+          <stop offset="100%" stop-color="#c084fc" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#0b0817" />
+      <!-- Crease Fold Lines -->
+      <polygon points="20,20 60,60 20,100" fill="#2e1065" stroke="#8b5cf6" stroke-width="2" />
+      <polygon points="100,20 60,60 100,100" fill="#3b0764" stroke="#d8b4fe" stroke-width="2" />
+      <line x1="60" y1="10" x2="60" y2="110" stroke="#f472b6" stroke-width="2.5" stroke-dasharray="4,4" />
+      <circle cx="60" cy="60" r="6" fill="#f43f5e" />
+    </svg>
+  `,
+
+  'synesthesia-drift': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sd-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f43f5e" />
+          <stop offset="50%" stop-color="#fbbf24" />
+          <stop offset="100%" stop-color="#06b6d4" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#05060e" />
+      <!-- Speed Highway -->
+      <path d="M60 15 L20 105 L100 105 Z" fill="#0f172a" stroke="url(#sd-grad)" stroke-width="2.5" />
+      <line x1="60" y1="15" x2="60" y2="105" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,6" />
+      <!-- Delta Ship -->
+      <polygon points="60,65 52,85 60,80 68,85" fill="#f43f5e" />
+    </svg>
+  `,
+
+  'thermal-inversion': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="ti-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0284c7" />
+          <stop offset="100%" stop-color="#ea580c" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#070914" />
+      <!-- Dual Thermometer / Inverted Flux -->
+      <path d="M40 30 Q60 50 40 90" fill="none" stroke="#0284c7" stroke-width="6" stroke-linecap="round" />
+      <path d="M80 30 Q60 50 80 90" fill="none" stroke="#ea580c" stroke-width="6" stroke-linecap="round" />
+      <circle cx="60" cy="60" r="14" fill="#1e1b4b" stroke="#ffffff" stroke-width="2" />
+      <text x="60" y="64" font-family="monospace" font-size="10" font-weight="bold" fill="#38bdf8" text-anchor="middle">0 K</text>
+    </svg>
+  `,
+
+  'shadow-caster': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="sc-spot" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fef08a" />
+          <stop offset="100%" stop-color="transparent" />
+        </radialGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#04050a" />
+      <circle cx="45" cy="45" r="30" fill="url(#sc-spot)" opacity="0.6" />
+      <!-- Key Shadow Silhouette -->
+      <circle cx="68" cy="68" r="14" fill="none" stroke="#f59e0b" stroke-width="6" />
+      <rect x="74" y="65" width="28" height="6" rx="2" fill="#f59e0b" />
+      <rect x="94" y="71" width="6" height="8" rx="1" fill="#f59e0b" />
+    </svg>
+  `,
+
+  'subatomic-weaver': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="sw-core" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#06b6d4" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#03060f" />
+      <!-- Hadron Confinement Ring -->
+      <circle cx="60" cy="60" r="38" fill="none" stroke="#1e293b" stroke-width="8" />
+      <circle cx="60" cy="60" r="38" fill="none" stroke="#0284c7" stroke-width="2" stroke-dasharray="6,4" />
+      <!-- 3 Quarks -->
+      <circle cx="60" cy="42" r="7" fill="#10b981" />
+      <circle cx="46" cy="72" r="7" fill="#10b981" />
+      <circle cx="74" cy="72" r="7" fill="#06b6d4" />
+      <!-- Gluon Lines -->
+      <line x1="60" y1="42" x2="46" y2="72" stroke="#ffffff" stroke-width="1.5" />
+      <line x1="60" y1="42" x2="74" y2="72" stroke="#ffffff" stroke-width="1.5" />
+      <line x1="46" y1="72" x2="74" y2="72" stroke="#ffffff" stroke-width="1.5" />
+    </svg>
+  `,
+
+  'linguistic-alchemy': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#0a0714" />
+      <!-- Alchemical Crucible Flask -->
+      <path d="M48 25 H72 V45 L90 85 A8 8 0 0 1 82 95 H38 A8 8 0 0 1 30 85 L48 45 Z" fill="#1e1035" stroke="#a855f7" stroke-width="2.5" />
+      <!-- Transmutation Runes -->
+      <text x="60" y="80" font-family="serif" font-size="22" font-weight="bold" fill="#ec4899" text-anchor="middle">Ω</text>
+      <circle cx="60" cy="58" r="3" fill="#38bdf8" />
+      <circle cx="52" cy="70" r="2.5" fill="#facc15" />
+      <circle cx="68" cy="72" r="2" fill="#34d399" />
+    </svg>
+  `,
+
+  'gravity-well': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="gw-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#000000" />
+          <stop offset="70%" stop-color="#1e1b4b" />
+          <stop offset="90%" stop-color="#6366f1" />
+          <stop offset="100%" stop-color="transparent" />
+        </radialGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#020206" />
+      <!-- Gravitational Lensing Rings -->
+      <circle cx="60" cy="60" r="42" fill="url(#gw-core)" />
+      <ellipse cx="60" cy="60" rx="46" ry="16" fill="none" stroke="#818cf8" stroke-width="2" transform="rotate(-25 60 60)" />
+      <circle cx="60" cy="60" r="16" fill="#000000" stroke="#c084fc" stroke-width="1.5" />
+      <circle cx="88" cy="46" r="3" fill="#38bdf8" />
+    </svg>
+  `,
+
+  'neural-swarm': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#030809" />
+      <!-- Subterranean Hyphae Network -->
+      <path d="M60 95 L60 60 L35 35" stroke="#0d9488" stroke-width="3" fill="none" />
+      <path d="M60 60 L85 35" stroke="#0d9488" stroke-width="3" fill="none" />
+      <path d="M60 60 L60 25" stroke="#0d9488" stroke-width="3" fill="none" />
+      <!-- Mushroom Spore Core -->
+      <circle cx="60" cy="95" r="9" fill="#14b8a6" stroke="#ffffff" stroke-width="1.5" />
+      <!-- Canopy Tree Nodes -->
+      <circle cx="35" cy="35" r="7" fill="#22c55e" />
+      <circle cx="60" cy="25" r="7" fill="#22c55e" />
+      <circle cx="85" cy="35" r="7" fill="#22c55e" />
+    </svg>
+  `,
+
+  'prism-duel': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#040610" />
+      <!-- Incident White Beam -->
+      <line x1="12" y1="60" x2="52" y2="60" stroke="#ffffff" stroke-width="4" />
+      <!-- Prism Triangle -->
+      <polygon points="58,35 78,75 38,75" fill="#2e1065" stroke="#d946ef" stroke-width="2" />
+      <!-- Split Beams -->
+      <line x1="68" y1="60" x2="108" y2="40" stroke="#ef4444" stroke-width="3" />
+      <line x1="68" y1="60" x2="108" y2="80" stroke="#06b6d4" stroke-width="3" />
+    </svg>
+  `,
+
+  'echo-diver': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="26" fill="#010306" />
+      <!-- Concentric Sonar Waves -->
+      <circle cx="50" cy="60" r="18" fill="none" stroke="#059669" stroke-width="1.5" stroke-dasharray="3,3" />
+      <circle cx="50" cy="60" r="32" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4,4" />
+      <circle cx="50" cy="60" r="44" fill="none" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5,5" />
+      <!-- Exploration Submarine -->
+      <ellipse cx="50" cy="60" rx="10" ry="6" fill="#10b981" />
+      <rect x="46" y="52" width="6" height="4" fill="#10b981" />
+      <!-- Hydrothermal Beacon Blip -->
+      <circle cx="90" cy="36" r="5" fill="#06b6d4" />
+    </svg>
   `
 };
 

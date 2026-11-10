@@ -1,17 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <defs>
-    <linearGradient id="grad-speedpark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#0a0f1d" />
-    </linearGradient>
-    <filter id="glow-speedpark" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#3b82f6" flood-opacity="0.6" />
-    </filter>
-  </defs>
-  <rect width="120" height="120" rx="26" fill="#070a14" />
-  <rect x="12" y="12" width="96" height="96" rx="20" fill="url(#grad-speedpark)" stroke="#3b82f6" stroke-width="2" opacity="0.4" />
-  <circle cx="60" cy="52" r="30" fill="#3b82f6" fill-opacity="0.15" filter="url(#glow-speedpark)" />
-  <text x="60" y="60" font-size="34" text-anchor="middle" dominant-baseline="middle">🅿️</text>
-  <rect x="24" y="86" width="72" height="18" rx="6" fill="#000000" fill-opacity="0.6" stroke="#3b82f6" stroke-width="1" />
-  <text x="60" y="99" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="10" fill="#ffffff" text-anchor="middle" letter-spacing="1">PARK</text>
-</svg>
+      <defs>
+        <linearGradient id="sp-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0c1829" />
+          <stop offset="100%" stop-color="#03080f" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="url(#sp-bg)" />
+      <!-- Parking Bay Lines -->
+      <line x1="36" y1="20" x2="36" y2="100" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+      <line x1="84" y1="20" x2="84" y2="100" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+      <line x1="36" y1="20" x2="84" y2="20" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" />
+      <!-- Parking P Marker -->
+      <text x="60" y="44" font-family="system-ui, sans-serif" font-weight="900" font-size="20" fill="#60a5fa" text-anchor="middle">P</text>
+      <!-- Parked Car Top-Down -->
+      <rect x="46" y="52" width="28" height="44" rx="7" fill="#2563eb" stroke="#93c5fd" stroke-width="2" />
+      <rect x="49" y="62" width="22" height="14" rx="3" fill="#0f172a" />
+      <!-- Taillights -->
+      <circle cx="50" cy="92" r="2" fill="#ef4444" />
+      <circle cx="70" cy="92" r="2" fill="#ef4444" />
+    </svg>

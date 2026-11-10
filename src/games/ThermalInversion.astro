@@ -1,0 +1,266 @@
+---
+// ThermalInversion.astro - Kelvin Paradox & Negative Temperature Heat Exchanger
+---
+
+<div id="thermal-container" class="relative w-full max-w-4xl mx-auto bg-[#080911] rounded-2xl overflow-hidden border border-orange-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(249,115,22,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0e101c]/95 border-b border-orange-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-xl shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+        🌡️
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-orange-400 via-amber-300 to-sky-400 bg-clip-text text-transparent font-black">THERMAL INVERSION</span>
+          <span id="ti-level-badge" class="px-2 py-0.5 text-[10px] bg-orange-500/20 text-orange-300 rounded-md border border-orange-500/40">REACTOR 1</span>
+        </div>
+        <div class="text-[10px] sm:text-xs text-slate-400">NEGATIVE ABSOLUTE TEMPERATURE (T &lt; 0 K)</div>
+      </div>
+    </div>
+
+    <!-- Center Gauge: Entropy Equilibrium -->
+    <div class="flex items-center gap-4 bg-[#0a0d1e] px-4 py-1.5 rounded-xl border border-orange-500/30">
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">CORE TEMP:</span>
+        <span id="ti-core-temp" class="font-bold text-amber-300 font-mono ml-1 text-sm">250 K</span>
+      </div>
+      <div class="h-3 w-px bg-slate-700"></div>
+      <div>
+        <span class="text-[10px] text-slate-400 font-bold">ENTROPY:</span>
+        <span id="ti-entropy" class="font-bold text-emerald-400 font-mono ml-1 text-sm">STABLE</span>
+      </div>
+    </div>
+
+    <button id="ti-reset-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all">
+      STABILIZE
+    </button>
+  </div>
+
+  <!-- Main Canvas Playfield -->
+  <div class="relative w-full h-[460px] sm:h-[500px] bg-[#05060d] overflow-hidden flex items-center justify-center">
+    <canvas id="ti-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
+
+    <!-- Exchanger Rod Tray -->
+    <div class="absolute bottom-4 inset-x-4 sm:inset-x-24 flex items-center justify-between gap-3 z-20">
+      <button class="ti-rod-btn flex-1 py-2 sm:py-2.5 rounded-xl border border-sky-500/60 bg-sky-950/60 text-sky-300 font-bold active:scale-95 text-xs transition-all shadow-[0_0_20px_rgba(14,165,233,0.3)]" data-type="cryo">
+        ❄️ CRYO EXCHANGER (-T)
+      </button>
+      <button class="ti-rod-btn flex-1 py-2 sm:py-2.5 rounded-xl border border-orange-500/60 bg-orange-950/40 text-orange-300 font-bold active:scale-95 text-xs transition-all" data-type="pyro">
+        🔥 PYRO EXCHANGER (+T)
+      </button>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="ti-victory-modal" class="absolute inset-0 bg-[#04050a]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#0f1122] border border-orange-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(249,115,22,0.3)]">
+        <span class="text-4xl">⚙️</span>
+        <h2 class="text-xl sm:text-2xl font-black text-white mt-2 mb-1 tracking-wide">ENTROPY EQUILIBRATED!</h2>
+        <p class="text-xs text-slate-300 mb-4">Thermodynamic inversion balanced. The Quantum Stirling Engine reached perpetual steady-state!</p>
+        
+        <div class="flex justify-center gap-6 text-xs font-mono mb-6 bg-[#080916] p-3 rounded-xl border border-orange-500/20">
+          <div>THERMAL HARVEST: <span class="text-amber-400 font-bold text-sm">+250 XP</span></div>
+        </div>
+
+        <button id="ti-next-btn" class="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-sky-500 text-white font-bold text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
+          NEXT REACTOR &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('ti-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const coreTempEl = document.getElementById('ti-core-temp')!;
+  const entropyEl = document.getElementById('ti-entropy')!;
+  const victoryModal = document.getElementById('ti-victory-modal')!;
+  const nextBtn = document.getElementById('ti-next-btn')!;
+  const resetBtn = document.getElementById('ti-reset-btn')!;
+
+  type RodType = 'cryo' | 'pyro';
+  let activeRod: RodType = 'cryo';
+
+  interface ThermalNode {
+    x: number;
+    y: number;
+    temp: number; // in Kelvin, 0 to 500
+    type: 'core' | 'heatsink' | 'fluid' | 'rod';
+    rodType?: RodType;
+  }
+
+  const COLS = 20;
+  const ROWS = 14;
+  let grid: Float32Array = new Float32Array(COLS * ROWS);
+  let placedRods: { c: number; r: number; type: RodType }[] = [];
+  let isWon = false;
+  let stabilityTime = 0;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  function init() {
+    isWon = false;
+    stabilityTime = 0;
+    placedRods = [];
+    grid.fill(150); // Ambient 150K
+    victoryModal.classList.add('hidden');
+
+    // Create central hot reactor core
+    for (let r = 5; r <= 8; r++) {
+      for (let c = 8; c <= 11; c++) {
+        grid[r * COLS + c] = 480;
+      }
+    }
+  }
+
+  function tick() {
+    const { width, height } = getLogicalSize();
+    ctx.clearRect(0, 0, width, height);
+
+    const cellW = width / COLS;
+    const cellH = height / ROWS;
+
+    // Thermal diffusion calculation with inversion
+    const nextGrid = new Float32Array(grid);
+    for (let r = 1; r < ROWS - 1; r++) {
+      for (let c = 1; c < COLS - 1; c++) {
+        const idx = r * COLS + c;
+        const neighbors = (grid[(r - 1) * COLS + c] + grid[(r + 1) * COLS + c] + grid[r * COLS + c - 1] + grid[r * COLS + c + 1]) / 4;
+        nextGrid[idx] += (neighbors - grid[idx]) * 0.08;
+      }
+    }
+
+    // Apply placed rods
+    placedRods.forEach(rod => {
+      const idx = rod.r * COLS + rod.c;
+      if (rod.type === 'cryo') {
+        // Negative temperature pump (draws heat out)
+        nextGrid[idx] = Math.max(10, nextGrid[idx] - 12);
+      } else {
+        nextGrid[idx] = Math.min(500, nextGrid[idx] + 12);
+      }
+    });
+
+    grid = nextGrid;
+
+    // Render Thermal Heatmap
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const t = grid[r * COLS + c];
+        // 0K = deep blue, 250K = emerald/amber, 500K = blinding red/orange
+        const ratio = Math.max(0, Math.min(1, t / 500));
+        const hue = (1 - ratio) * 220; // 220 (blue) to 0 (red)
+        ctx.fillStyle = `hsl(${hue}, 85%, ${20 + ratio * 35}%)`;
+        ctx.fillRect(c * cellW, r * cellH, cellW + 0.5, cellH + 0.5);
+      }
+    }
+
+    // Draw Core Target Box
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8 * cellW, 5 * cellH, 4 * cellW, 4 * cellH);
+
+    // Compute average core temperature
+    let coreSum = 0;
+    let coreCount = 0;
+    for (let r = 5; r <= 8; r++) {
+      for (let c = 8; c <= 11; c++) {
+        coreSum += grid[r * COLS + c];
+        coreCount++;
+      }
+    }
+    const avgCoreT = Math.round(coreSum / coreCount);
+    coreTempEl.textContent = `${avgCoreT} K`;
+
+    // Target equilibrium is between 220K and 270K
+    const isEquilibrium = avgCoreT >= 220 && avgCoreT <= 270;
+    if (isEquilibrium) {
+      entropyEl.textContent = "EQUILIBRIUM";
+      entropyEl.className = "font-bold text-emerald-400 font-mono ml-1 text-sm animate-pulse";
+      stabilityTime += 0.016;
+      if (stabilityTime >= 2.5 && !isWon) {
+        isWon = true;
+        sound.victory();
+        launchConfetti();
+        player.addXp(250);
+        victoryModal.classList.remove('hidden');
+      }
+    } else {
+      entropyEl.textContent = avgCoreT > 270 ? "OVERHEATING" : "CRYO-LOCK";
+      entropyEl.className = avgCoreT > 270 
+        ? "font-bold text-rose-400 font-mono ml-1 text-sm" 
+        : "font-bold text-sky-400 font-mono ml-1 text-sm";
+      stabilityTime = Math.max(0, stabilityTime - 0.01);
+    }
+
+    // Draw Placed Rods
+    placedRods.forEach(rod => {
+      ctx.save();
+      ctx.translate((rod.c + 0.5) * cellW, (rod.r + 0.5) * cellH);
+      ctx.beginPath();
+      ctx.arc(0, 0, cellW * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = rod.type === 'cryo' ? '#0ea5e9' : '#f97316';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    requestAnimationFrame(tick);
+  }
+
+  // Pointer click to drop rod
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const cellW = rect.width / COLS;
+    const cellH = rect.height / ROWS;
+    const c = Math.floor((e.clientX - rect.left) / cellW);
+    const r = Math.floor((e.clientY - rect.top) / cellH);
+
+    if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+      // Don't place directly inside core
+      if (!(c >= 8 && c <= 11 && r >= 5 && r <= 8)) {
+        placedRods.push({ c, r, type: activeRod });
+        sound.playTone(activeRod === 'cryo' ? 600 : 200, 'sine', 0.1, 0.15);
+      }
+    }
+  });
+
+  document.querySelectorAll('.ti-rod-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      activeRod = (e.currentTarget as HTMLElement).getAttribute('data-type') as RodType;
+      document.querySelectorAll('.ti-rod-btn').forEach(b => {
+        const isMatch = b.getAttribute('data-type') === activeRod;
+        b.className = isMatch
+          ? `ti-rod-btn flex-1 py-2 sm:py-2.5 rounded-xl border border-${activeRod === 'cryo' ? 'sky' : 'orange'}-500/80 bg-${activeRod === 'cryo' ? 'sky' : 'orange'}-950/70 text-${activeRod === 'cryo' ? 'sky' : 'orange'}-300 font-bold active:scale-95 text-xs transition-all`
+          : `ti-rod-btn flex-1 py-2 sm:py-2.5 rounded-xl border border-slate-700 bg-slate-900/40 text-slate-400 font-bold active:scale-95 text-xs transition-all`;
+      });
+      sound.click();
+    });
+  });
+
+  resetBtn.addEventListener('click', init);
+  nextBtn.addEventListener('click', init);
+  window.addEventListener('resize', resize);
+
+  resize();
+  init();
+  requestAnimationFrame(tick);
+</script>

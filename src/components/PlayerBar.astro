@@ -1,36 +1,26 @@
 ---
-// Player Profile Bar: Daily Streak Flame, XP Level & Daily Quests Trigger
+// Player Profile Bar: Clean, minimal streak & trophies trigger
 ---
 
-<div class="flex items-center gap-2 text-xs">
-  <!-- Daily Streak Button -->
+<div class="flex items-center gap-1.5 text-xs">
+  <!-- Daily Streak Badge -->
   <button
     id="nav-streak-btn"
-    class="group flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 font-bold text-amber-300 transition-all hover:bg-amber-500/20 active:scale-95"
-    title="Daily Play Streak - Click to view daily rewards"
+    class="flex items-center gap-1 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300 transition-all hover:bg-amber-500/20 active:scale-95 cursor-pointer"
+    title="Daily Streak"
   >
-    <span class="text-base group-hover:scale-125 transition-transform">🔥</span>
-    <span id="nav-streak-text">1 Day</span>
+    <span>🔥</span>
+    <span id="nav-streak-text" class="font-mono text-[11px]">1d</span>
   </button>
 
-  <!-- Player Level & XP Progress Bar -->
+  <!-- Quests & Level Pill -->
   <button
     id="nav-quests-btn"
-    class="flex items-center gap-2 rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-gray-200 transition-all hover:border-brand-neon hover:text-white active:scale-95"
-    title="Daily Quests & Trophies"
+    class="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-gray-300 transition-all hover:border-brand-neon/60 hover:text-white active:scale-95 cursor-pointer"
+    title="Quests & Achievements"
   >
-    <span class="flex h-5 w-5 items-center justify-center rounded-md bg-brand-accent text-[10px] font-black text-white" id="nav-level-badge">
-      L1
-    </span>
-    <div class="hidden sm:flex flex-col text-left">
-      <div class="flex items-center justify-between text-[10px] font-semibold text-gray-300 leading-tight">
-        <span id="nav-level-title">Rookie</span>
-        <span class="text-[9px] text-brand-neon ml-2 font-mono" id="nav-xp-text">0/250</span>
-      </div>
-      <div class="mt-0.5 h-1 w-20 rounded-full bg-brand-border/60 overflow-hidden">
-        <div id="nav-xp-bar" class="h-full bg-gradient-to-r from-brand-neon to-brand-accent rounded-full" style="width: 10%"></div>
-      </div>
-    </div>
+    <span>🏆</span>
+    <span id="nav-level-badge" class="font-mono text-[11px] text-brand-neon font-bold">L1</span>
   </button>
 </div>
 
@@ -39,19 +29,11 @@
 
   const streakText = document.getElementById('nav-streak-text');
   const levelBadge = document.getElementById('nav-level-badge');
-  const levelTitle = document.getElementById('nav-level-title');
-  const xpText = document.getElementById('nav-xp-text');
-  const xpBar = document.getElementById('nav-xp-bar');
 
   function updateNav() {
     const profile = player.getProfile();
-    const progress = player.getLevelProgress();
-
-    if (streakText) streakText.textContent = `${profile.streak} Day${profile.streak > 1 ? 's' : ''}`;
+    if (streakText) streakText.textContent = `${profile.streak}d`;
     if (levelBadge) levelBadge.textContent = `L${profile.level}`;
-    if (levelTitle) levelTitle.textContent = player.getTitle().split(' ')[0];
-    if (xpText) xpText.textContent = `${progress.current}/${progress.max}`;
-    if (xpBar) xpBar.style.width = `${progress.percent}%`;
   }
 
   document.getElementById('nav-streak-btn')?.addEventListener('click', () => {

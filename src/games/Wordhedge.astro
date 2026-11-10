@@ -1,0 +1,77 @@
+---
+// WordHedge: Reverse Wordle
+---
+
+<div id="hedge-game" class="flex flex-col items-center justify-center p-3 select-none max-w-md mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Remaining: <span id="hedge-remaining" class="font-mono font-bold text-brand-neon">12</span></div>
+    <div>Clues Used: <span id="hedge-clues" class="font-mono font-bold text-white">0</span></div>
+  </div>
+
+  <div id="hedge-words" class="grid grid-cols-4 gap-2 w-full mb-3"></div>
+
+  <div class="w-full flex flex-col gap-1.5" id="hedge-questions">
+    <button class="hedge-q text-left px-3 py-2 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon" data-type="vowels">Does it have more than 2 vowels?</button>
+    <button class="hedge-q text-left px-3 py-2 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon" data-type="starts-c">Does it start with a Consonant?</button>
+    <button class="hedge-q text-left px-3 py-2 rounded-xl border border-brand-border bg-brand-card text-xs text-gray-200 hover:border-brand-neon" data-type="has-r">Does it contain the letter 'R'?</button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const SECRET = "CRANE";
+  let words = ['CRANE', 'GHOST', 'PLAZA', 'AUDIO', 'TRAIN', 'LEMON', 'BRAVE', 'SHARK', 'OCEAN', 'FLUTE', 'SWORD', 'PRISM'];
+  let clues = 0;
+
+  const wordsEl = document.getElementById('hedge-words')!;
+  const remEl = document.getElementById('hedge-remaining')!;
+  const cluesEl = document.getElementById('hedge-clues')!;
+
+  function render() {
+    wordsEl.innerHTML = '';
+    remEl.textContent = words.length.toString();
+    cluesEl.textContent = clues.toString();
+
+    words.forEach(w => {
+      const btn = document.createElement('button');
+      btn.className = 'p-2 rounded-lg border border-brand-border bg-brand-card font-mono text-xs font-bold text-white hover:border-brand-neon';
+      btn.textContent = w;
+      btn.addEventListener('click', () => {
+        if (w === SECRET) {
+          sound.victory();
+          alert(`🎉 Bullseye! The secret word was ${SECRET}!`);
+        } else {
+          sound.gameOver();
+          alert(`❌ Incorrect! ${w} is not the secret word.`);
+        }
+      });
+      wordsEl.appendChild(btn);
+    });
+  }
+
+  document.querySelectorAll('.hedge-q').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      sound.click();
+      clues++;
+      const type = (e.currentTarget as HTMLElement).dataset.type;
+
+      if (type === 'vowels') {
+        // SECRET is CRANE (2 vowels -> not > 2)
+        words = words.filter(w => (w.match(/[AEIOU]/g) || []).length <= 2);
+      } else if (type === 'starts-c') {
+        // CRANE starts with consonant
+        words = words.filter(w => !'AEIOU'.includes(w[0]));
+      } else if (type === 'has-r') {
+        // CRANE contains R
+        words = words.filter(w => w.includes('R'));
+      }
+
+      (e.currentTarget as HTMLButtonElement).disabled = true;
+      (e.currentTarget as HTMLElement).classList.add('opacity-40');
+      render();
+    });
+  });
+
+  render();
+</script>

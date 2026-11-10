@@ -26,6 +26,19 @@ const SUBDOMAIN_MAP = {
   'mines': '/games/minesweeper',
   'breakout': '/games/breakout',
   'bricks': '/games/breakout',
+  'connections': '/games/synapse',
+  'lexifall': '/games/lexifall',
+  'timeline': '/games/chronocross',
+  'vowelshift': '/games/vowelshift',
+  'cryptogram': '/games/cipherpunk',
+  'countdown': '/games/numberdrop',
+  'geopixel': '/games/geopixel',
+  'semantle': '/games/semanticlimb',
+  'wordhedge': '/games/wordhedge',
+  'radicals': '/games/kanjiforge',
+  'nanopoker': '/games/nanobalatro',
+  'orbitsurvivors': '/games/orbit-survivors',
+  'pegdungeon': '/games/peggledungeon',
 };
 
 export default {

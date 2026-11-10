@@ -1,0 +1,204 @@
+---
+// LexiFall: Word Tetris
+---
+
+<div id="lexifall-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Score: <span id="lexi-score" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Best: <span id="lexi-best" class="font-mono font-bold text-white">0</span></div>
+    <button id="lexi-restart" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300">Restart</button>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border bg-brand-dark overflow-hidden shadow-2xl">
+    <canvas id="lexi-canvas" width="320" height="400" class="block"></canvas>
+    <div id="lexi-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/85 p-6 text-center">
+      <span class="text-4xl">⚡</span>
+      <h3 class="text-xl font-bold text-white mt-1">Grid Overflow!</h3>
+      <p class="text-xs text-gray-300 mt-1">Score: <span id="lexi-final" class="text-brand-gold font-bold">0</span></p>
+      <button id="lexi-play-again" class="mt-4 rounded-xl bg-brand-accent px-5 py-2 text-xs font-bold text-white">Play Again</button>
+    </div>
+  </div>
+
+  <div class="mt-3 flex w-full items-center justify-between gap-2 bg-brand-card border border-brand-border p-2.5 rounded-xl">
+    <div class="flex-1 font-mono font-bold text-sm tracking-wider text-brand-neon pl-2" id="lexi-word">...</div>
+    <button id="lexi-pop" class="rounded-lg bg-brand-neon px-4 py-1.5 text-xs font-bold text-brand-dark hover:brightness-110">POP</button>
+    <button id="lexi-clear" class="rounded-lg border border-brand-border px-3 py-1.5 text-xs text-gray-300">Clear</button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('lexi-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('lexi-score')!;
+  const bestEl = document.getElementById('lexi-best')!;
+  const wordEl = document.getElementById('lexi-word')!;
+  const overlay = document.getElementById('lexi-overlay')!;
+  const finalEl = document.getElementById('lexi-final')!;
+  const popBtn = document.getElementById('lexi-pop')!;
+  const clearBtn = document.getElementById('lexi-clear')!;
+  const playAgain = document.getElementById('lexi-play-again')!;
+  const restartBtn = document.getElementById('lexi-restart')!;
+
+  const COLS = 6;
+  const ROWS = 8;
+  const TILE_SIZE = 50;
+  const VOWELS = 'AAEEIIOOUU';
+  const CONSONANTS = 'BCDFGHJKLMNPQRSTVWXYZ';
+
+  let grid: { letter: string; selected: boolean }[][] = [];
+  let currentWord: { col: number; row: number; letter: string }[] = [];
+  let score = 0;
+  let best = parseInt(localStorage.getItem('vibecade_lexi_best') || '0', 10);
+  let isGameOver = false;
+  let dropTimer: any = null;
+
+  bestEl.textContent = best.toString();
+
+  function init() {
+    isGameOver = false;
+    score = 0;
+    currentWord = [];
+    scoreEl.textContent = '0';
+    wordEl.textContent = 'TAP LETTERS';
+    overlay.classList.add('hidden');
+    grid = Array(COLS).fill(null).map(() => []);
+
+    for (let c = 0; c < COLS; c++) {
+      for (let r = 0; r < 3; r++) {
+        spawnTile(c);
+      }
+    }
+
+    clearInterval(dropTimer);
+    dropTimer = setInterval(dropTick, 2400);
+    draw();
+  }
+
+  function randomLetter() {
+    return Math.random() < 0.4 ? VOWELS[Math.floor(Math.random() * VOWELS.length)] : CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+  }
+
+  function spawnTile(col: number) {
+    if (grid[col].length >= ROWS) {
+      triggerGameOver();
+      return;
+    }
+    grid[col].push({ letter: randomLetter(), selected: false });
+  }
+
+  function dropTick() {
+    if (isGameOver) return;
+    const randomCol = Math.floor(Math.random() * COLS);
+    spawnTile(randomCol);
+    draw();
+  }
+
+  function triggerGameOver() {
+    isGameOver = true;
+    sound.gameOver();
+    clearInterval(dropTimer);
+    finalEl.textContent = score.toString();
+    overlay.classList.remove('hidden');
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0a0b10';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = 'rgba(236, 72, 153, 0.2)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, 40);
+    ctx.lineTo(canvas.width, 40);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for (let c = 0; c < COLS; c++) {
+      const colX = 10 + c * TILE_SIZE;
+      for (let r = 0; r < grid[c].length; r++) {
+        const tile = grid[c][r];
+        const tileY = canvas.height - 10 - (r + 1) * TILE_SIZE;
+
+        ctx.fillStyle = tile.selected ? '#10b981' : '#1e1b4b';
+        ctx.strokeStyle = tile.selected ? '#34d399' : '#4338ca';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(colX, tileY, TILE_SIZE - 4, TILE_SIZE - 4, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = tile.selected ? '#000000' : '#ffffff';
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tile.letter, colX + (TILE_SIZE - 4) / 2, tileY + (TILE_SIZE - 4) / 2);
+      }
+    }
+  }
+
+  canvas.addEventListener('click', (e) => {
+    if (isGameOver) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const c = Math.floor((x - 10) / TILE_SIZE);
+    if (c >= 0 && c < COLS) {
+      for (let r = 0; r < grid[c].length; r++) {
+        const tileY = canvas.height - 10 - (r + 1) * TILE_SIZE;
+        if (y >= tileY && y <= tileY + TILE_SIZE - 4) {
+          const tile = grid[c][r];
+          sound.click();
+          if (tile.selected) {
+            tile.selected = false;
+            currentWord = currentWord.filter(w => !(w.col === c && w.row === r));
+          } else {
+            tile.selected = true;
+            currentWord.push({ col: c, row: r, letter: tile.letter });
+          }
+          wordEl.textContent = currentWord.map(w => w.letter).join('') || 'TAP LETTERS';
+          draw();
+          break;
+        }
+      }
+    }
+  });
+
+  popBtn.addEventListener('click', () => {
+    if (currentWord.length < 3) {
+      sound.blip();
+      return;
+    }
+    sound.score();
+    const pts = currentWord.length * 100;
+    score += pts;
+    scoreEl.textContent = score.toString();
+    if (score > best) {
+      best = score;
+      bestEl.textContent = best.toString();
+      localStorage.setItem('vibecade_lexi_best', best.toString());
+    }
+
+    currentWord.sort((a, b) => b.row - a.row);
+    currentWord.forEach(w => {
+      grid[w.col].splice(w.row, 1);
+    });
+    currentWord = [];
+    wordEl.textContent = 'GREAT!';
+    draw();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    sound.click();
+    grid.forEach(col => col.forEach(t => t.selected = false));
+    currentWord = [];
+    wordEl.textContent = 'TAP LETTERS';
+    draw();
+  });
+
+  restartBtn.addEventListener('click', init);
+  playAgain.addEventListener('click', init);
+  init();
+</script>

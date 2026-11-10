@@ -10,6 +10,19 @@ import KlondikeSolitaire from '../../games/KlondikeSolitaire.astro';
 import CyberSnake from '../../games/CyberSnake.astro';
 import Minesweeper from '../../games/Minesweeper.astro';
 import BrickBreaker from '../../games/BrickBreaker.astro';
+import Synapse from '../../games/Synapse.astro';
+import Lexifall from '../../games/Lexifall.astro';
+import Chronocross from '../../games/Chronocross.astro';
+import Vowelshift from '../../games/Vowelshift.astro';
+import Cipherpunk from '../../games/Cipherpunk.astro';
+import Numberdrop from '../../games/Numberdrop.astro';
+import Geopixel from '../../games/Geopixel.astro';
+import Semanticlimb from '../../games/Semanticlimb.astro';
+import Wordhedge from '../../games/Wordhedge.astro';
+import Kanjiforge from '../../games/Kanjiforge.astro';
+import Nanobalatro from '../../games/Nanobalatro.astro';
+import OrbitSurvivors from '../../games/OrbitSurvivors.astro';
+import Peggledungeon from '../../games/Peggledungeon.astro';
 
 export function getStaticPaths() {
   return GAMES.map(game => ({
@@ -33,4 +46,17 @@ const { game } = Astro.props;
   {game.id === 'cyber-snake' && <CyberSnake />}
   {game.id === 'minesweeper' && <Minesweeper />}
   {game.id === 'breakout' && <BrickBreaker />}
+  {game.id === 'synapse' && <Synapse />} 
+  {game.id === 'lexifall' && <Lexifall />} 
+  {game.id === 'chronocross' && <Chronocross />} 
+  {game.id === 'vowelshift' && <Vowelshift />} 
+  {game.id === 'cipherpunk' && <Cipherpunk />} 
+  {game.id === 'numberdrop' && <Numberdrop />} 
+  {game.id === 'geopixel' && <Geopixel />} 
+  {game.id === 'semanticlimb' && <Semanticlimb />} 
+  {game.id === 'wordhedge' && <Wordhedge />} 
+  {game.id === 'kanjiforge' && <Kanjiforge />} 
+  {game.id === 'nanobalatro' && <Nanobalatro />} 
+  {game.id === 'orbit-survivors' && <OrbitSurvivors />} 
+  {game.id === 'peggledungeon' && <Peggledungeon />} 
 </GameLayout>

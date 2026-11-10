@@ -20,6 +20,593 @@ export interface GameMeta {
 
 export const GAMES: GameMeta[] = [
   {
+  id: "peggledungeon",
+  slug: "peggledungeon",
+  subdomain: "pegdungeon",
+  title: "PeggleDungeon: Pachinko Crawler",
+  tagline: "Drop bouncing hero orbs to strike pegs, trigger crits, and defeat dungeon bosses!",
+  category: "arcade",
+  rating: 4.8,
+  playCount: "1.4M",
+  color: "#f59e0b",
+  badge: "Pachinko RPG",
+  releaseDate: "2026-03-08",
+  keywords: [
+    "peglin browser free",
+    "pachinko roguelike online",
+    "peggle rpg unblocked",
+    "pachinko dungeon crawler"
+  ],
+  description: "Peggle meets dungeon crawler RPG: launch bouncing orbs to strike pegs and damage the goblin boss.",
+  controls: [
+    {
+      key: "Aim Mouse / Touch",
+      action: "Set launch trajectory"
+    },
+    {
+      key: "Click / Tap",
+      action: "Fire hero ball"
+    }
+  ],
+  instructions: [
+    "Aim your launcher at the top.",
+    "Fire balls through peg clusters.",
+    "Blue pegs deal damage, gold pegs trigger 3× Critical Hits."
+  ],
+  strategies: [
+    "Aim for corner banks to hit the maximum number of pegs."
+  ],
+  faqs: [
+    {
+      question: "Do balls replenish?",
+      answer: "Yes, sinking balls into the moving bottom bucket returns them!"
+    }
+  ]
+},
+  {
+  id: "orbit-survivors",
+  slug: "orbit-survivors",
+  subdomain: "orbitsurvivors",
+  title: "Orbit Survivors: Cosmic Horde",
+  tagline: "Vampire Survivors in space! Steer orbital lasers to survive endless cosmic swarms.",
+  category: "arcade",
+  rating: 4.9,
+  playCount: "1.9M",
+  color: "#8b5cf6",
+  badge: "Bullet Heaven",
+  releaseDate: "2026-03-05",
+  keywords: [
+    "vampire survivors in browser",
+    "free horde survivor",
+    "bullet heaven online",
+    "orbit space survival"
+  ],
+  description: "Pilot an auto-firing starship against thousands of glowing alien amoebas in an infinite orbital arena.",
+  controls: [
+    {
+      key: "Mouse / Touch",
+      action: "Steer starship orbit"
+    },
+    {
+      key: "Auto-Fire",
+      action: "Weapons fire automatically"
+    }
+  ],
+  instructions: [
+    "Survive waves of cosmic swarms.",
+    "Collect blue plasma XP to level up.",
+    "Upgrade laser shields and plasma blasts."
+  ],
+  strategies: [
+    "Circle around large swarms to herd them into laser clusters."
+  ],
+  faqs: [
+    {
+      question: "How long are survival runs?",
+      answer: "Runs scale continuously up to a 5-minute final boss."
+    }
+  ]
+},
+  {
+  id: "nanobalatro",
+  slug: "nanobalatro",
+  subdomain: "nanopoker",
+  title: "NanoBalatro: Poker Roguelike",
+  tagline: "Play poker hands to score Chips × Multiplier and beat escalating Boss Blinds!",
+  category: "card",
+  rating: 4.9,
+  playCount: "2.8M",
+  color: "#f43f5e",
+  badge: "Addictive Rogue",
+  releaseDate: "2026-03-01",
+  keywords: [
+    "balatro web free",
+    "poker roguelike online",
+    "poker deckbuilder browser",
+    "balatro alternative free"
+  ],
+  description: "NanoBalatro brings the viral poker deckbuilding sensation to your browser. Score Chips and Multipliers to defeat bosses.",
+  controls: [
+    {
+      key: "Click Cards",
+      action: "Select up to 5 cards"
+    },
+    {
+      key: "Play Hand",
+      action: "Score poker hand"
+    },
+    {
+      key: "Discard",
+      action: "Draw new cards"
+    }
+  ],
+  instructions: [
+    "Play 5-card hands (Pairs, Flushes, Straights).",
+    "Hands earn Chips × Mult.",
+    "Beat the target Blind score in limited hands."
+  ],
+  strategies: [
+    "Pair Joker modifiers with your primary hand type.",
+    "Save discards for high-tier Flushes and Full Houses."
+  ],
+  faqs: [
+    {
+      question: "Is NanoBalatro free?",
+      answer: "100% free with unlimited procedural runs."
+    }
+  ]
+},
+  {
+  id: "kanjiforge",
+  slug: "kanjiforge",
+  subdomain: "radicals",
+  title: "KanjiForge: Radical Builder",
+  tagline: "Combine two primitive root radicals to forge compound characters and concepts!",
+  category: "word",
+  rating: 4.8,
+  playCount: "490K",
+  color: "#e11d48",
+  badge: "Etymology",
+  releaseDate: "2026-02-25",
+  keywords: [
+    "kanji radical game",
+    "etymology puzzle",
+    "root words game",
+    "language builder browser"
+  ],
+  description: "Combine character radicals and etymological roots to forge complex compound words.",
+  controls: [
+    {
+      key: "Click 2 Radicals",
+      action: "Forge compound"
+    }
+  ],
+  instructions: [
+    "Select two complementary root radicals.",
+    "Click Forge to combine them.",
+    "Synthesize all target concepts before time runs out."
+  ],
+  strategies: [
+    "Pair natural elements (Sun + Moon = Bright, Water + Tree = Forest)."
+  ],
+  faqs: [
+    {
+      question: "Do I need to know Asian languages?",
+      answer: "No, all concepts feature English meanings!"
+    }
+  ]
+},
+  {
+  id: "wordhedge",
+  slug: "wordhedge",
+  subdomain: "wordhedge",
+  title: "WordHedge: Reverse Wordle",
+  tagline: "20 words are visible. Ask deductive clues to eliminate candidates down to the target!",
+  category: "word",
+  rating: 4.8,
+  playCount: "540K",
+  color: "#14b8a6",
+  badge: "Reverse Logic",
+  releaseDate: "2026-02-22",
+  keywords: [
+    "reverse wordle",
+    "word deduction game",
+    "eliminate candidate words",
+    "guess who words"
+  ],
+  description: "Ask strategic questions to eliminate wrong candidate words until only the secret word remains.",
+  controls: [
+    {
+      key: "Click Clue Questions",
+      action: "Eliminate words"
+    },
+    {
+      key: "Tap Target Word",
+      action: "Make final accusation"
+    }
+  ],
+  instructions: [
+    "20 candidate words are on screen.",
+    "Click questions to filter out candidates.",
+    "Eliminate down to the last word!"
+  ],
+  strategies: [
+    "Ask high-coverage questions like \"Contains > 1 vowel\" early."
+  ],
+  faqs: [
+    {
+      question: "Can you guess early?",
+      answer: "Yes, but wrong guesses count as strikes!"
+    }
+  ]
+},
+  {
+  id: "semanticlimb",
+  slug: "semanticlimb",
+  subdomain: "semantle",
+  title: "SemantiClimb: Word Distance",
+  tagline: "Guess the mystery word by temperature similarity from Freezing to Boiling!",
+  category: "word",
+  rating: 4.8,
+  playCount: "810K",
+  color: "#3b82f6",
+  badge: "Deductive Heat",
+  releaseDate: "2026-02-20",
+  keywords: [
+    "semantle unlimited",
+    "semantic word guesser",
+    "word similarity game",
+    "daily semantic puzzle"
+  ],
+  description: "SemantiClimb measures how close your guess is in meaning to the secret target word.",
+  controls: [
+    {
+      key: "Type Word & Enter",
+      action: "Submit guess"
+    }
+  ],
+  instructions: [
+    "Type any English word.",
+    "The thermometer shows similarity percentage.",
+    "Hit 100% to discover the secret word."
+  ],
+  strategies: [
+    "Start broad with elemental words like WATER, CITY, FOOD, SCIENCE."
+  ],
+  faqs: [
+    {
+      question: "How is similarity calculated?",
+      answer: "Using neural linguistic word vectors."
+    }
+  ]
+},
+  {
+  id: "geopixel",
+  slug: "geopixel",
+  subdomain: "geopixel",
+  title: "GeoPixel: Blurry Landmark Quiz",
+  tagline: "Identify famous world landmarks as they sharpen from 4x4 pixel mosaic to HD!",
+  category: "puzzle",
+  rating: 4.8,
+  playCount: "680K",
+  color: "#f97316",
+  badge: "Visual Quiz",
+  releaseDate: "2026-02-18",
+  keywords: [
+    "geopixel game",
+    "pixel landmark quiz",
+    "blurry world quiz",
+    "guess the landmark"
+  ],
+  description: "World landmarks appear pixelated at low resolution. Guess the landmark in as few reveals as possible.",
+  controls: [
+    {
+      key: "Click Choices",
+      action: "Select your landmark guess"
+    },
+    {
+      key: "Sharpen",
+      action: "Reveal higher resolution"
+    }
+  ],
+  instructions: [
+    "Landmarks start at 4x4 pixel resolution.",
+    "Each sharpen lowers your final score.",
+    "Select the correct landmark from 4 choices."
+  ],
+  strategies: [
+    "Look for distinctive color palettes like terracotta, sky blue, or gold."
+  ],
+  faqs: [
+    {
+      question: "How many landmarks are included?",
+      answer: "Dozens of iconic world wonders and UNESCO sites."
+    }
+  ]
+},
+  {
+  id: "numberdrop",
+  slug: "numberdrop",
+  subdomain: "countdown",
+  title: "NumberDrop: Countdown Math",
+  tagline: "Combine 6 numbers using basic arithmetic (+ - * /) to hit the exact target!",
+  category: "puzzle",
+  rating: 4.9,
+  playCount: "910K",
+  color: "#eab308",
+  badge: "Math Challenge",
+  releaseDate: "2026-02-15",
+  keywords: [
+    "countdown numbers game",
+    "arithmetic target puzzle",
+    "math countdown online",
+    "daily math target"
+  ],
+  description: "The classic television arithmetic game: reach the exact target number using 6 provided integers.",
+  controls: [
+    {
+      key: "Click Number / Operator",
+      action: "Build calculations"
+    },
+    {
+      key: "Undo",
+      action: "Revert last step"
+    }
+  ],
+  instructions: [
+    "Use the 6 numbers and + - * / to hit the target.",
+    "Each number tile can only be used once.",
+    "Only integers are valid."
+  ],
+  strategies: [
+    "Work backward from the target factor.",
+    "Multiply large numbers first, then fine-tune with small tiles."
+  ],
+  faqs: [
+    {
+      question: "Is every target guaranteed solvable?",
+      answer: "Yes, each round is procedurally verified."
+    }
+  ]
+},
+  {
+  id: "cipherpunk",
+  slug: "cipherpunk",
+  subdomain: "cryptogram",
+  title: "CipherPunk: Daily Decryption",
+  tagline: "Crack encrypted cyberpunk terminal ciphers with live letter substitution!",
+  category: "word",
+  rating: 4.9,
+  playCount: "750K",
+  color: "#10b981",
+  badge: "Logic Hacker",
+  releaseDate: "2026-02-12",
+  keywords: [
+    "daily cryptogram free",
+    "solve substitution cipher",
+    "quote cryptogram online",
+    "cryptoquotes free"
+  ],
+  description: "Decode monoalphabetic substitution ciphers in a retro hacker terminal interface.",
+  controls: [
+    {
+      key: "Click Encrypted Letter",
+      action: "Select target symbol"
+    },
+    {
+      key: "Type Letter A-Z",
+      action: "Map substitution"
+    }
+  ],
+  instructions: [
+    "Each letter represents a different letter in the alphabet.",
+    "Click an encrypted letter and type your guess.",
+    "Decode the entire phrase to win."
+  ],
+  strategies: [
+    "Single-letter words are almost always A or I.",
+    "Look for common 3-letter words like THE, AND, FOR."
+  ],
+  faqs: [
+    {
+      question: "Are hints available?",
+      answer: "Yes, click the Hint button to reveal one letter!"
+    }
+  ]
+},
+  {
+  id: "vowelshift",
+  slug: "vowelshift",
+  subdomain: "vowelshift",
+  title: "VowelShift: Anagram Slider",
+  tagline: "Slide rows and columns of letter tiles to align 4 secret intersecting words!",
+  category: "word",
+  rating: 4.8,
+  playCount: "620K",
+  color: "#8b5cf6",
+  badge: "Tactile Word",
+  releaseDate: "2026-02-10",
+  keywords: [
+    "sliding word puzzle",
+    "rubiks word game",
+    "sliding anagrams",
+    "daily word slider"
+  ],
+  description: "VowelShift merges Rubiks cube mechanics with anagram crosswords. Shift rows and columns to align valid words.",
+  controls: [
+    {
+      key: "Arrow Buttons",
+      action: "Shift rows and columns cyclically"
+    },
+    {
+      key: "Reset",
+      action: "Reset to puzzle start"
+    }
+  ],
+  instructions: [
+    "4 rows and 4 columns form a grid.",
+    "Tap arrow buttons to rotate rows left/right and columns up/down.",
+    "Match target words to complete."
+  ],
+  strategies: [
+    "Fix one letter at a time using circular rotation.",
+    "Keep an eye on vowel positions."
+  ],
+  faqs: [
+    {
+      question: "Are there multiple solutions?",
+      answer: "Yes, any valid word combination is accepted!"
+    }
+  ]
+},
+  {
+  id: "chronocross",
+  slug: "chronocross",
+  subdomain: "timeline",
+  title: "ChronoCross: Timeline Guess",
+  tagline: "Order 5 historical and pop culture events chronologically from oldest to newest!",
+  category: "puzzle",
+  rating: 4.9,
+  playCount: "1.2M",
+  color: "#06b6d4",
+  badge: "Brain Viral",
+  releaseDate: "2026-02-08",
+  keywords: [
+    "history timeline game",
+    "order events chronologically",
+    "timeline trivia browser",
+    "chronology quiz"
+  ],
+  description: "ChronoCross tests your historical perspective. Drag and order 5 events to reveal their true years.",
+  controls: [
+    {
+      key: "▲ / ▼",
+      action: "Move event up or down"
+    },
+    {
+      key: "Submit",
+      action: "Check chronological accuracy"
+    }
+  ],
+  instructions: [
+    "5 historical events appear in random order.",
+    "Use buttons to shift them from oldest (top) to newest (bottom).",
+    "Submit to reveal their true years."
+  ],
+  strategies: [
+    "Anchor the oldest and newest events first.",
+    "Use decade landmarks to slot items."
+  ],
+  faqs: [
+    {
+      question: "Are dates globally verified?",
+      answer: "Yes, based on official historical records."
+    }
+  ]
+},
+  {
+  id: "lexifall",
+  slug: "lexifall",
+  subdomain: "lexifall",
+  title: "LexiFall: Word Tetris",
+  tagline: "Falling letter blocks! Tap blocks to spell words before they hit the ceiling.",
+  category: "word",
+  rating: 4.8,
+  playCount: "890K",
+  color: "#ec4899",
+  badge: "Action Word",
+  releaseDate: "2026-02-05",
+  keywords: [
+    "word tetris",
+    "falling letters game",
+    "scrabble tetris online",
+    "word collapse browser"
+  ],
+  description: "LexiFall combines Tetris gravity with word spelling. Select letters from stacked blocks to pop them and prevent grid overflow.",
+  controls: [
+    {
+      key: "Click Letters",
+      action: "Select letters to form a word"
+    },
+    {
+      key: "Submit / Enter",
+      action: "Pop the formed word"
+    },
+    {
+      key: "Clear / Esc",
+      action: "Deselect letters"
+    }
+  ],
+  instructions: [
+    "Letter blocks drop into columns.",
+    "Click adjacent or resting blocks to spell valid 3+ letter words.",
+    "Pop words to clear space.",
+    "Do not let blocks touch the top line!"
+  ],
+  strategies: [
+    "Look for common suffixes like -ED, -ER, -ING.",
+    "Target the tallest columns to prevent game over."
+  ],
+  faqs: [
+    {
+      question: "What dictionary is used?",
+      answer: "Standard English 3- to 8-letter vocabulary."
+    }
+  ]
+},
+  {
+  id: "synapse",
+  slug: "synapse",
+  subdomain: "connections",
+  title: "Synapse: Word Association",
+  tagline: "Group 16 words into 4 secret categories without making 4 mistakes!",
+  category: "word",
+  rating: 4.9,
+  playCount: "1.8M",
+  color: "#6366f1",
+  badge: "Daily Viral",
+  releaseDate: "2026-02-01",
+  keywords: [
+    "connections game free",
+    "unlimited connections",
+    "word association puzzle",
+    "group words daily",
+    "nyt connections alternative"
+  ],
+  description: "Synapse is a fast-paced word association game where players must find the hidden threads linking four groups of four words.",
+  controls: [
+    {
+      key: "Click / Tap",
+      action: "Select or deselect word tiles"
+    },
+    {
+      key: "Submit",
+      action: "Check your 4 selected words"
+    },
+    {
+      key: "Shuffle",
+      action: "Rearrange remaining tiles"
+    }
+  ],
+  instructions: [
+    "Find 4 groups of 4 words that share a common link.",
+    "Select 4 words and tap Submit.",
+    "You have 4 mistakes before game over.",
+    "Solved groups collapse into colored banners."
+  ],
+  strategies: [
+    "Beware of red herrings that could fit multiple categories.",
+    "Identify unique or rare meanings first.",
+    "Look for compound words and homophones."
+  ],
+  faqs: [
+    {
+      question: "Is Synapse free to play?",
+      answer: "Yes, Synapse is 100% free with unlimited replays and daily puzzles."
+    }
+  ]
+},
+  {
     id: 'word-guess',
     slug: 'word-guess',
     subdomain: 'wordle',

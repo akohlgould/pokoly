@@ -1,0 +1,155 @@
+---
+// Orbit Survivors: Cosmic Horde
+---
+
+<div id="orbit-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Time: <span id="orbit-time" class="font-mono font-bold text-brand-neon">0s</span></div>
+    <div>Level: <span id="orbit-lvl" class="font-mono font-bold text-brand-gold">1</span></div>
+    <div>Kills: <span id="orbit-kills" class="font-mono font-bold text-white">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="orbit-canvas" width="340" height="360" class="block"></canvas>
+    <div id="orbit-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black/85 p-6 text-center">
+      <span class="text-4xl">💥</span>
+      <h3 class="text-xl font-bold text-white mt-1">Ship Destroyed</h3>
+      <p class="text-xs text-gray-300 mt-1">Survived: <span id="orbit-final-time" class="text-brand-neon font-bold">0s</span></p>
+      <button id="orbit-restart" class="mt-4 rounded-xl bg-brand-accent px-5 py-2 text-xs font-bold text-white">Relaunch</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('orbit-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const timeEl = document.getElementById('orbit-time')!;
+  const lvlEl = document.getElementById('orbit-lvl')!;
+  const killsEl = document.getElementById('orbit-kills')!;
+  const overlay = document.getElementById('orbit-overlay')!;
+  const finalTimeEl = document.getElementById('orbit-final-time')!;
+  const restartBtn = document.getElementById('orbit-restart')!;
+
+  let player = { x: 170, y: 180, r: 8, hp: 100 };
+  let enemies: { x: number; y: number; r: number; hp: number }[] = [];
+  let bullets: { x: number; y: number; vx: number; vy: number }[] = [];
+  let kills = 0;
+  let startTime = Date.now();
+  let isGameOver = false;
+  let shootTimer = 0;
+
+  function init() {
+    isGameOver = false;
+    player = { x: 170, y: 180, r: 8, hp: 100 };
+    enemies = [];
+    bullets = [];
+    kills = 0;
+    startTime = Date.now();
+    overlay.classList.add('hidden');
+    requestAnimationFrame(loop);
+  }
+
+  function loop() {
+    if (isGameOver) return;
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    timeEl.textContent = `${elapsed}s`;
+    killsEl.textContent = kills.toString();
+
+    // Spawn enemies
+    if (Math.random() < 0.08) {
+      const angle = Math.random() * Math.PI * 2;
+      enemies.push({
+        x: 170 + Math.cos(angle) * 200,
+        y: 180 + Math.sin(angle) * 200,
+        r: 6,
+        hp: 1
+      });
+    }
+
+    // Auto-fire bullets
+    shootTimer++;
+    if (shootTimer % 15 === 0 && enemies.length > 0) {
+      sound.blip();
+      const target = enemies[0];
+      const angle = Math.atan2(target.y - player.y, target.x - player.x);
+      bullets.push({
+        x: player.x,
+        y: player.y,
+        vx: Math.cos(angle) * 7,
+        vy: Math.sin(angle) * 7
+      });
+    }
+
+    // Update bullets
+    bullets.forEach(b => {
+      b.x += b.vx;
+      b.y += b.vy;
+    });
+    bullets = bullets.filter(b => b.x > 0 && b.x < canvas.width && b.y > 0 && b.y < canvas.height);
+
+    // Update enemies
+    enemies.forEach(e => {
+      const angle = Math.atan2(player.y - e.y, player.x - e.x);
+      e.x += Math.cos(angle) * 1.4;
+      e.y += Math.sin(angle) * 1.4;
+
+      // Check hit player
+      const dist = Math.hypot(e.x - player.x, e.y - player.y);
+      if (dist < player.r + e.r) {
+        isGameOver = true;
+        sound.explosion();
+        finalTimeEl.textContent = `${elapsed}s`;
+        overlay.classList.remove('hidden');
+      }
+    });
+
+    // Bullet collisions
+    bullets.forEach(b => {
+      enemies.forEach((e, eIdx) => {
+        if (Math.hypot(b.x - e.x, b.y - e.y) < e.r + 4) {
+          enemies.splice(eIdx, 1);
+          kills++;
+        }
+      });
+    });
+
+    // Draw
+    ctx.fillStyle = '#06070a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw player
+    ctx.fillStyle = '#8b5cf6';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw enemies
+    ctx.fillStyle = '#ef4444';
+    enemies.forEach(e => {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw bullets
+    ctx.fillStyle = '#38bdf8';
+    bullets.forEach(b => {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    player.x = e.clientX - rect.left;
+    player.y = e.clientY - rect.top;
+  });
+
+  restartBtn.addEventListener('click', init);
+  init();
+</script>

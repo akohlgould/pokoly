@@ -1,0 +1,105 @@
+---
+// NumberDrop: Countdown Math
+---
+
+<div id="numberdrop-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Target: <span id="num-target" class="font-mono text-xl font-black text-brand-gold">432</span></div>
+    <div>Current: <span id="num-current" class="font-mono text-base font-bold text-white">0</span></div>
+  </div>
+
+  <div class="w-full p-4 bg-brand-dark border-2 border-brand-border rounded-2xl shadow-2xl">
+    <div id="num-tiles" class="grid grid-cols-3 gap-2 mb-4"></div>
+    <div class="flex justify-center gap-2 mb-2">
+      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">+</button>
+      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">-</button>
+      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">×</button>
+      <button class="num-op w-12 h-10 rounded-xl bg-brand-card border border-brand-border text-lg font-bold text-brand-neon hover:bg-brand-neon hover:text-brand-dark">÷</button>
+    </div>
+  </div>
+
+  <button id="num-reset" class="mt-3 w-full rounded-xl border border-brand-border bg-brand-card py-2 text-xs font-semibold text-gray-300 hover:text-white">Reset Tiles</button>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const TARGET = 384;
+  const INITIAL_TILES = [75, 50, 8, 4, 3, 2];
+  let availableTiles: number[] = [...INITIAL_TILES];
+  let firstSelected: number | null = null;
+  let selectedOp: string | null = null;
+
+  const targetEl = document.getElementById('num-target')!;
+  const currentEl = document.getElementById('num-current')!;
+  const tilesEl = document.getElementById('num-tiles')!;
+  const resetBtn = document.getElementById('num-reset')!;
+
+  targetEl.textContent = TARGET.toString();
+
+  function render() {
+    tilesEl.innerHTML = '';
+    availableTiles.forEach((num, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `h-14 rounded-xl border font-mono text-base font-bold transition-all ${
+        firstSelected === idx ? 'bg-brand-neon text-brand-dark border-brand-neon scale-95' : 'bg-brand-card border-brand-border text-white hover:border-gray-400'
+      }`;
+      btn.textContent = num.toString();
+      btn.addEventListener('click', () => handleTileClick(idx));
+      tilesEl.appendChild(btn);
+    });
+
+    currentEl.textContent = firstSelected !== null ? availableTiles[firstSelected].toString() : '0';
+  }
+
+  function handleTileClick(idx: number) {
+    sound.click();
+    if (firstSelected === null) {
+      firstSelected = idx;
+    } else if (selectedOp !== null) {
+      const a = availableTiles[firstSelected];
+      const b = availableTiles[idx];
+      let res = 0;
+
+      if (selectedOp === '+') res = a + b;
+      if (selectedOp === '-') res = a - b;
+      if (selectedOp === '×') res = a * b;
+      if (selectedOp === '÷') {
+        if (b === 0 || a % b !== 0) {
+          sound.blip();
+          return;
+        }
+        res = a / b;
+      }
+
+      sound.score();
+      availableTiles = availableTiles.filter((_, i) => i !== firstSelected && i !== idx);
+      availableTiles.push(res);
+      firstSelected = null;
+      selectedOp = null;
+
+      if (res === TARGET) {
+        sound.victory();
+        setTimeout(() => alert('🎉 Exact Match Solved!'), 200);
+      }
+    }
+    render();
+  }
+
+  document.querySelectorAll('.num-op').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (firstSelected === null) return;
+      sound.click();
+      selectedOp = (e.currentTarget as HTMLElement).textContent!;
+    });
+  });
+
+  resetBtn.addEventListener('click', () => {
+    availableTiles = [...INITIAL_TILES];
+    firstSelected = null;
+    selectedOp = null;
+    render();
+  });
+
+  render();
+</script>

@@ -1,0 +1,93 @@
+---
+// KanjiForge: Radical Builder
+---
+
+<div id="forge-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Forged: <span id="forge-count" class="font-mono font-bold text-brand-neon">0/4</span></div>
+    <div>Score: <span id="forge-score" class="font-mono font-bold text-brand-gold">0</span></div>
+  </div>
+
+  <div class="text-xs text-gray-400 mb-2">Select 2 Radicals to Forge:</div>
+  <div id="forge-radicals" class="grid grid-cols-4 gap-2 w-full mb-4"></div>
+
+  <div class="w-full p-4 rounded-xl border border-brand-border bg-brand-dark text-center">
+    <div class="text-xs text-gray-500">Selected Ingredients:</div>
+    <div id="forge-selected" class="font-mono font-bold text-base text-brand-neon mt-1">None</div>
+    <button id="forge-btn" class="mt-3 w-full rounded-xl bg-brand-accent py-2 text-xs font-bold text-white hover:scale-105 active:scale-95 transition-all">Forge Compound</button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const RADICALS = [
+    { symbol: '氵', name: 'Water' },
+    { symbol: '木', name: 'Tree' },
+    { symbol: '日', name: 'Sun' },
+    { symbol: '月', name: 'Moon' },
+    { symbol: '火', name: 'Fire' },
+    { symbol: '山', name: 'Mountain' }
+  ];
+
+  let selected: string[] = [];
+  let score = 0;
+  let forgedCount = 0;
+
+  const radEl = document.getElementById('forge-radicals')!;
+  const selEl = document.getElementById('forge-selected')!;
+  const btn = document.getElementById('forge-btn')!;
+  const countEl = document.getElementById('forge-count')!;
+  const scoreEl = document.getElementById('forge-score')!;
+
+  function render() {
+    radEl.innerHTML = '';
+    RADICALS.forEach(r => {
+      const isSel = selected.includes(r.symbol);
+      const b = document.createElement('button');
+      b.className = `p-3 rounded-xl border flex flex-col items-center justify-center transition-all ${
+        isSel ? 'bg-brand-neon text-brand-dark border-brand-neon' : 'bg-brand-card border-brand-border text-white hover:border-gray-500'
+      }`;
+      b.innerHTML = `<span class="text-xl font-bold">${r.symbol}</span><span class="text-[10px] opacity-80 mt-1">${r.name}</span>`;
+      b.addEventListener('click', () => {
+        sound.click();
+        if (selected.includes(r.symbol)) {
+          selected = selected.filter(s => s !== r.symbol);
+        } else if (selected.length < 2) {
+          selected.push(r.symbol);
+        }
+        selEl.textContent = selected.join(' + ') || 'None';
+        render();
+      });
+      radEl.appendChild(b);
+    });
+  }
+
+  btn.addEventListener('click', () => {
+    if (selected.length !== 2) return;
+    const pair = [...selected].sort().join('');
+
+    if (pair === '日月') {
+      sound.victory();
+      alert('🌟 Forged 明 (BRIGHT)! +500 pts');
+      score += 500;
+      forgedCount++;
+    } else if (pair === '木氵') {
+      sound.victory();
+      alert('🌲 Forged 沐 (WASH / CLEANSE)! +500 pts');
+      score += 500;
+      forgedCount++;
+    } else {
+      sound.blip();
+      alert('💥 Incompatible combination! Try different radicals.');
+    }
+
+    selected = [];
+    selEl.textContent = 'None';
+    countEl.textContent = `${forgedCount}/4`;
+    scoreEl.textContent = score.toString();
+    render();
+  });
+
+  render();
+</script>

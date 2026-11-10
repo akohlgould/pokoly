@@ -1,0 +1,74 @@
+---
+// SemantiClimb: Word Distance
+---
+
+<div id="semanti-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Guesses: <span id="semanti-count" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Top Heat: <span id="semanti-top" class="font-mono font-bold text-brand-gold">0%</span></div>
+  </div>
+
+  <div class="flex gap-2 w-full mb-3">
+    <input id="semanti-input" type="text" placeholder="Type a guess..." class="flex-1 rounded-xl bg-brand-card border border-brand-border px-3 py-2 text-xs text-white uppercase font-mono focus:border-brand-neon outline-none" />
+    <button id="semanti-submit" class="rounded-xl bg-brand-neon px-4 py-2 text-xs font-bold text-brand-dark">Guess</button>
+  </div>
+
+  <div id="semanti-history" class="w-full flex flex-col gap-1.5 max-h-60 overflow-y-auto"></div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const SECRET = "GALAXY";
+  const SIMILARITIES: Record<string, number> = {
+    'STAR': 88, 'SPACE': 92, 'UNIVERSE': 96, 'SOLAR': 74, 'PLANET': 81,
+    'OCEAN': 32, 'DOG': 5, 'CAR': 12, 'TELESCOPE': 78, 'ROCKET': 69
+  };
+
+  let count = 0;
+  let topHeat = 0;
+
+  const inputEl = document.getElementById('semanti-input') as HTMLInputElement;
+  const submitBtn = document.getElementById('semanti-submit')!;
+  const countEl = document.getElementById('semanti-count')!;
+  const topEl = document.getElementById('semanti-top')!;
+  const historyEl = document.getElementById('semanti-history')!;
+
+  function submitGuess() {
+    const val = inputEl.value.trim().toUpperCase();
+    if (!val) return;
+    inputEl.value = '';
+    count++;
+    countEl.textContent = count.toString();
+
+    let heat = SIMILARITIES[val] || Math.floor(Math.random() * 40);
+    if (val === SECRET) heat = 100;
+
+    if (heat > topHeat) {
+      topHeat = heat;
+      topEl.textContent = `${topHeat}%`;
+    }
+
+    if (heat === 100) {
+      sound.victory();
+      alert(`🎉 Victory! The secret word was ${SECRET} in ${count} guesses!`);
+    } else if (heat > 70) {
+      sound.score();
+    } else {
+      sound.blip();
+    }
+
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between rounded-lg bg-brand-card border border-brand-border px-3 py-2 text-xs';
+    row.innerHTML = `
+      <span class="font-bold font-mono text-white">${val}</span>
+      <span class="font-mono font-bold ${heat > 75 ? 'text-red-400' : heat > 50 ? 'text-amber-400' : 'text-blue-400'}">${heat}%</span>
+    `;
+    historyEl.prepend(row);
+  }
+
+  submitBtn.addEventListener('click', submitGuess);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitGuess();
+  });
+</script>

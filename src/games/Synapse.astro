@@ -1,0 +1,179 @@
+---
+// Synapse: Word Association
+---
+
+<div id="synapse-game" class="flex flex-col items-center justify-center p-3 select-none max-w-lg mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div class="flex items-center gap-1.5">
+      <span class="text-gray-400">Mistakes Left:</span>
+      <div id="synapse-lives" class="flex gap-1 text-brand-pink text-sm">● ● ● ●</div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <span class="text-gray-400">Solved:</span>
+      <span id="synapse-solved-count" class="font-mono text-base font-bold text-brand-neon">0/4</span>
+    </div>
+    <button id="synapse-restart" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white">New Game</button>
+  </div>
+
+  <div id="synapse-solved-categories" class="w-full flex flex-col gap-2 mb-2"></div>
+  <div id="synapse-grid" class="grid grid-cols-4 gap-2 w-full"></div>
+
+  <div class="mt-4 flex flex-wrap items-center justify-center gap-2 w-full">
+    <button id="synapse-shuffle" class="rounded-xl border border-brand-border bg-brand-card px-4 py-2 text-xs font-semibold text-gray-200 hover:text-white">Shuffle</button>
+    <button id="synapse-deselect" class="rounded-xl border border-brand-border bg-brand-card px-4 py-2 text-xs font-semibold text-gray-200 hover:text-white">Deselect All</button>
+    <button id="synapse-submit" class="rounded-xl bg-gradient-to-r from-brand-accent to-indigo-600 px-6 py-2 text-xs font-bold text-white shadow-lg disabled:opacity-50 hover:scale-105 active:scale-95 transition-all">Submit (0/4)</button>
+  </div>
+
+  <div id="synapse-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="rounded-2xl border-2 border-brand-border bg-brand-dark p-6 max-w-sm w-full text-center shadow-2xl">
+      <span id="synapse-modal-icon" class="text-5xl">🎉</span>
+      <h3 id="synapse-modal-title" class="text-2xl font-bold text-white mt-2">Brilliant!</h3>
+      <p id="synapse-modal-msg" class="text-xs text-gray-300 mt-1">You solved all 4 categories!</p>
+      <button id="synapse-modal-btn" class="mt-5 w-full rounded-xl bg-brand-accent py-2.5 text-xs font-bold text-white hover:scale-105 active:scale-95 transition-transform">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const PUZZLE_POOLS = [
+    [
+      { name: 'Celestial Bodies', color: 'bg-amber-500/20 text-amber-300 border-amber-500/50', words: ['COMET', 'ASTEROID', 'PLANET', 'METEOR'] },
+      { name: 'Coffee Orders', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50', words: ['LATTE', 'MOCHA', 'ESPRESSO', 'AMERICANO'] },
+      { name: 'Musical Instruments', color: 'bg-sky-500/20 text-sky-300 border-sky-500/50', words: ['VIOLIN', 'CELLO', 'FLUTE', 'TRUMPET'] },
+      { name: 'Words Starting with "Cyber"', color: 'bg-purple-500/20 text-purple-300 border-purple-500/50', words: ['PUNK', 'SPACE', 'ATTACK', 'TRUCK'] }
+    ],
+    [
+      { name: 'Types of Footwear', color: 'bg-amber-500/20 text-amber-300 border-amber-500/50', words: ['BOOT', 'SNEAKER', 'SANDAL', 'LOAFER'] },
+      { name: 'Card Game Suits', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50', words: ['HEART', 'DIAMOND', 'CLUB', 'SPADE'] },
+      { name: 'Things with Keys', color: 'bg-sky-500/20 text-sky-300 border-sky-500/50', words: ['PIANO', 'KEYBOARD', 'PADLOCK', 'MAP'] },
+      { name: 'Fast Moving Animals', color: 'bg-purple-500/20 text-purple-300 border-purple-500/50', words: ['CHEETAH', 'FALCON', 'MARLIN', 'HARE'] }
+    ]
+  ];
+
+  let currentPoolIdx = 0;
+  let categories = PUZZLE_POOLS[0];
+  let remainingWords: { word: string; catIdx: number }[] = [];
+  let selectedWords: string[] = [];
+  let mistakes = 4;
+  let solvedCategories: number[] = [];
+
+  const gridEl = document.getElementById('synapse-grid')!;
+  const solvedEl = document.getElementById('synapse-solved-categories')!;
+  const livesEl = document.getElementById('synapse-lives')!;
+  const countEl = document.getElementById('synapse-solved-count')!;
+  const submitBtn = document.getElementById('synapse-submit') as HTMLButtonElement;
+  const shuffleBtn = document.getElementById('synapse-shuffle')!;
+  const deselectBtn = document.getElementById('synapse-deselect')!;
+  const restartBtn = document.getElementById('synapse-restart')!;
+  const modal = document.getElementById('synapse-modal')!;
+  const modalBtn = document.getElementById('synapse-modal-btn')!;
+
+  function initGame() {
+    categories = PUZZLE_POOLS[currentPoolIdx % PUZZLE_POOLS.length];
+    currentPoolIdx++;
+    remainingWords = [];
+    categories.forEach((cat, cIdx) => {
+      cat.words.forEach(w => remainingWords.push({ word: w, catIdx: cIdx }));
+    });
+    shuffleArray(remainingWords);
+    selectedWords = [];
+    mistakes = 4;
+    solvedCategories = [];
+    modal.classList.add('hidden');
+    render();
+  }
+
+  function shuffleArray(arr: any[]) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function render() {
+    livesEl.innerHTML = Array(mistakes).fill('●').join(' ') || '<span class="text-xs text-red-500">None</span>';
+    countEl.textContent = `${solvedCategories.length}/4`;
+    submitBtn.textContent = `Submit (${selectedWords.length}/4)`;
+    submitBtn.disabled = selectedWords.length !== 4;
+
+    solvedEl.innerHTML = '';
+    solvedCategories.forEach(cIdx => {
+      const cat = categories[cIdx];
+      const div = document.createElement('div');
+      div.className = `w-full rounded-xl border p-2.5 text-center transition-all animate-fade-in ${cat.color}`;
+      div.innerHTML = `<div class="font-bold text-xs uppercase tracking-wide">${cat.name}</div><div class="text-[11px] opacity-90 font-mono mt-0.5">${cat.words.join(', ')}</div>`;
+      solvedEl.appendChild(div);
+    });
+
+    gridEl.innerHTML = '';
+    remainingWords.forEach(item => {
+      const isSelected = selectedWords.includes(item.word);
+      const btn = document.createElement('button');
+      btn.className = `h-16 rounded-xl border text-xs font-bold uppercase transition-all duration-150 flex items-center justify-center p-1 text-center leading-tight ${
+        isSelected ? 'bg-brand-neon text-brand-dark border-brand-neon scale-95 shadow-md font-extrabold' : 'bg-brand-card text-gray-200 border-brand-border hover:border-gray-500 hover:text-white'
+      }`;
+      btn.textContent = item.word;
+      btn.addEventListener('click', () => toggleWord(item.word));
+      gridEl.appendChild(btn);
+    });
+  }
+
+  function toggleWord(word: string) {
+    sound.click();
+    if (selectedWords.includes(word)) {
+      selectedWords = selectedWords.filter(w => w !== word);
+    } else if (selectedWords.length < 4) {
+      selectedWords.push(word);
+    }
+    render();
+  }
+
+  function checkSelection() {
+    if (selectedWords.length !== 4) return;
+    const catIndices = selectedWords.map(w => remainingWords.find(r => r.word === w)!.catIdx);
+    const allSame = catIndices.every(c => c === catIndices[0]);
+
+    if (allSame) {
+      sound.victory();
+      const solvedIdx = catIndices[0];
+      solvedCategories.push(solvedIdx);
+      remainingWords = remainingWords.filter(r => r.catIdx !== solvedIdx);
+      selectedWords = [];
+      if (solvedCategories.length === 4) {
+        setTimeout(showWin, 500);
+      }
+    } else {
+      sound.blip();
+      mistakes--;
+      if (mistakes <= 0) {
+        sound.gameOver();
+        setTimeout(showLoss, 500);
+      }
+    }
+    render();
+  }
+
+  function showWin() {
+    (document.getElementById('synapse-modal-icon')!).textContent = '🎉';
+    (document.getElementById('synapse-modal-title')!).textContent = 'Mind Synced!';
+    (document.getElementById('synapse-modal-msg')!).textContent = 'You identified all four connections!';
+    modal.classList.remove('hidden');
+  }
+
+  function showLoss() {
+    (document.getElementById('synapse-modal-icon')!).textContent = '💥';
+    (document.getElementById('synapse-modal-title')!).textContent = 'Connection Broken!';
+    (document.getElementById('synapse-modal-msg')!).textContent = 'Out of mistakes. Try again!';
+    modal.classList.remove('hidden');
+  }
+
+  submitBtn.addEventListener('click', checkSelection);
+  shuffleBtn.addEventListener('click', () => { sound.click(); shuffleArray(remainingWords); render(); });
+  deselectBtn.addEventListener('click', () => { sound.click(); selectedWords = []; render(); });
+  restartBtn.addEventListener('click', initGame);
+  modalBtn.addEventListener('click', initGame);
+
+  initGame();
+</script>

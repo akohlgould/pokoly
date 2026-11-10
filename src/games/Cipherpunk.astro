@@ -1,0 +1,106 @@
+---
+// CipherPunk: Daily Decryption
+---
+
+<div id="cipher-game" class="flex flex-col items-center justify-center p-3 select-none max-w-lg mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-emerald-500/40 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div class="font-mono text-emerald-400">NETRUNNER DECRYPTOR v2.4</div>
+    <button id="cipher-hint" class="rounded border border-emerald-500/50 bg-emerald-950/40 px-2.5 py-1 text-xs text-emerald-300 hover:text-white">Hint (1 Free)</button>
+  </div>
+
+  <div class="w-full rounded-2xl border-2 border-emerald-500/30 bg-black/90 p-5 font-mono shadow-2xl text-emerald-400">
+    <div id="cipher-text" class="flex flex-wrap gap-2 text-base leading-loose"></div>
+  </div>
+
+  <div class="mt-4 flex flex-wrap justify-center gap-1.5 w-full" id="cipher-keyboard"></div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const SECRET = "INFORMATION WANTS TO BE FREE IN CYBERSPACE";
+  const CIPHER_MAP: Record<string, string> = {
+    'I': 'X', 'N': 'K', 'F': 'Q', 'O': 'Z', 'R': 'M', 'M': 'T', 'A': 'P', 'T': 'V',
+    'W': 'L', 'S': 'J', 'B': 'D', 'E': 'C', 'C': 'Y', 'Y': 'H', 'P': 'R'
+  };
+
+  let playerSubstitutions: Record<string, string> = {};
+  let selectedCipherLetter: string | null = null;
+
+  const textEl = document.getElementById('cipher-text')!;
+  const kbEl = document.getElementById('cipher-keyboard')!;
+  const hintBtn = document.getElementById('cipher-hint')!;
+
+  function render() {
+    textEl.innerHTML = '';
+    const words = SECRET.split(' ');
+    words.forEach(w => {
+      const wordContainer = document.createElement('div');
+      wordContainer.className = 'flex gap-1 mr-3 mb-2';
+      for (const char of w) {
+        const cipherLetter = CIPHER_MAP[char] || char;
+        const guessed = playerSubstitutions[cipherLetter] || '_';
+        const isSelected = selectedCipherLetter === cipherLetter;
+
+        const charBox = document.createElement('div');
+        charBox.className = `flex flex-col items-center cursor-pointer rounded px-1 ${isSelected ? 'bg-emerald-500/30 border border-emerald-400' : ''}`;
+        charBox.innerHTML = `
+          <span class="text-sm font-bold ${guessed === char ? 'text-brand-neon' : guessed !== '_' ? 'text-amber-400' : 'text-gray-500'}">${guessed}</span>
+          <span class="text-xs text-emerald-300 font-mono border-t border-emerald-800">${cipherLetter}</span>
+        `;
+        charBox.addEventListener('click', () => {
+          sound.click();
+          selectedCipherLetter = cipherLetter;
+          render();
+        });
+        wordContainer.appendChild(charBox);
+      }
+      textEl.appendChild(wordContainer);
+    });
+
+    checkCompletion();
+  }
+
+  function setupKeyboard() {
+    kbEl.innerHTML = '';
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(letter => {
+      const btn = document.createElement('button');
+      btn.className = 'w-8 h-9 rounded bg-brand-card border border-brand-border text-xs font-bold text-gray-200 hover:border-emerald-400 hover:text-white';
+      btn.textContent = letter;
+      btn.addEventListener('click', () => {
+        if (!selectedCipherLetter) return;
+        sound.click();
+        playerSubstitutions[selectedCipherLetter] = letter;
+        render();
+      });
+      kbEl.appendChild(btn);
+    });
+  }
+
+  function checkCompletion() {
+    const isComplete = SECRET.split('').every(char => {
+      if (char === ' ') return true;
+      const cipher = CIPHER_MAP[char] || char;
+      return playerSubstitutions[cipher] === char;
+    });
+
+    if (isComplete) {
+      sound.victory();
+      setTimeout(() => alert('🎉 Cipher Cracked! Decryption Complete.'), 200);
+    }
+  }
+
+  hintBtn.addEventListener('click', () => {
+    sound.score();
+    for (const [plain, cipher] of Object.entries(CIPHER_MAP)) {
+      if (!playerSubstitutions[cipher]) {
+        playerSubstitutions[cipher] = plain;
+        break;
+      }
+    }
+    render();
+  });
+
+  setupKeyboard();
+  render();
+</script>

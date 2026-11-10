@@ -76,3 +76,4 @@ if (!workerContent.includes(subdomainMappings[0].trim())) {
 }
 
 console.log('🎉 Successfully unpacked all 13 games!');
+

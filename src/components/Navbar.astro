@@ -65,6 +65,7 @@ import PlayerBar from './PlayerBar.astro';
 
 <script>
   import { sound } from '../utils/audio';
+  import { GAMES } from '../data/games';
 
   const audioBtn = document.getElementById('global-audio-toggle');
   const audioIcon = document.getElementById('audio-icon');
@@ -82,9 +83,10 @@ import PlayerBar from './PlayerBar.astro';
   const randomBtn = document.getElementById('random-game-btn');
   if (randomBtn) {
     randomBtn.addEventListener('click', () => {
-      const gameSlugs = ['word-guess', 'fruit-merge', 'neon-2048', 'solitaire', 'cyber-snake', 'minesweeper', 'breakout'];
-      const chosen = gameSlugs[Math.floor(Math.random() * gameSlugs.length)];
-      window.location.href = `/games/${chosen}`;
+      const chosen = GAMES[Math.floor(Math.random() * GAMES.length)];
+      if (chosen) {
+        window.location.href = `/games/${chosen.slug}`;
+      }
     });
   }
 </script>

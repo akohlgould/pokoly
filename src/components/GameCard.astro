@@ -9,106 +9,106 @@ const { game } = Astro.props;
 ---
 
 <div
-  class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-brand-border bg-brand-card/80 p-4 transition-all duration-300 hover:-translate-y-2 hover:border-brand-neon hover:shadow-2xl hover:shadow-brand-neon/15"
+  class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-brand-card/90 to-brand-dark/95 p-3.5 sm:p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:border-brand-neon/60 hover:shadow-[0_12px_40px_-10px_rgba(6,182,212,0.25)]"
+  data-game-slug={game.slug}
 >
-  <!-- Card Top: Subdomain Badge + Favorite Heart -->
-  <div class="flex items-center justify-between text-xs z-10">
-    <a
-      href={`https://${game.subdomain}.pokoly.com`}
-      target="_blank"
-      class="rounded-full bg-brand-dark/80 px-2.5 py-1 font-mono text-[10px] text-brand-neon hover:bg-brand-border transition-colors border border-brand-border/60"
-      title="Direct standalone subdomain"
-    >
-      {game.subdomain}.pokoly.com
-    </a>
-
-    <div class="flex items-center gap-1.5">
+  <!-- Card Header: Badges & Favorite Button -->
+  <div class="relative z-10 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span class="rounded-full bg-white/10 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-200 border border-white/10">
+        {game.category}
+      </span>
       {game.badge && (
-        <span class="rounded-full bg-brand-accent/20 px-2 py-0.5 text-[9px] font-bold text-brand-accent border border-brand-accent/30">
+        <span
+          class="rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wide border shadow-sm"
+          style={`background: ${game.color}22; color: ${game.color}; border-color: ${game.color}55;`}
+        >
           {game.badge}
         </span>
       )}
-      <button
-        class="card-fav-btn flex h-7 w-7 items-center justify-center rounded-full bg-brand-dark/80 text-xs transition-transform hover:scale-110 active:scale-90"
-        data-slug={game.slug}
-        title="Favorite this game"
-      >
-        🤍
-      </button>
     </div>
+
+    <button
+      class="card-fav-btn flex h-7 w-7 items-center justify-center rounded-full bg-white/5 border border-white/10 text-xs text-gray-400 transition-all hover:scale-115 hover:bg-white/10 hover:text-pink-400 active:scale-90"
+      data-slug={game.slug}
+      title="Save to favorites"
+      aria-label="Save to favorites"
+    >
+      🤍
+    </button>
   </div>
 
-  <!-- Visual Graphic / Custom Game Logo & Play Preview -->
+  <!-- Visual Artwork / Logo Banner -->
   <a
     href={`/games/${game.slug}`}
-    class="relative my-3 flex h-36 w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-brand-dark via-brand-card/70 to-brand-dark p-3 transition-all duration-300 group-hover:scale-[1.03] shadow-inner border border-brand-border/40 group-hover:border-brand-neon/60"
-    style={`--accent: ${game.color}`}
+    class="relative my-3 flex h-36 sm:h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4 transition-all duration-500 group-hover:scale-[1.02]"
+    style={`background: radial-gradient(circle at center, ${game.color}25 0%, #0d111d 85%);`}
   >
-    <!-- Ambient Themed Radial Glow -->
+    <!-- Ambient Radial Aura -->
     <div
-      class="absolute inset-0 opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-40 pointer-events-none"
+      class="absolute inset-0 opacity-30 blur-2xl transition-opacity duration-300 group-hover:opacity-70 pointer-events-none"
       style={`background: radial-gradient(circle at center, ${game.color} 0%, transparent 70%);`}
     ></div>
 
-    <!-- Retro Subtle Grid Pattern -->
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:14px_14px] pointer-events-none"></div>
+    <!-- Tech/Arcade Subtle Grid Pattern -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
 
-    <!-- Bespoke Illustrated Logo -->
+    <!-- Logo with Floating Drop Shadow -->
     <img
       src={`/logos/${game.slug}.svg`}
-      alt={`${game.title} Logo & Play Snapshot`}
-      class="relative z-10 h-24 w-24 object-contain drop-shadow-2xl transition-transform duration-300 group-hover:scale-110"
+      alt={`${game.title} Logo`}
+      class="relative z-10 h-24 w-24 sm:h-28 sm:w-28 object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110"
       loading="lazy"
     />
 
-    <!-- Quick Play Preview Overlay on Hover -->
-    <div class="absolute inset-x-2 bottom-2 z-20 flex items-center justify-between rounded-xl bg-brand-dark/90 backdrop-blur-md px-3 py-1.5 opacity-0 transition-all duration-200 group-hover:opacity-100 border border-brand-border/80">
-      <span class="flex items-center gap-1 font-mono text-[10px] font-bold text-emerald-400">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-        <span>60 FPS</span>
-      </span>
-      <span class="flex items-center gap-1 font-display text-[11px] font-black text-brand-neon">
-        <span>Instant Play</span>
-        <span>▶</span>
-      </span>
+    <!-- Hover Overlay Play Button -->
+    <div class="absolute inset-0 z-20 flex items-center justify-center bg-brand-dark/60 backdrop-blur-[2px] opacity-0 transition-all duration-300 group-hover:opacity-100">
+      <div class="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-brand-neon to-brand-accent px-4 py-2 font-display text-xs font-black text-white shadow-xl shadow-cyan-500/30 transform scale-90 group-hover:scale-100 transition-transform">
+        <span>PLAY</span>
+        <span class="text-sm">▶</span>
+      </div>
     </div>
 
-    <!-- Category Pill Tag -->
-    <span class="absolute top-2 left-2 z-10 rounded-md bg-brand-dark/80 px-2 py-0.5 font-mono text-[9px] font-semibold text-gray-300 uppercase tracking-wider border border-brand-border/50">
-      {game.category}
-    </span>
+    <!-- 60 FPS Badge -->
+    <div class="absolute bottom-2 left-2 z-10 flex items-center gap-1 rounded-md bg-black/60 backdrop-blur-md px-1.5 py-0.5 font-mono text-[9px] font-semibold text-emerald-400 border border-emerald-500/30">
+      <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>60 FPS</span>
+    </div>
   </a>
 
-  <!-- Title & Description -->
-  <div>
-    <a href={`/games/${game.slug}`}>
-      <h3 class="font-display text-base font-bold text-white transition-colors group-hover:text-brand-neon">
-        {game.title}
-      </h3>
-    </a>
-    <p class="mt-1 line-clamp-2 text-xs text-gray-400">
-      {game.tagline}
-    </p>
-  </div>
-
-  <!-- Rating, Plays & 1-Click Launch -->
-  <div class="mt-4 flex items-center justify-between border-t border-brand-border/40 pt-3 text-[11px] text-gray-400">
-    <div class="flex items-center gap-1 text-amber-400">
-      <span>★</span>
-      <span class="font-semibold text-gray-200">{game.rating}</span>
+  <!-- Content & Metadata -->
+  <div class="flex-1 flex flex-col justify-between">
+    <div>
+      <a href={`/games/${game.slug}`} class="block">
+        <h3 class="font-display text-base font-bold text-white transition-colors duration-200 group-hover:text-brand-neon">
+          {game.title}
+        </h3>
+      </a>
+      <p class="mt-1 line-clamp-2 text-xs text-gray-400 leading-relaxed">
+        {game.tagline}
+      </p>
     </div>
 
-    <div class="font-mono text-[10px]">
-      👥 {game.playCount}
-    </div>
+    <!-- Card Footer: Rating, Plays & Direct Launch -->
+    <div class="mt-3.5 flex items-center justify-between border-t border-white/5 pt-3 text-[11px]">
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-1 text-amber-400 font-semibold">
+          <span>★</span>
+          <span class="text-gray-200">{game.rating.toFixed(1)}</span>
+        </div>
+        <div class="font-mono text-gray-400 text-[10px]">
+          {game.playCount}
+        </div>
+      </div>
 
-    <a
-      href={`/games/${game.slug}`}
-      class="flex items-center gap-1 rounded-xl bg-brand-neon/15 px-3 py-1 font-bold text-brand-neon border border-brand-neon/30 transition-all group-hover:bg-brand-neon group-hover:text-brand-dark"
-    >
-      <span>Play</span>
-      <span>→</span>
-    </a>
+      <a
+        href={`/games/${game.slug}`}
+        class="inline-flex items-center gap-1 rounded-xl bg-white/5 px-2.5 py-1 font-display text-xs font-bold text-gray-200 border border-white/10 transition-all duration-200 hover:bg-brand-neon hover:text-brand-dark hover:border-brand-neon hover:shadow-lg hover:shadow-brand-neon/25"
+      >
+        <span>Play</span>
+        <span class="text-[10px]">→</span>
+      </a>
+    </div>
   </div>
 </div>
 

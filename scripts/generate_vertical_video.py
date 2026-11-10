@@ -23,7 +23,7 @@ RIGHT_SAFE = LEFT_SAFE + SAFE_WIDTH      # 960
 
 # Fonts
 FONT_DIR = "/System/Library/Fonts/Supplemental"
-font_title = ImageFont.truetype(f"{FONT_DIR}/Arial Black.ttf", 54)
+font_title = ImageFont.truetype(f"{FONT_DIR}/Arial Black.ttf", 52)
 font_badge = ImageFont.truetype(f"{FONT_DIR}/Arial Rounded Bold.ttf", 32)
 font_card_title = ImageFont.truetype(f"{FONT_DIR}/Arial Bold.ttf", 38)
 font_card_sub = ImageFont.truetype(f"{FONT_DIR}/Arial.ttf", 26)
@@ -43,38 +43,36 @@ def draw_rounded_rect(draw, bbox, radius, fill=None, outline=None, width=1):
     x0, y0, x1, y1 = bbox
     draw.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill, outline=outline, width=width)
 
-def draw_fit_text(draw, pos, text, font, fill, anchor="mm", max_width=SAFE_WIDTH):
-    """Draw text, auto-scaling font down if it exceeds max_width."""
+def draw_fit_text(draw, pos, text, font, fill, anchor="mm", max_width=SAFE_WIDTH, stroke_width=0, stroke_fill=None):
+    """Draw text, auto-scaling font down if it exceeds max_width, with optional outline."""
     bbox = draw.textbbox((0, 0), text, font=font)
     text_w = bbox[2] - bbox[0]
     if text_w > max_width:
         scale = max_width / text_w
-        new_size = int(font.size * scale)
+        new_size = max(18, int(font.size * scale))
         scaled_font = ImageFont.truetype(font.path, new_size)
-        draw.text(pos, text, fill=fill, font=scaled_font, anchor=anchor)
+        draw.text(pos, text, fill=fill, font=scaled_font, anchor=anchor, stroke_width=stroke_width, stroke_fill=stroke_fill)
     else:
-        draw.text(pos, text, fill=fill, font=font, anchor=anchor)
+        draw.text(pos, text, fill=fill, font=font, anchor=anchor, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 def render_frame(frame_idx):
     t = frame_idx / FPS
-    img = Image.new("RGBA", (WIDTH, HEIGHT), (11, 14, 21, 255))
+    # Pure solid clean dark background (no glowing circles behind text!)
+    img = Image.new("RGBA", (WIDTH, HEIGHT), (7, 10, 16, 255))
     draw = ImageDraw.Draw(img)
 
-    # Ambient Glow Background
-    glow_y = int(380 + 35 * math.sin(t * 1.5))
-    draw.ellipse([WIDTH - 300, glow_y - 250, WIDTH + 250, glow_y + 250], fill=(6, 182, 212, 16))
-    draw.ellipse([-180, HEIGHT - 700, 350, HEIGHT - 100], fill=(99, 102, 241, 18))
-
-    # Top Brand Pill (Safely below notification bar at y=200)
+    # Top Brand Pill
     pill_w = 460
     pill_x0 = (WIDTH - pill_w) // 2
     draw_rounded_rect(draw, (pill_x0, 190, pill_x0 + pill_w, 246), radius=28,
                       fill=(20, 27, 45, 255), outline=(56, 75, 115, 255), width=2)
-    draw.text((WIDTH // 2, 218), "⚡ POKOLY DAILY CHALLENGE", fill=(34, 211, 238), font=font_badge, anchor="mm")
+    draw.text((WIDTH // 2, 218), "⚡ POKOLY DAILY CHALLENGE", fill=(56, 189, 248), font=font_badge, anchor="mm")
 
-    # Main Viral Hook Header (Guaranteed within SAFE_WIDTH = 840px)
-    draw_fit_text(draw, (WIDTH // 2, 310), "CAN YOU ORDER THESE", font_title, (255, 255, 255), anchor="mm")
-    draw_fit_text(draw, (WIDTH // 2, 380), "OLDEST TO NEWEST?", font_title, (56, 189, 248), anchor="mm")
+    # Main Viral Hook Header - Clean crisp contrast on pure dark background with subtle black stroke
+    draw_fit_text(draw, (WIDTH // 2, 310), "CAN YOU ORDER THESE", font_title, (255, 255, 255),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
+    draw_fit_text(draw, (WIDTH // 2, 380), "OLDEST TO NEWEST?", font_title, (56, 189, 248),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
 
     # Hook Subtitle
     if t < 4.8:
@@ -82,7 +80,7 @@ def render_frame(frame_idx):
     else:
         draw_fit_text(draw, (WIDTH // 2, 450), "✅ REVEALING TIMELINE...", font_badge, (74, 222, 128), anchor="mm")
 
-    # Card Dimensions (Width = 840px, safe margins 120px on both sides)
+    # Card Dimensions
     card_w = SAFE_WIDTH
     card_h = 175
     card_x = LEFT_SAFE
@@ -107,17 +105,17 @@ def render_frame(frame_idx):
 
         is_revealed = t >= 6.0
         border_col = (74, 222, 128, 255) if is_revealed else (56, 75, 115, 255)
-        bg_col = (18, 30, 26, 255) if is_revealed else (20, 26, 38, 255)
+        bg_col = (19, 32, 28, 255) if is_revealed else (22, 30, 46, 255)
 
         # Draw Card
         draw_rounded_rect(draw, (card_x, int(current_y), card_x + card_w, int(current_y + card_h)),
                           radius=24, fill=bg_col, outline=border_col, width=3)
 
-        # Event Title & Subtitle (Max width = 560px so it never overlaps the year badge)
+        # Event Title & Subtitle (High contrast)
         draw_fit_text(draw, (card_x + 35, int(current_y + 40)), item["title"],
                       font_card_title, (255, 255, 255), anchor="la", max_width=560)
         draw_fit_text(draw, (card_x + 35, int(current_y + 95)), item["sub"],
-                      font_card_sub, (156, 163, 175), anchor="la", max_width=560)
+                      font_card_sub, (203, 213, 225), anchor="la", max_width=560)
 
         # Year Badge on the Right
         badge_x0 = card_x + card_w - 185
@@ -127,14 +125,14 @@ def render_frame(frame_idx):
 
         if is_revealed:
             draw_rounded_rect(draw, (badge_x0, badge_y0, badge_x1, badge_y1),
-                              radius=18, fill=(34, 197, 94, 45), outline=(74, 222, 128, 255), width=2)
+                              radius=18, fill=(34, 197, 94, 50), outline=(74, 222, 128, 255), width=2)
             draw.text(((badge_x0 + badge_x1) // 2, (badge_y0 + badge_y1) // 2),
                       str(item["year"]), fill=(74, 222, 128), font=font_year, anchor="mm")
         else:
             draw_rounded_rect(draw, (badge_x0, badge_y0, badge_x1, badge_y1),
-                              radius=18, fill=(28, 36, 52, 255), outline=(56, 75, 115, 255), width=1)
+                              radius=18, fill=(30, 41, 59, 255), outline=(71, 85, 105, 255), width=1)
             draw.text(((badge_x0 + badge_x1) // 2, (badge_y0 + badge_y1) // 2),
-                      "???", fill=(100, 116, 139), font=font_year, anchor="mm")
+                      "???", fill=(148, 163, 184), font=font_year, anchor="mm")
 
     # Countdown Bar & Ticker (1.5s to 4.8s)
     if t < 4.8:
@@ -146,7 +144,7 @@ def render_frame(frame_idx):
         draw_rounded_rect(draw, (bar_x, bar_y, bar_x + bar_w, bar_y + 20), radius=10, fill=(30, 41, 59, 255))
         if progress > 0.01:
             draw_rounded_rect(draw, (bar_x, bar_y, bar_x + int(bar_w * progress), bar_y + 20),
-                              radius=10, fill=(239, 68, 68, 255) if progress < 0.3 else (6, 182, 212, 255))
+                              radius=10, fill=(239, 68, 68, 255) if progress < 0.3 else (56, 189, 248, 255))
 
         remaining = max(0, int(math.ceil(4.8 - t)))
         draw_fit_text(draw, (WIDTH // 2, 1215), f"⏳ Guess the order in {remaining}s",
@@ -158,14 +156,13 @@ def render_frame(frame_idx):
         cta_y = int(1280 - 25 * math.sin(cta_prog * math.pi / 2))
         cta_h = 320
 
-        # CTA Container Box (840px wide)
         draw_rounded_rect(draw, (LEFT_SAFE, cta_y, RIGHT_SAFE, cta_y + cta_h),
-                          radius=32, fill=(17, 24, 39, 252), outline=(6, 182, 212, 255), width=3)
+                          radius=32, fill=(17, 24, 39, 252), outline=(56, 189, 248, 255), width=3)
 
         draw_fit_text(draw, (WIDTH // 2, cta_y + 65), "Can You Beat Today's Deck?",
                       font_cta_sub, (255, 255, 255), anchor="mm", max_width=780)
         draw_fit_text(draw, (WIDTH // 2, cta_y + 135), "🎮 Play ChronoTrail Free",
-                      font_cta_h, (34, 211, 238), anchor="mm", max_width=780)
+                      font_cta_h, (56, 189, 248), anchor="mm", max_width=780)
 
         # Action Button Pill
         btn_w = 480
@@ -173,12 +170,12 @@ def render_frame(frame_idx):
         btn_y0 = cta_y + 200
         btn_y1 = cta_y + 275
         draw_rounded_rect(draw, (btn_x0, btn_y0, btn_x0 + btn_w, btn_y1),
-                          radius=38, fill=(6, 182, 212, 255))
+                          radius=38, fill=(56, 189, 248, 255))
         draw.text((WIDTH // 2, (btn_y0 + btn_y1) // 2), "LINK IN BIO ➡️",
                   fill=(11, 14, 21), font=font_button, anchor="mm")
 
-    # Bottom Domain Tag (Safe zone at y=1680)
-    draw.text((WIDTH // 2, 1680), "pokoly.com/games/chronotrail", fill=(100, 116, 139), font=font_card_sub, anchor="mm")
+    # Bottom Domain Tag
+    draw.text((WIDTH // 2, 1680), "pokoly.com/games/chronotrail", fill=(148, 163, 184), font=font_card_sub, anchor="mm")
 
     # Save frame
     frame_path = os.path.join(FRAMES_DIR, f"frame_{frame_idx:04d}.png")
@@ -226,14 +223,13 @@ def generate_audio(wav_path):
         wav_file.writeframes(packed_data)
 
 def main():
-    print(f"Generating {TOTAL_FRAMES} frames with TikTok safe margins (max_width=840px)...")
+    print(f"Generating {TOTAL_FRAMES} frames without ambient circles behind text...")
     for idx in range(TOTAL_FRAMES):
         render_frame(idx)
         if idx % 45 == 0:
             print(f"Rendered {idx}/{TOTAL_FRAMES} frames ({int(idx/TOTAL_FRAMES*100)}%)")
 
     wav_path = os.path.join(OUTPUT_DIR, "audio.wav")
-    print("Generating audio track...")
     generate_audio(wav_path)
 
     output_mp4 = os.path.join(OUTPUT_DIR, "chronotrail_challenge_9x16.mp4")
@@ -262,7 +258,6 @@ def main():
         os.remove(os.path.join(FRAMES_DIR, f))
     os.rmdir(FRAMES_DIR)
     os.remove(wav_path)
-    print("Cleaned up temporary frames and audio.")
 
 if __name__ == "__main__":
     main()

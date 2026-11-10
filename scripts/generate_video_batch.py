@@ -34,16 +34,16 @@ def draw_rounded_rect(draw, bbox, radius, fill=None, outline=None, width=1):
     x0, y0, x1, y1 = bbox
     draw.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill, outline=outline, width=width)
 
-def draw_fit_text(draw, pos, text, font, fill, anchor="mm", max_width=SAFE_WIDTH):
+def draw_fit_text(draw, pos, text, font, fill, anchor="mm", max_width=SAFE_WIDTH, stroke_width=0, stroke_fill=None):
     bbox = draw.textbbox((0, 0), text, font=font)
     text_w = bbox[2] - bbox[0]
     if text_w > max_width:
         scale = max_width / text_w
         new_size = max(18, int(font.size * scale))
         scaled_font = ImageFont.truetype(font.path, new_size)
-        draw.text(pos, text, fill=fill, font=scaled_font, anchor=anchor)
+        draw.text(pos, text, fill=fill, font=scaled_font, anchor=anchor, stroke_width=stroke_width, stroke_fill=stroke_fill)
     else:
-        draw.text(pos, text, fill=fill, font=font, anchor=anchor)
+        draw.text(pos, text, fill=fill, font=font, anchor=anchor, stroke_width=stroke_width, stroke_fill=stroke_fill)
 
 def create_audio_file(wav_path, duration_sec, tick_times, whoosh_time, reveal_time):
     sample_rate = 44100
@@ -87,7 +87,6 @@ def create_audio_file(wav_path, duration_sec, tick_times, whoosh_time, reveal_ti
         wav_file.writeframes(packed_data)
 
 def render_video_to_mp4(total_frames, render_fn, output_mp4, duration_sec, tick_times, whoosh_time, reveal_time):
-    # Clear temp frames
     for f in os.listdir(FRAMES_DIR):
         os.remove(os.path.join(FRAMES_DIR, f))
 
@@ -121,24 +120,23 @@ def render_video_to_mp4(total_frames, render_fn, output_mp4, duration_sec, tick_
         os.remove(wav_path)
 
 # ==============================================================================
-# VIDEO 1: ChronoTrail - Tech & Gaming Edition
+# VIDEO 1: ChronoTrail - Tech & Gaming Edition (NO BACKGROUND CIRCLES BEHIND TEXT)
 # ==============================================================================
 def render_chronotrail_tech(frame_idx, total_frames):
     t = frame_idx / FPS
-    img = Image.new("RGBA", (WIDTH, HEIGHT), (8, 11, 16, 255))
+    # Pure dark background
+    img = Image.new("RGBA", (WIDTH, HEIGHT), (7, 10, 16, 255))
     draw = ImageDraw.Draw(img)
-
-    # Ambient glows
-    draw.ellipse([WIDTH - 280, 200, WIDTH + 200, 700], fill=(6, 182, 212, 16))
-    draw.ellipse([-150, HEIGHT - 700, 300, HEIGHT - 200], fill=(139, 92, 246, 16))
 
     # Top Pill
     draw_rounded_rect(draw, (310, 190, 770, 246), radius=28, fill=(19, 27, 43, 255), outline=(56, 75, 115, 255), width=2)
     draw.text((WIDTH // 2, 218), "⚡ TECH TIMELINE TRIVIA", fill=(56, 189, 248), font=font_badge, anchor="mm")
 
-    # Hook
-    draw_fit_text(draw, (WIDTH // 2, 310), "WHICH CAME FIRST?", font_huge, (255, 255, 255), anchor="mm")
-    draw_fit_text(draw, (WIDTH // 2, 380), "ORDER FROM OLDEST TO NEWEST", font_title, (56, 189, 248), anchor="mm")
+    # Hook - Crisp white & cyan on pure black with stroke
+    draw_fit_text(draw, (WIDTH // 2, 310), "WHICH CAME FIRST?", font_huge, (255, 255, 255),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
+    draw_fit_text(draw, (WIDTH // 2, 380), "ORDER FROM OLDEST TO NEWEST", font_title, (56, 189, 248),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
 
     if t < 4.8:
         draw_fit_text(draw, (WIDTH // 2, 450), "⏳ 88% get the order wrong", font_badge, (251, 191, 36), anchor="mm")
@@ -181,7 +179,6 @@ def render_chronotrail_tech(frame_idx, total_frames):
         draw_fit_text(draw, (card_x + 35, int(curr_y + 40)), item["title"], font_card_title, (255, 255, 255), anchor="la", max_width=560)
         draw_fit_text(draw, (card_x + 35, int(curr_y + 95)), item["sub"], font_card_sub, (203, 213, 225), anchor="la", max_width=560)
 
-        # Year badge
         bx0, by0, bx1, by1 = card_x + card_w - 185, int(curr_y + 35), card_x + card_w - 25, int(curr_y + 140)
         if is_rev:
             draw_rounded_rect(draw, (bx0, by0, bx1, by1), radius=18, fill=(34, 197, 94, 50), outline=(74, 222, 128, 255), width=2)
@@ -228,17 +225,15 @@ def render_wordhedge_duel(frame_idx, total_frames):
     img = Image.new("RGBA", (WIDTH, HEIGHT), (8, 11, 16, 255))
     draw = ImageDraw.Draw(img)
 
-    # Ambient glows
-    draw.ellipse([WIDTH - 300, 250, WIDTH + 200, 750], fill=(245, 158, 11, 16))
-    draw.ellipse([-150, HEIGHT - 700, 300, HEIGHT - 200], fill=(16, 185, 129, 16))
-
     # Top Pill
     draw_rounded_rect(draw, (320, 190, 760, 246), radius=28, fill=(28, 25, 23, 255), outline=(120, 53, 15, 255), width=2)
     draw.text((WIDTH // 2, 218), "🎯 DAILY WORD DEDUCTION", fill=(251, 191, 36), font=font_badge, anchor="mm")
 
-    # Hook
-    draw_fit_text(draw, (WIDTH // 2, 310), "CAN YOU GUESS THE WORD?", font_huge, (255, 255, 255), anchor="mm")
-    draw_fit_text(draw, (WIDTH // 2, 380), "FROM THESE 3 CLUES", font_title, (251, 191, 36), anchor="mm")
+    # Hook - crisp text with outline
+    draw_fit_text(draw, (WIDTH // 2, 310), "CAN YOU GUESS THE WORD?", font_huge, (255, 255, 255),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
+    draw_fit_text(draw, (WIDTH // 2, 380), "FROM THESE 3 CLUES", font_title, (251, 191, 36),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
 
     if t < 4.8:
         draw_fit_text(draw, (WIDTH // 2, 450), "💡 Only 1 in 10 players solve it", font_badge, (226, 232, 240), anchor="mm")
@@ -261,15 +256,12 @@ def render_wordhedge_duel(frame_idx, total_frames):
         cy = base_ys[i]
         draw_rounded_rect(draw, (card_x, cy, card_x + card_w, cy + card_h),
                           radius=20, fill=(24, 24, 27, 255), outline=(63, 63, 70, 255), width=2)
-        # Clue number pill
         draw_rounded_rect(draw, (card_x + 25, cy + 25, card_x + 160, cy + 65),
                           radius=10, fill=(63, 63, 70, 255))
         draw.text((card_x + 92, cy + 45), c["num"], fill=(251, 191, 36), font=font_badge, anchor="mm")
-        # Clue text
         draw_fit_text(draw, (card_x + 25, cy + 95), c["text"], font_card_title, (244, 244, 245), anchor="la", max_width=780)
 
     # Word Tiles Grid
-    # Secret word: C R A N E
     letters = ["C", "R", "A", "N", "E"]
     tile_size = 140
     gap = 25
@@ -281,17 +273,15 @@ def render_wordhedge_duel(frame_idx, total_frames):
     for idx, char in enumerate(letters):
         tx = grid_x0 + idx * (tile_size + gap)
         if is_revealed:
-            # Flip to green
             draw_rounded_rect(draw, (tx, grid_y, tx + tile_size, grid_y + tile_size),
                               radius=18, fill=(22, 101, 52, 255), outline=(74, 222, 128, 255), width=3)
             draw.text((tx + tile_size // 2, grid_y + tile_size // 2), char, fill=(255, 255, 255), font=font_tile, anchor="mm")
         else:
-            # Hidden tile
             draw_rounded_rect(draw, (tx, grid_y, tx + tile_size, grid_y + tile_size),
                               radius=18, fill=(39, 39, 42, 255), outline=(82, 82, 91, 255), width=2)
             draw.text((tx + tile_size // 2, grid_y + tile_size // 2), "?", fill=(161, 161, 170), font=font_tile, anchor="mm")
 
-    # Countdown Bar (1.5 to 4.8)
+    # Countdown Bar
     if t < 4.8:
         bar_y = 1195
         prog = max(0.0, min(1.0, (4.8 - t) / 3.3))
@@ -302,7 +292,7 @@ def render_wordhedge_duel(frame_idx, total_frames):
         rem = max(0, int(math.ceil(4.8 - t)))
         draw_fit_text(draw, (WIDTH // 2, 1255), f"⏳ Drop your guess in the comments ({rem}s)", font_badge, (255, 255, 255), anchor="mm")
 
-    # CTA Card at t >= 7.5
+    # CTA Card
     if t >= 7.5:
         cta_prog = min(1.0, (t - 7.5) / 0.5)
         cta_y = int(1280 - 25 * math.sin(cta_prog * math.pi / 2))
@@ -329,17 +319,15 @@ def render_geopixel_quiz(frame_idx, total_frames):
     img = Image.new("RGBA", (WIDTH, HEIGHT), (8, 11, 16, 255))
     draw = ImageDraw.Draw(img)
 
-    # Ambient glows
-    draw.ellipse([WIDTH - 300, 200, WIDTH + 200, 700], fill=(236, 72, 153, 16))
-    draw.ellipse([-150, HEIGHT - 700, 300, HEIGHT - 200], fill=(6, 182, 212, 16))
-
     # Top Pill
     draw_rounded_rect(draw, (310, 190, 770, 246), radius=28, fill=(30, 27, 46, 255), outline=(139, 92, 246, 255), width=2)
     draw.text((WIDTH // 2, 218), "🌍 PIXEL LANDMARK QUIZ", fill=(192, 132, 252), font=font_badge, anchor="mm")
 
-    # Hook
-    draw_fit_text(draw, (WIDTH // 2, 310), "NAME THIS WORLD LANDMARK", font_huge, (255, 255, 255), anchor="mm")
-    draw_fit_text(draw, (WIDTH // 2, 380), "BEFORE IT SHARPENS!", font_title, (244, 114, 182), anchor="mm")
+    # Hook - clean stroke outline
+    draw_fit_text(draw, (WIDTH // 2, 310), "NAME THIS WORLD LANDMARK", font_huge, (255, 255, 255),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
+    draw_fit_text(draw, (WIDTH // 2, 380), "BEFORE IT SHARPENS!", font_title, (244, 114, 182),
+                  anchor="mm", stroke_width=2, stroke_fill=(0, 0, 0, 255))
 
     if t < 4.8:
         draw_fit_text(draw, (WIDTH // 2, 450), "🔍 3 Clues Provided Below", font_badge, (226, 232, 240), anchor="mm")
@@ -382,7 +370,7 @@ def render_geopixel_quiz(frame_idx, total_frames):
         draw_fit_text(draw, (WIDTH // 2, ans_y + 90), "MYSTERY LANDMARK ???", font_huge, (148, 163, 184), anchor="mm", max_width=780)
         draw_fit_text(draw, (WIDTH // 2, ans_y + 175), "Can you guess it before 0s?", font_card_sub, (203, 213, 225), anchor="mm", max_width=780)
 
-    # Countdown Bar (1.5 to 4.8)
+    # Countdown Bar
     if t < 4.8:
         bar_y = 1140
         prog = max(0.0, min(1.0, (4.8 - t) / 3.3))
@@ -393,7 +381,7 @@ def render_geopixel_quiz(frame_idx, total_frames):
         rem = max(0, int(math.ceil(4.8 - t)))
         draw_fit_text(draw, (WIDTH // 2, 1200), f"⏳ Guess in comments before reveal ({rem}s)", font_badge, (255, 255, 255), anchor="mm")
 
-    # CTA Card at t >= 7.5
+    # CTA Card
     if t >= 7.5:
         cta_prog = min(1.0, (t - 7.5) / 0.5)
         cta_y = int(1280 - 25 * math.sin(cta_prog * math.pi / 2))
@@ -452,8 +440,7 @@ def main():
 
     if os.path.exists(FRAMES_DIR):
         os.rmdir(FRAMES_DIR)
-    print("All batch videos generated successfully!")
+    print("All batch videos regenerated successfully with pure black background behind text!")
 
 if __name__ == "__main__":
     main()
-

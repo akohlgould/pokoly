@@ -17,5 +17,8 @@
     "@astrojs/tailwind": {
       "astro": "$astro"
     }
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.16.0"
   }
 }

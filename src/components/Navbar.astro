@@ -26,7 +26,7 @@ import PlayerBar from './PlayerBar.astro';
       <nav class="hidden lg:flex items-center gap-1 text-xs font-medium text-gray-300">
         {CATEGORIES.slice(1).map(cat => (
           <a
-            href={`/categories/${cat.id}`}
+            href={`/categories/${cat.id}/`}
             class="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition-colors hover:bg-brand-card hover:text-white"
           >
             <span>{cat.icon}</span>

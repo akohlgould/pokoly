@@ -7,32 +7,41 @@ import { GAMES, CATEGORIES } from '../data/games';
 const siteUrl = (Astro.site?.toString() || 'https://pokoly.com').replace(/\/$/, '');
 const featuredGame = GAMES.find(g => g.id === 'fruit-merge') || GAMES[0];
 const trendingGames = [
-  GAMES.find(g => g.id === 'fruit-merge') || GAMES[0],
-  GAMES.find(g => g.id === 'pegdungeon') || GAMES[1],
-  GAMES.find(g => g.id === 'nanojoker') || GAMES[2],
-  GAMES.find(g => g.id === 'word-guess') || GAMES[3],
-  GAMES.find(g => g.id === 'chronotrail') || GAMES[4],
-  GAMES.find(g => g.id === 'solitaire') || GAMES[5],
+  GAMES.find(g => g.id === 'gravifold') || GAMES[0],
+  GAMES.find(g => g.id === 'cymatica') || GAMES[1],
+  GAMES.find(g => g.id === 'fruit-merge') || GAMES[2],
+  GAMES.find(g => g.id === 'pegdungeon') || GAMES[3],
+  GAMES.find(g => g.id === 'clockworkheist') || GAMES[4],
+  GAMES.find(g => g.id === 'nanojoker') || GAMES[5],
 ];
 
-const portalSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Pokoly - Free Browser Games & Arcade Portal',
-  url: siteUrl,
-  description: 'Play popular online games free with no download. Word puzzles, fruit merge physics drop, Solitaire, 2048, retro arcade, and minesweeper.',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${siteUrl}/?q={search_term_string}`,
-    'query-input': 'required name=search_term_string'
+const portalSchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Pokoly - Free Browser Games & Arcade Portal',
+    url: `${siteUrl}/`,
+    description: 'Play popular online games free with no download. Word puzzles, fruit merge physics drop, Solitaire, 2048, retro arcade, and minesweeper.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string'
+    }
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Pokoly',
+    url: `${siteUrl}/`,
+    logo: `${siteUrl}/logos/pokoly-icon.svg`
   }
-};
+];
 ---
 
 <BaseLayout
   title="Pokoly.com - 100% Free Browser Games, Instant Play & Unblocked"
-  description="Play 33+ free browser games with no download or login. Cosmic fruit merge, 5-letter word guess, Klondike solitaire, 2048 neon, peg dungeon, and retro arcade. Fast 60 FPS on any device."
-  canonical={siteUrl}
+  description="Play 34+ free browser games with no download or login. Cosmic fruit merge, Cymatica Chladni acoustics, 5-letter word guess, Klondike solitaire, 2048 neon, peg dungeon, and retro arcade. Fast 60 FPS on any device."
+  canonical={`${siteUrl}/`}
   schema={portalSchema}
 >
   <!-- Ambient Cosmic Lighting Backdrops -->
@@ -56,7 +65,7 @@ const portalSchema = {
           <div class="flex flex-wrap items-center gap-2.5">
             <span class="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 font-mono text-[11px] font-bold text-cyan-300 shadow-sm backdrop-blur-md">
               <span class="h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
-              <span>33+ INSTANT WEB GAMES</span>
+              <span>{GAMES.length}+ INSTANT WEB GAMES</span>
             </span>
 
             <button
@@ -86,7 +95,7 @@ const portalSchema = {
           <!-- Primary CTAs -->
           <div class="flex flex-wrap items-center gap-3 pt-2">
             <a
-              href={`/games/${featuredGame.slug}`}
+              href={`/games/${featuredGame.slug}/`}
               class="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-600 to-pink-500 px-6 py-3.5 font-display text-sm font-black text-white shadow-[0_10px_30px_-5px_rgba(6,182,212,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_15px_35px_-5px_rgba(6,182,212,0.6)] active:scale-95"
             >
               <span>🎮 Play Featured: {featuredGame.title.split(':')[0]}</span>
@@ -146,7 +155,7 @@ const portalSchema = {
         <!-- Featured Spotlight Card -->
         <div class="lg:col-span-5">
           <a
-            href={`/games/${featuredGame.slug}`}
+            href={`/games/${featuredGame.slug}/`}
             class="group relative block overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-brand-card/90 via-[#0e1222]/95 to-brand-card/80 p-6 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-brand-neon/80 hover:shadow-[0_20px_50px_-10px_rgba(6,182,212,0.3)] hover:-translate-y-1.5"
           >
             <!-- Background Glow corresponding to game color -->
@@ -226,7 +235,7 @@ const portalSchema = {
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         {trendingGames.map(g => (
           <a
-            href={`/games/${g.slug}`}
+            href={`/games/${g.slug}/`}
             class="group relative flex flex-col items-center rounded-2xl border border-white/10 bg-gradient-to-b from-[#131728]/80 to-[#0c0f1d]/90 p-3 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-neon/70 hover:shadow-[0_10px_25px_-5px_rgba(6,182,212,0.25)]"
           >
             <div
@@ -235,7 +244,7 @@ const portalSchema = {
             >
               <img
                 src={`/logos/${g.slug}.svg`}
-                alt={`${g.title} icon`}
+                alt={`${g.title} - Play Free Online`}
                 class="h-16 w-16 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-115"
                 loading="lazy"
               />
@@ -416,7 +425,7 @@ const portalSchema = {
       <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
         {GAMES.map(game => (
           <a
-            href={`/games/${game.slug}`}
+            href={`/games/${game.slug}/`}
             class="group flex flex-col justify-between rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs transition-all hover:border-brand-neon/60 hover:bg-white/10 hover:shadow-md"
             title={`Launch ${game.title} (standalone at ${game.subdomain}.pokoly.com)`}
           >

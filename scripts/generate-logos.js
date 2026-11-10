@@ -1001,6 +1001,204 @@ const LOGOS = {
       <circle cx="48" cy="72" r="3" fill="#38bdf8" />
       <circle cx="72" cy="72" r="3" fill="#38bdf8" />
     </svg>
+  `,
+
+  'cymatica': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cym-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#22d3ee" />
+          <stop offset="50%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#6366f1" />
+        </linearGradient>
+        <filter id="cym-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#06b6d4" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#060913" />
+      <!-- Standing Wave Interference Ripples -->
+      <circle cx="60" cy="60" r="46" fill="none" stroke="#1e293b" stroke-width="1.5" />
+      <circle cx="60" cy="60" r="36" fill="none" stroke="#083344" stroke-width="2" stroke-dasharray="4,4" />
+      <circle cx="60" cy="60" r="26" fill="none" stroke="url(#cym-grad)" stroke-width="2.5" filter="url(#cym-glow)" />
+      <!-- Chladni Sacred Geometry Nodal Axes -->
+      <path d="M60 20 Q40 60 60 100 Q80 60 60 20 Z" fill="none" stroke="#22d3ee" stroke-width="2" opacity="0.85" />
+      <path d="M20 60 Q60 40 100 60 Q60 80 20 60 Z" fill="none" stroke="#a855f7" stroke-width="2" opacity="0.85" />
+      <!-- Resonant Quantum Motes / Nodes -->
+      <circle cx="60" cy="60" r="7" fill="#22d3ee" filter="url(#cym-glow)" />
+      <circle cx="60" cy="60" r="3" fill="#ffffff" />
+      <circle cx="44" cy="44" r="3.5" fill="#38bdf8" />
+      <circle cx="76" cy="44" r="3.5" fill="#38bdf8" />
+      <circle cx="44" cy="76" r="3.5" fill="#38bdf8" />
+      <circle cx="76" cy="76" r="3.5" fill="#38bdf8" />
+      <circle cx="60" cy="28" r="2.5" fill="#facc15" />
+      <circle cx="60" cy="92" r="2.5" fill="#facc15" />
+    </svg>
+  `,
+
+  'echolocation': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="echo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#22d3ee" />
+          <stop offset="100%" stop-color="#0284c7" />
+        </linearGradient>
+        <filter id="echo-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#030712" />
+      <!-- Sonar Wavefront Arcs -->
+      <circle cx="60" cy="65" r="46" fill="none" stroke="#083344" stroke-width="2" stroke-dasharray="6,4" />
+      <circle cx="60" cy="65" r="34" fill="none" stroke="#0ea5e9" stroke-width="2.5" opacity="0.6" />
+      <circle cx="60" cy="65" r="22" fill="none" stroke="url(#echo-grad)" stroke-width="3" filter="url(#echo-glow)" />
+      <!-- Cave Bat / Sonar Creature -->
+      <path d="M60 48 Q44 42 32 54 Q46 62 56 58 L60 68 L64 58 Q74 62 88 54 Q76 42 60 48 Z" fill="#22d3ee" filter="url(#echo-glow)" />
+      <!-- Eyes & Resonant Core -->
+      <circle cx="56" cy="52" r="2" fill="#ffffff" />
+      <circle cx="64" cy="52" r="2" fill="#ffffff" />
+      <!-- Golden Sonar Crystal -->
+      <polygon points="60,82 66,90 60,98 54,90" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5" />
+      <circle cx="60" cy="90" r="2" fill="#ffffff" />
+    </svg>
+  `,
+
+  'cursorsiege': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cs-title" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#000080" />
+          <stop offset="100%" stop-color="#1084d0" />
+        </linearGradient>
+        <filter id="cs-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ec4899" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#008080" />
+      <!-- Retro Window Frame -->
+      <rect x="18" y="24" width="76" height="54" fill="#d4d0c8" stroke="#ffffff" stroke-width="2" />
+      <rect x="20" y="26" width="72" height="12" fill="url(#cs-title)" />
+      <text x="24" y="35" font-family="sans-serif" font-weight="bold" font-size="7" fill="#ffffff">VIRUS.EXE</text>
+      <!-- Close button -->
+      <rect x="82" y="27" width="8" height="8" fill="#c0c0c0" />
+      <text x="86" y="34" font-family="monospace" font-weight="bold" font-size="7" fill="#000000" text-anchor="middle">✕</text>
+      <!-- Red Virus Alert Icon inside window -->
+      <circle cx="36" cy="54" r="9" fill="#ef4444" />
+      <text x="36" y="58" font-family="sans-serif" font-weight="bold" font-size="11" fill="#ffffff" text-anchor="middle">!</text>
+      <line x1="50" y1="48" x2="84" y2="48" stroke="#334155" stroke-width="3" stroke-linecap="round" />
+      <line x1="50" y1="56" x2="76" y2="56" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" />
+      <!-- Slashing OS Mouse Cursor -->
+      <path d="M54 44 L54 86 L68 76 L78 94 L88 88 L78 72 L92 70 Z" fill="#ffffff" stroke="#000000" stroke-width="3" filter="url(#cs-glow)" />
+      <!-- Laser Slash Effect -->
+      <line x1="42" y1="84" x2="98" y2="40" stroke="#f43f5e" stroke-width="3.5" stroke-linecap="round" />
+    </svg>
+  `,
+
+  'circuithacker': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="ch-chip" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0f172a" />
+          <stop offset="100%" stop-color="#022c22" />
+        </linearGradient>
+        <filter id="ch-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#030a06" />
+      <!-- PCB Copper Circuit Traces -->
+      <path d="M16 35 L40 35 L50 20 L90 20" stroke="#065f46" stroke-width="2.5" fill="none" />
+      <path d="M16 85 L40 85 L50 100 L95 100" stroke="#065f46" stroke-width="2.5" fill="none" />
+      <path d="M85 60 L105 60" stroke="#10b981" stroke-width="3.5" fill="none" filter="url(#ch-glow)" />
+      <!-- Logic Chip Package -->
+      <rect x="36" y="34" width="48" height="52" rx="4" fill="url(#ch-chip)" stroke="#10b981" stroke-width="2" filter="url(#ch-glow)" />
+      <!-- Chip Notch -->
+      <circle cx="60" cy="34" r="4" fill="#030a06" />
+      <!-- Chip Metallic Lead Pins -->
+      <rect x="30" y="42" width="6" height="4" fill="#94a3b8" />
+      <rect x="30" y="58" width="6" height="4" fill="#94a3b8" />
+      <rect x="30" y="74" width="6" height="4" fill="#94a3b8" />
+      <rect x="84" y="42" width="6" height="4" fill="#94a3b8" />
+      <rect x="84" y="58" width="6" height="4" fill="#10b981" filter="url(#ch-glow)" />
+      <rect x="84" y="74" width="6" height="4" fill="#94a3b8" />
+      <!-- Chip Label & Logic Symbol -->
+      <text x="60" y="56" font-family="monospace" font-weight="900" font-size="11" fill="#34d399" text-anchor="middle">AND</text>
+      <text x="60" y="72" font-family="monospace" font-size="8" fill="#6ee7b7" text-anchor="middle">7408</text>
+      <!-- Solder Dots -->
+      <circle cx="16" cy="35" r="3" fill="#34d399" />
+      <circle cx="16" cy="85" r="3" fill="#34d399" />
+      <circle cx="105" cy="60" r="4" fill="#34d399" filter="url(#ch-glow)" />
+    </svg>
+  `,
+
+  'gravifold': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="gf-base" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0f172a" />
+          <stop offset="100%" stop-color="#0369a1" />
+        </linearGradient>
+        <linearGradient id="gf-flap" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0284c7" />
+          <stop offset="100%" stop-color="#06b6d4" />
+        </linearGradient>
+        <filter id="gf-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.9" />
+        </filter>
+        <filter id="gf-shadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="-4" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.7" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#060a16" />
+      <!-- Base Origami Sheet -->
+      <polygon points="20,28 96,20 102,92 26,100" fill="url(#gf-base)" stroke="#0369a1" stroke-width="1.5" />
+      <!-- Grid Markings -->
+      <line x1="36" y1="26" x2="42" y2="98" stroke="#0ea5e9" stroke-width="1" opacity="0.3" />
+      <line x1="60" y1="24" x2="66" y2="96" stroke="#0ea5e9" stroke-width="1" opacity="0.3" />
+      <line x1="84" y1="22" x2="90" y2="94" stroke="#0ea5e9" stroke-width="1" opacity="0.3" />
+      <line x1="22" y1="50" x2="98" y2="44" stroke="#0ea5e9" stroke-width="1" opacity="0.3" />
+      <line x1="24" y1="74" x2="100" y2="68" stroke="#0ea5e9" stroke-width="1" opacity="0.3" />
+      <!-- Folded Origami Flap in Dynamic Perspective -->
+      <polygon points="45,18 96,20 72,94 30,82" fill="url(#gf-flap)" filter="url(#gf-shadow)" stroke="#38bdf8" stroke-width="2" />
+      <!-- Glowing Dashed Crease Axis -->
+      <line x1="25" y1="18" x2="88" y2="102" stroke="#fbbf24" stroke-width="3" stroke-dasharray="6,4" filter="url(#gf-glow)" />
+      <!-- Origami Pin / Singularity Rivet -->
+      <circle cx="25" cy="18" r="4.5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" />
+      <circle cx="88" cy="102" r="4.5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" />
+      <!-- Quantum Singularity Orb Traversing Fold -->
+      <circle cx="62" cy="56" r="8" fill="#ffffff" filter="url(#gf-glow)" />
+      <circle cx="62" cy="56" r="5" fill="#0284c7" />
+      <circle cx="60" cy="54" r="2" fill="#ffffff" />
+      <!-- Golden Quantum Energy Core -->
+      <polygon points="86,42 92,48 86,54 80,48" fill="#fbbf24" filter="url(#gf-glow)" />
+    </svg>
+  `,
+
+  'penumbra-null': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <radialGradient id="pn-sun" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="40%" stop-color="#fef08a" />
+          <stop offset="80%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#b45309" />
+        </radialGradient>
+        <linearGradient id="pn-shadow" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#050508" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+        <filter id="pn-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#00f0ff" flood-opacity="0.9" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#f8fafc" />
+      <polygon points="40,55 80,55 108,120 12,120" fill="url(#pn-shadow)" stroke="#00f0ff" stroke-width="2" />
+      <circle cx="60" cy="22" r="12" fill="url(#pn-sun)" />
+      <line x1="38" y1="55" x2="82" y2="55" stroke="#0f172a" stroke-width="4.5" stroke-linecap="round" />
+      <circle cx="60" cy="82" r="8" fill="#00f0ff" filter="url(#pn-glow)" />
+      <circle cx="60" cy="82" r="3.5" fill="#050508" />
+      <circle cx="48" cy="98" r="2.5" fill="#38bdf8" />
+      <circle cx="72" cy="104" r="2" fill="#38bdf8" />
+    </svg>
   `
 };
 

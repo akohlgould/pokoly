@@ -1,0 +1,75 @@
+---
+// QuickDraw: Millisecond Duel
+---
+
+<div id="draw-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Last Latency: <span id="draw-time" class="font-mono font-bold text-brand-neon">---</span></div>
+    <div>Best: <span id="draw-best" class="font-mono font-bold text-brand-gold">---</span></div>
+  </div>
+
+  <div id="draw-screen" class="w-full h-72 rounded-2xl border-2 border-brand-border bg-brand-dark flex flex-col items-center justify-center cursor-pointer transition-colors shadow-2xl p-6 text-center">
+    <span id="draw-icon" class="text-4xl">⏱️</span>
+    <h3 id="draw-title" class="font-bold text-xl text-white mt-2">Click to Start</h3>
+    <p id="draw-desc" class="text-xs text-gray-400 mt-1">Wait for GREEN, then click immediately!</p>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const screenEl = document.getElementById('draw-screen')!;
+  const titleEl = document.getElementById('draw-title')!;
+  const descEl = document.getElementById('draw-desc')!;
+  const iconEl = document.getElementById('draw-icon')!;
+  const timeEl = document.getElementById('draw-time')!;
+  const bestEl = document.getElementById('draw-best')!;
+
+  type State = 'idle' | 'waiting' | 'ready' | 'result';
+  let state: State = 'idle';
+  let startTime = 0;
+  let timer: any = null;
+  let best = 9999;
+
+  screenEl.addEventListener('click', () => {
+    if (state === 'idle' || state === 'result') {
+      sound.click();
+      state = 'waiting';
+      screenEl.className = 'w-full h-72 rounded-2xl border-2 border-amber-500 bg-amber-950/60 flex flex-col items-center justify-center cursor-pointer transition-colors p-6 text-center';
+      titleEl.textContent = 'WAIT FOR GREEN...';
+      descEl.textContent = 'Do not click yet!';
+      iconEl.textContent = '⏳';
+
+      const delay = Math.random() * 3000 + 1500;
+      timer = setTimeout(() => {
+        state = 'ready';
+        startTime = Date.now();
+        screenEl.className = 'w-full h-72 rounded-2xl border-2 border-emerald-400 bg-emerald-600 flex flex-col items-center justify-center cursor-pointer transition-colors p-6 text-center';
+        titleEl.textContent = 'CLICK NOW!';
+        descEl.textContent = 'FIRE!';
+        iconEl.textContent = '⚡';
+      }, delay);
+    } else if (state === 'waiting') {
+      clearTimeout(timer);
+      sound.gameOver();
+      state = 'result';
+      screenEl.className = 'w-full h-72 rounded-2xl border-2 border-red-500 bg-red-950/80 flex flex-col items-center justify-center cursor-pointer p-6 text-center';
+      titleEl.textContent = 'TOO EARLY!';
+      descEl.textContent = 'Click to try again.';
+      iconEl.textContent = '❌';
+    } else if (state === 'ready') {
+      const latency = Date.now() - startTime;
+      sound.victory();
+      state = 'result';
+      timeEl.textContent = `${latency}ms`;
+      if (latency < best) {
+        best = latency;
+        bestEl.textContent = `${best}ms`;
+      }
+      screenEl.className = 'w-full h-72 rounded-2xl border-2 border-cyan-500 bg-brand-dark flex flex-col items-center justify-center cursor-pointer p-6 text-center';
+      titleEl.textContent = `${latency} ms!`;
+      descEl.textContent = 'Faster than 92% of players! Click to retry.';
+      iconEl.textContent = '🏆';
+    }
+  });
+</script>

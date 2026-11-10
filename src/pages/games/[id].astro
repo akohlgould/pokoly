@@ -3,39 +3,82 @@ import GameLayout from '../../layouts/GameLayout.astro';
 import { GAMES } from '../../data/games';
 import type { GameMeta } from '../../data/games';
 
-import WordGuess from '../../games/WordGuess.astro';
-import FruitMerge from '../../games/FruitMerge.astro';
-import Neon2048 from '../../games/Neon2048.astro';
-import KlondikeSolitaire from '../../games/KlondikeSolitaire.astro';
-import CyberSnake from '../../games/CyberSnake.astro';
-import Minesweeper from '../../games/Minesweeper.astro';
+import BeatJumper from '../../games/BeatJumper.astro';
+import BlockSlide from '../../games/BlockSlide.astro';
+import BouncyGolf from '../../games/BouncyGolf.astro';
+import BreakoutSandbox from '../../games/BreakoutSandbox.astro';
 import BrickBreaker from '../../games/BrickBreaker.astro';
-import Synapse from '../../games/Synapse.astro';
-import Lexifall from '../../games/Lexifall.astro';
+import BubbleWrap from '../../games/BubbleWrap.astro';
+import ChronoWave from '../../games/ChronoWave.astro';
 import Chronotrail from '../../games/Chronotrail.astro';
-import Vowelshift from '../../games/Vowelshift.astro';
 import Cipherpunk from '../../games/Cipherpunk.astro';
-import Numberdrop from '../../games/Numberdrop.astro';
+import CircuitHacker from '../../games/CircuitHacker.astro';
+import ClockworkHeist from '../../games/ClockworkHeist.astro';
+import CoinStacker from '../../games/CoinStacker.astro';
+import ColorClash from '../../games/ColorClash.astro';
+import CursorSiege from '../../games/CursorSiege.astro';
+import CursorSurvivor from '../../games/CursorSurvivor.astro';
+import CyberRaid from '../../games/CyberRaid.astro';
+import CyberSnake from '../../games/CyberSnake.astro';
+import Cymatica from '../../games/Cymatica.astro';
+import DiceForgeTactics from '../../games/DiceForgeTactics.astro';
+import DominoCascade from '../../games/DominoCascade.astro';
+import DriftLine from '../../games/DriftLine.astro';
+import EchoLocation from '../../games/EchoLocation.astro';
+import FlappyCyber from '../../games/FlappyCyber.astro';
+import Flappyduel from '../../games/Flappyduel.astro';
+import Floor99 from '../../games/Floor99.astro';
+import FruitMerge from '../../games/FruitMerge.astro';
+import GeoThermal from '../../games/GeoThermal.astro';
 import Geopixel from '../../games/Geopixel.astro';
-import Semanticlimb from '../../games/Semanticlimb.astro';
-import Wordhedge from '../../games/Wordhedge.astro';
+import Gravifold from '../../games/Gravifold.astro';
+import GravityForge from '../../games/GravityForge.astro';
+import HexaSort from '../../games/HexaSort.astro';
+import IdleFactory from '../../games/IdleFactory.astro';
+import InfiniteMinesweeper from '../../games/InfiniteMinesweeper.astro';
+import JellyDrop from '../../games/JellyDrop.astro';
+import JumpGrid from '../../games/JumpGrid.astro';
 import Kanjiforge from '../../games/Kanjiforge.astro';
+import KlondikeSolitaire from '../../games/KlondikeSolitaire.astro';
+import LaserCircuit from '../../games/LaserCircuit.astro';
+import Lexifall from '../../games/Lexifall.astro';
+import LiquidSort from '../../games/LiquidSort.astro';
+import LootGoblin from '../../games/LootGoblin.astro';
+import Magnetoblocks from '../../games/Magnetoblocks.astro';
+import MazeMaster from '../../games/MazeMaster.astro';
+import MicroRogue from '../../games/MicroRogue.astro';
+import Minesweeper from '../../games/Minesweeper.astro';
+import MiniMetroPlanner from '../../games/MiniMetroPlanner.astro';
+import MiniTower from '../../games/MiniTower.astro';
+import MorphoFlora from '../../games/MorphoFlora.astro';
 import Nanojoker from '../../games/Nanojoker.astro';
+import Neon2048 from '../../games/Neon2048.astro';
+import NeuroLink from '../../games/NeuroLink.astro';
+import Numberdrop from '../../games/Numberdrop.astro';
 import OrbitSurvivors from '../../games/OrbitSurvivors.astro';
 import Pegdungeon from '../../games/Pegdungeon.astro';
-import SpeedTyping from '../../games/SpeedTyping.astro';
-import Sudoku from '../../games/Sudoku.astro';
-import FlappyCyber from '../../games/FlappyCyber.astro';
-import ChronoWave from '../../games/ChronoWave.astro';
-import QuantumWeave from '../../games/QuantumWeave.astro';
-import GravityForge from '../../games/GravityForge.astro';
-import Synthia from '../../games/Synthia.astro';
-import MorphoFlora from '../../games/MorphoFlora.astro';
+import PenumbraNull from '../../games/PenumbraNull.astro';
+import PerfectSlash from '../../games/PerfectSlash.astro';
+import PicrossNeon from '../../games/PicrossNeon.astro';
+import PipeMaster from '../../games/PipeMaster.astro';
 import PrismPulse from '../../games/PrismPulse.astro';
-import ClockworkHeist from '../../games/ClockworkHeist.astro';
-import GeoThermal from '../../games/GeoThermal.astro';
-import NeuroLink from '../../games/NeuroLink.astro';
+import QuantumWeave from '../../games/QuantumWeave.astro';
+import QuickDraw from '../../games/QuickDraw.astro';
+import RagdollMoonshot from '../../games/RagdollMoonshot.astro';
+import Semanticlimb from '../../games/Semanticlimb.astro';
+import SpeedPark from '../../games/SpeedPark.astro';
+import SpeedTyping from '../../games/SpeedTyping.astro';
+import StellarCollapse from '../../games/StellarCollapse.astro';
+import Sudoku from '../../games/Sudoku.astro';
+import SudokuBlitz from '../../games/SudokuBlitz.astro';
+import Synapse from '../../games/Synapse.astro';
+import Synthia from '../../games/Synthia.astro';
+import Tangram from '../../games/Tangram.astro';
 import TectonicDrift from '../../games/TectonicDrift.astro';
+import TyperacerBlitz from '../../games/TyperacerBlitz.astro';
+import Vowelshift from '../../games/Vowelshift.astro';
+import WordGuess from '../../games/WordGuess.astro';
+import Wordhedge from '../../games/Wordhedge.astro';
 
 export function getStaticPaths() {
   return GAMES.map(game => ({
@@ -52,6 +95,7 @@ const { game } = Astro.props;
 ---
 
 <GameLayout game={game}>
+
   {game.id === 'word-guess' && <WordGuess />}
   {game.id === 'fruit-merge' && <FruitMerge />}
   {game.id === 'neon-2048' && <Neon2048 />}
@@ -59,30 +103,89 @@ const { game } = Astro.props;
   {game.id === 'cyber-snake' && <CyberSnake />}
   {game.id === 'minesweeper' && <Minesweeper />}
   {game.id === 'breakout' && <BrickBreaker />}
-  {game.id === 'synapse' && <Synapse />} 
-  {game.id === 'lexifall' && <Lexifall />} 
-  {game.id === 'chronotrail' && <Chronotrail />} 
-  {game.id === 'vowelshift' && <Vowelshift />} 
-  {game.id === 'cipherpunk' && <Cipherpunk />} 
-  {game.id === 'numberdrop' && <Numberdrop />} 
-  {game.id === 'geopixel' && <Geopixel />} 
-  {game.id === 'semanticlimb' && <Semanticlimb />} 
-  {game.id === 'wordhedge' && <Wordhedge />} 
-  {game.id === 'kanjiforge' && <Kanjiforge />} 
-  {game.id === 'nanojoker' && <Nanojoker />} 
-  {game.id === 'orbit-survivors' && <OrbitSurvivors />} 
-  {game.id === 'pegdungeon' && <Pegdungeon />} 
+  {game.id === 'pegdungeon' && <Pegdungeon />}
+  {game.id === 'nanojoker' && <Nanojoker />}
   {game.id === 'speed-typing' && <SpeedTyping />}
-  {game.id === 'sudoku' && <Sudoku />}
-  {game.id === 'flappy-cyber' && <FlappyCyber />} 
-  {game.id === 'chronowave' && <ChronoWave />} 
-  {game.id === 'quantumweave' && <QuantumWeave />} 
-  {game.id === 'gravityforge' && <GravityForge />} 
-  {game.id === 'synthia' && <Synthia />} 
-  {game.id === 'morphoflora' && <MorphoFlora />} 
-  {game.id === 'prismpulse' && <PrismPulse />} 
-  {game.id === 'clockworkheist' && <ClockworkHeist />} 
-  {game.id === 'geothermal' && <GeoThermal />} 
-  {game.id === 'neurolink' && <NeuroLink />} 
-  {game.id === 'tectonicdrift' && <TectonicDrift />} 
+  {game.id === 'flappy-cyber' && <FlappyCyber />}
+  {game.id === 'circuit-hacker' && <CircuitHacker />}
+  {game.id === 'cursor-siege' && <CursorSiege />}
+  {game.id === 'echo-location' && <EchoLocation />}
+  {game.id === 'penumbra-null' && <PenumbraNull />}
+
+  {(game.id === 'beat-jumper' || game.slug === 'beat-jumper' || game.id === 'beatjumper' || game.id === 'BeatJumper') && <BeatJumper />}
+  {(game.id === 'block-slide' || game.slug === 'block-slide' || game.id === 'blockslide' || game.id === 'BlockSlide') && <BlockSlide />}
+  {(game.id === 'bouncy-golf' || game.slug === 'bouncy-golf' || game.id === 'bouncygolf' || game.id === 'BouncyGolf') && <BouncyGolf />}
+  {(game.id === 'breakout-sandbox' || game.slug === 'breakout-sandbox' || game.id === 'breakoutsandbox' || game.id === 'BreakoutSandbox') && <BreakoutSandbox />}
+  {(game.id === 'brick-breaker' || game.slug === 'brick-breaker' || game.id === 'brickbreaker' || game.id === 'BrickBreaker') && <BrickBreaker />}
+  {(game.id === 'bubble-wrap' || game.slug === 'bubble-wrap' || game.id === 'bubblewrap' || game.id === 'BubbleWrap') && <BubbleWrap />}
+  {(game.id === 'chrono-wave' || game.slug === 'chrono-wave' || game.id === 'chronowave' || game.id === 'ChronoWave') && <ChronoWave />}
+  {(game.id === 'chronotrail' || game.slug === 'chronotrail' || game.id === 'chronotrail' || game.id === 'Chronotrail') && <Chronotrail />}
+  {(game.id === 'cipherpunk' || game.slug === 'cipherpunk' || game.id === 'cipherpunk' || game.id === 'Cipherpunk') && <Cipherpunk />}
+  {(game.id === 'circuit-hacker' || game.slug === 'circuit-hacker' || game.id === 'circuithacker' || game.id === 'CircuitHacker') && <CircuitHacker />}
+  {(game.id === 'clockwork-heist' || game.slug === 'clockwork-heist' || game.id === 'clockworkheist' || game.id === 'ClockworkHeist') && <ClockworkHeist />}
+  {(game.id === 'coin-stacker' || game.slug === 'coin-stacker' || game.id === 'coinstacker' || game.id === 'CoinStacker') && <CoinStacker />}
+  {(game.id === 'color-clash' || game.slug === 'color-clash' || game.id === 'colorclash' || game.id === 'ColorClash') && <ColorClash />}
+  {(game.id === 'cursor-siege' || game.slug === 'cursor-siege' || game.id === 'cursorsiege' || game.id === 'CursorSiege') && <CursorSiege />}
+  {(game.id === 'cursor-survivor' || game.slug === 'cursor-survivor' || game.id === 'cursorsurvivor' || game.id === 'CursorSurvivor') && <CursorSurvivor />}
+  {(game.id === 'cyber-raid' || game.slug === 'cyber-raid' || game.id === 'cyberraid' || game.id === 'CyberRaid') && <CyberRaid />}
+  {(game.id === 'cyber-snake' || game.slug === 'cyber-snake' || game.id === 'cybersnake' || game.id === 'CyberSnake') && <CyberSnake />}
+  {(game.id === 'cymatica' || game.slug === 'cymatica' || game.id === 'cymatica' || game.id === 'Cymatica') && <Cymatica />}
+  {(game.id === 'dice-forge-tactics' || game.slug === 'dice-forge-tactics' || game.id === 'diceforgetactics' || game.id === 'DiceForgeTactics') && <DiceForgeTactics />}
+  {(game.id === 'domino-cascade' || game.slug === 'domino-cascade' || game.id === 'dominocascade' || game.id === 'DominoCascade') && <DominoCascade />}
+  {(game.id === 'drift-line' || game.slug === 'drift-line' || game.id === 'driftline' || game.id === 'DriftLine') && <DriftLine />}
+  {(game.id === 'echo-location' || game.slug === 'echo-location' || game.id === 'echolocation' || game.id === 'EchoLocation') && <EchoLocation />}
+  {(game.id === 'flappy-cyber' || game.slug === 'flappy-cyber' || game.id === 'flappycyber' || game.id === 'FlappyCyber') && <FlappyCyber />}
+  {(game.id === 'flappyduel' || game.slug === 'flappyduel' || game.id === 'flappyduel' || game.id === 'Flappyduel') && <Flappyduel />}
+  {(game.id === 'floor99' || game.slug === 'floor99' || game.id === 'floor99' || game.id === 'Floor99') && <Floor99 />}
+  {(game.id === 'fruit-merge' || game.slug === 'fruit-merge' || game.id === 'fruitmerge' || game.id === 'FruitMerge') && <FruitMerge />}
+  {(game.id === 'geo-thermal' || game.slug === 'geo-thermal' || game.id === 'geothermal' || game.id === 'GeoThermal') && <GeoThermal />}
+  {(game.id === 'geopixel' || game.slug === 'geopixel' || game.id === 'geopixel' || game.id === 'Geopixel') && <Geopixel />}
+  {(game.id === 'gravifold' || game.slug === 'gravifold' || game.id === 'gravifold' || game.id === 'Gravifold') && <Gravifold />}
+  {(game.id === 'gravity-forge' || game.slug === 'gravity-forge' || game.id === 'gravityforge' || game.id === 'GravityForge') && <GravityForge />}
+  {(game.id === 'hexa-sort' || game.slug === 'hexa-sort' || game.id === 'hexasort' || game.id === 'HexaSort') && <HexaSort />}
+  {(game.id === 'idle-factory' || game.slug === 'idle-factory' || game.id === 'idlefactory' || game.id === 'IdleFactory') && <IdleFactory />}
+  {(game.id === 'infinite-minesweeper' || game.slug === 'infinite-minesweeper' || game.id === 'infiniteminesweeper' || game.id === 'InfiniteMinesweeper') && <InfiniteMinesweeper />}
+  {(game.id === 'jelly-drop' || game.slug === 'jelly-drop' || game.id === 'jellydrop' || game.id === 'JellyDrop') && <JellyDrop />}
+  {(game.id === 'jump-grid' || game.slug === 'jump-grid' || game.id === 'jumpgrid' || game.id === 'JumpGrid') && <JumpGrid />}
+  {(game.id === 'kanjiforge' || game.slug === 'kanjiforge' || game.id === 'kanjiforge' || game.id === 'Kanjiforge') && <Kanjiforge />}
+  {(game.id === 'klondike-solitaire' || game.slug === 'klondike-solitaire' || game.id === 'klondikesolitaire' || game.id === 'KlondikeSolitaire') && <KlondikeSolitaire />}
+  {(game.id === 'laser-circuit' || game.slug === 'laser-circuit' || game.id === 'lasercircuit' || game.id === 'LaserCircuit') && <LaserCircuit />}
+  {(game.id === 'lexifall' || game.slug === 'lexifall' || game.id === 'lexifall' || game.id === 'Lexifall') && <Lexifall />}
+  {(game.id === 'liquid-sort' || game.slug === 'liquid-sort' || game.id === 'liquidsort' || game.id === 'LiquidSort') && <LiquidSort />}
+  {(game.id === 'loot-goblin' || game.slug === 'loot-goblin' || game.id === 'lootgoblin' || game.id === 'LootGoblin') && <LootGoblin />}
+  {(game.id === 'magnetoblocks' || game.slug === 'magnetoblocks' || game.id === 'magnetoblocks' || game.id === 'Magnetoblocks') && <Magnetoblocks />}
+  {(game.id === 'maze-master' || game.slug === 'maze-master' || game.id === 'mazemaster' || game.id === 'MazeMaster') && <MazeMaster />}
+  {(game.id === 'micro-rogue' || game.slug === 'micro-rogue' || game.id === 'microrogue' || game.id === 'MicroRogue') && <MicroRogue />}
+  {(game.id === 'minesweeper' || game.slug === 'minesweeper' || game.id === 'minesweeper' || game.id === 'Minesweeper') && <Minesweeper />}
+  {(game.id === 'mini-metro-planner' || game.slug === 'mini-metro-planner' || game.id === 'minimetroplanner' || game.id === 'MiniMetroPlanner') && <MiniMetroPlanner />}
+  {(game.id === 'mini-tower' || game.slug === 'mini-tower' || game.id === 'minitower' || game.id === 'MiniTower') && <MiniTower />}
+  {(game.id === 'morpho-flora' || game.slug === 'morpho-flora' || game.id === 'morphoflora' || game.id === 'MorphoFlora') && <MorphoFlora />}
+  {(game.id === 'nanojoker' || game.slug === 'nanojoker' || game.id === 'nanojoker' || game.id === 'Nanojoker') && <Nanojoker />}
+  {(game.id === 'neon2048' || game.slug === 'neon2048' || game.id === 'neon2048' || game.id === 'Neon2048') && <Neon2048 />}
+  {(game.id === 'neuro-link' || game.slug === 'neuro-link' || game.id === 'neurolink' || game.id === 'NeuroLink') && <NeuroLink />}
+  {(game.id === 'numberdrop' || game.slug === 'numberdrop' || game.id === 'numberdrop' || game.id === 'Numberdrop') && <Numberdrop />}
+  {(game.id === 'orbit-survivors' || game.slug === 'orbit-survivors' || game.id === 'orbitsurvivors' || game.id === 'OrbitSurvivors') && <OrbitSurvivors />}
+  {(game.id === 'pegdungeon' || game.slug === 'pegdungeon' || game.id === 'pegdungeon' || game.id === 'Pegdungeon') && <Pegdungeon />}
+  {(game.id === 'penumbra-null' || game.slug === 'penumbra-null' || game.id === 'penumbranull' || game.id === 'PenumbraNull') && <PenumbraNull />}
+  {(game.id === 'perfect-slash' || game.slug === 'perfect-slash' || game.id === 'perfectslash' || game.id === 'PerfectSlash') && <PerfectSlash />}
+  {(game.id === 'picross-neon' || game.slug === 'picross-neon' || game.id === 'picrossneon' || game.id === 'PicrossNeon') && <PicrossNeon />}
+  {(game.id === 'pipe-master' || game.slug === 'pipe-master' || game.id === 'pipemaster' || game.id === 'PipeMaster') && <PipeMaster />}
+  {(game.id === 'prism-pulse' || game.slug === 'prism-pulse' || game.id === 'prismpulse' || game.id === 'PrismPulse') && <PrismPulse />}
+  {(game.id === 'quantum-weave' || game.slug === 'quantum-weave' || game.id === 'quantumweave' || game.id === 'QuantumWeave') && <QuantumWeave />}
+  {(game.id === 'quick-draw' || game.slug === 'quick-draw' || game.id === 'quickdraw' || game.id === 'QuickDraw') && <QuickDraw />}
+  {(game.id === 'ragdoll-moonshot' || game.slug === 'ragdoll-moonshot' || game.id === 'ragdollmoonshot' || game.id === 'RagdollMoonshot') && <RagdollMoonshot />}
+  {(game.id === 'semanticlimb' || game.slug === 'semanticlimb' || game.id === 'semanticlimb' || game.id === 'Semanticlimb') && <Semanticlimb />}
+  {(game.id === 'speed-park' || game.slug === 'speed-park' || game.id === 'speedpark' || game.id === 'SpeedPark') && <SpeedPark />}
+  {(game.id === 'speed-typing' || game.slug === 'speed-typing' || game.id === 'speedtyping' || game.id === 'SpeedTyping') && <SpeedTyping />}
+  {(game.id === 'stellar-collapse' || game.slug === 'stellar-collapse' || game.id === 'stellarcollapse' || game.id === 'StellarCollapse') && <StellarCollapse />}
+  {(game.id === 'sudoku' || game.slug === 'sudoku' || game.id === 'sudoku' || game.id === 'Sudoku') && <Sudoku />}
+  {(game.id === 'sudoku-blitz' || game.slug === 'sudoku-blitz' || game.id === 'sudokublitz' || game.id === 'SudokuBlitz') && <SudokuBlitz />}
+  {(game.id === 'synapse' || game.slug === 'synapse' || game.id === 'synapse' || game.id === 'Synapse') && <Synapse />}
+  {(game.id === 'synthia' || game.slug === 'synthia' || game.id === 'synthia' || game.id === 'Synthia') && <Synthia />}
+  {(game.id === 'tangram' || game.slug === 'tangram' || game.id === 'tangram' || game.id === 'Tangram') && <Tangram />}
+  {(game.id === 'tectonic-drift' || game.slug === 'tectonic-drift' || game.id === 'tectonicdrift' || game.id === 'TectonicDrift') && <TectonicDrift />}
+  {(game.id === 'typeracer-blitz' || game.slug === 'typeracer-blitz' || game.id === 'typeracerblitz' || game.id === 'TyperacerBlitz') && <TyperacerBlitz />}
+  {(game.id === 'vowelshift' || game.slug === 'vowelshift' || game.id === 'vowelshift' || game.id === 'Vowelshift') && <Vowelshift />}
+  {(game.id === 'word-guess' || game.slug === 'word-guess' || game.id === 'wordguess' || game.id === 'WordGuess') && <WordGuess />}
+  {(game.id === 'wordhedge' || game.slug === 'wordhedge' || game.id === 'wordhedge' || game.id === 'Wordhedge') && <Wordhedge />}
 </GameLayout>

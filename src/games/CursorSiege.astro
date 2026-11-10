@@ -1,0 +1,588 @@
+---
+// CursorSiege: Malware Defense 95
+---
+
+<div id="cursor-siege-root" class="relative flex flex-col items-center justify-center p-2 select-none max-w-4xl mx-auto w-full">
+  <!-- Retro OS Window Frame -->
+  <div class="w-full rounded-2xl border-2 border-[#c0c0c0] bg-[#c0c0c0] shadow-2xl overflow-hidden font-sans">
+    <!-- OS Window Title Bar -->
+    <div class="flex items-center justify-between bg-gradient-to-r from-[#000080] to-[#1084d0] px-3 py-1.5 text-white text-xs font-bold">
+      <div class="flex items-center gap-2">
+        <span class="text-sm">🛡️</span>
+        <span class="tracking-wide">MalwareDefense_v95.exe - [System Files Protected: <span id="cs-files-alive">4/4</span>]</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="h-4 w-4 bg-[#c0c0c0] text-black font-mono text-[10px] border border-t-white border-l-white border-b-black border-r-black flex items-center justify-center">_</button>
+        <button class="h-4 w-4 bg-[#c0c0c0] text-black font-mono text-[10px] border border-t-white border-l-white border-b-black border-r-black flex items-center justify-center">□</button>
+        <button class="h-4 w-4 bg-[#c0c0c0] text-black font-mono text-[10px] border border-t-white border-l-white border-b-black border-r-black flex items-center justify-center font-bold">✕</button>
+      </div>
+    </div>
+
+    <!-- HUD Stats Bar (Menu Bar Style) -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#808080] bg-[#c0c0c0] px-3 py-1.5 text-[11px] text-black font-mono">
+      <div class="flex items-center gap-4">
+        <div>Wave: <span id="cs-wave" class="font-bold text-blue-900">1</span></div>
+        <div>Threats Quarantined: <span id="cs-kills" class="font-bold text-emerald-800">0</span></div>
+        <div>Score: <span id="cs-score" class="font-bold text-black">0</span></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5">
+          <span>Antivirus EMP [Space]:</span>
+          <span id="cs-emp-count" class="font-bold text-purple-900">2 Charges</span>
+        </div>
+        <button id="cs-restart-btn" class="border border-t-white border-l-white border-b-black border-r-black bg-[#d4d0c8] px-2 py-0.5 text-[11px] active:border-t-black active:border-l-black active:border-b-white active:border-r-white">
+          Restart OS
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Arena Canvas -->
+    <div class="relative w-full overflow-hidden bg-[#008080]" style="cursor: crosshair;">
+      <canvas id="cs-canvas" width="800" height="500" class="w-full h-auto block"></canvas>
+
+      <!-- Threat Alert Banner -->
+      <div id="cs-alert" class="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 hidden rounded border-2 border-red-600 bg-red-100 px-4 py-1.5 font-mono text-xs font-bold text-red-900 shadow-lg">
+        ⚠️ VIRUS INTRUSION: MOUSE ACCELERATION HIJACKED!
+      </div>
+    </div>
+
+    <!-- Retro Windows Taskbar -->
+    <div class="flex items-center justify-between border-t-2 border-white bg-[#c0c0c0] px-2 py-1 text-xs">
+      <div class="flex items-center gap-2">
+        <button id="cs-start-btn" class="flex items-center gap-1 border-2 border-t-white border-l-white border-b-black border-r-black bg-[#c0c0c0] px-2 py-0.5 font-bold text-black shadow-sm active:border-t-black active:border-l-black active:border-b-white active:border-r-white">
+          <span>🪟</span>
+          <span>Start</span>
+        </button>
+        <span class="font-mono text-[10px] text-gray-700 hidden sm:inline">Defend files: Click [X] buttons &amp; slash incoming popups!</span>
+      </div>
+      <div class="border border-t-[#808080] border-l-[#808080] border-b-white border-r-white bg-[#d4d0c8] px-2 py-0.5 font-mono text-[11px] text-black">
+        <span id="cs-clock">12:00 PM</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="cs-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="rounded-2xl border-4 border-[#000080] bg-[#c0c0c0] p-6 max-w-sm w-full text-center shadow-2xl">
+      <div class="flex justify-center mb-2">
+        <span id="cs-modal-icon" class="text-5xl">💾</span>
+      </div>
+      <h3 id="cs-modal-title" class="text-xl font-bold text-black font-sans">Wave Cleared!</h3>
+      <p id="cs-modal-msg" class="text-xs text-gray-800 mt-2 leading-relaxed">All Trojan popups and ransomware locks eliminated.</p>
+      <div id="cs-modal-score" class="mt-3 text-sm font-mono text-blue-900 font-bold">+180 Points</div>
+      <button id="cs-modal-btn" class="mt-4 w-full border-2 border-t-white border-l-white border-b-black border-r-black bg-[#000080] py-2.5 text-xs font-bold text-white shadow-md hover:bg-blue-800 active:border-t-black active:border-l-black">
+        Proceed to Next Threat Wave →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('cs-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const waveEl = document.getElementById('cs-wave')!;
+  const killsEl = document.getElementById('cs-kills')!;
+  const scoreEl = document.getElementById('cs-score')!;
+  const filesAliveEl = document.getElementById('cs-files-alive')!;
+  const empEl = document.getElementById('cs-emp-count')!;
+  const alertEl = document.getElementById('cs-alert')!;
+  const clockEl = document.getElementById('cs-clock')!;
+  const modal = document.getElementById('cs-modal')!;
+  const modalIcon = document.getElementById('cs-modal-icon')!;
+  const modalTitle = document.getElementById('cs-modal-title')!;
+  const modalMsg = document.getElementById('cs-modal-msg')!;
+  const modalScore = document.getElementById('cs-modal-score')!;
+  const modalBtn = document.getElementById('cs-modal-btn')!;
+  const restartBtn = document.getElementById('cs-restart-btn')!;
+  const startBtn = document.getElementById('cs-start-btn')!;
+
+  // System Clock
+  function updateClock() {
+    const d = new Date();
+    clockEl.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Game variables
+  let currentWave = 1;
+  let score = 0;
+  let threatsKilled = 0;
+  let empCharges = 2;
+  let isGameOver = false;
+  let isWaveWon = false;
+  let hijackTimer = 0;
+
+  // Custom Cursor Position
+  let mouseX = 400;
+  let mouseY = 250;
+  let isMouseDown = false;
+  let cursorTrail: { x: number; y: number; life: number }[] = [];
+
+  // Desktop Files to Protect
+  interface DesktopFile {
+    name: string;
+    icon: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    health: number;
+    maxHealth: number;
+  }
+
+  let files: DesktopFile[] = [];
+
+  function initFiles() {
+    files = [
+      { name: 'system32.dll', icon: '⚙️', x: 80, y: 70, width: 70, height: 70, health: 100, maxHealth: 100 },
+      { name: 'passwords.txt', icon: '📝', x: 80, y: 190, width: 70, height: 70, health: 100, maxHealth: 100 },
+      { name: 'crypto_key.dat', icon: '🔑', x: 80, y: 310, width: 70, height: 70, health: 100, maxHealth: 100 },
+      { name: 'family_pic.bmp', icon: '🖼️', x: 80, y: 430, width: 70, height: 70, health: 100, maxHealth: 100 },
+    ];
+  }
+
+  // Malware Entities
+  interface MalwareWindow {
+    type: 'popup' | 'ransomware' | 'worm' | 'glitch';
+    title: string;
+    msg: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    width: number;
+    height: number;
+    targetFileIndex: number;
+    health: number;
+  }
+  let malwareList: MalwareWindow[] = [];
+  let spawnTimer = 0;
+  let totalWaveThreats = 15;
+  let spawnedWaveThreats = 0;
+
+  // Pointer tracking
+  canvas.addEventListener('pointermove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    let targetX = (e.clientX - rect.left) * scaleX;
+    let targetY = (e.clientY - rect.top) * scaleY;
+
+    // Malware Hijack Effect: Invert or wobble mouse
+    if (hijackTimer > 0) {
+      targetX = canvas.width - targetX + Math.sin(Date.now() / 100) * 20;
+      targetY = canvas.height - targetY + Math.cos(Date.now() / 100) * 20;
+    }
+
+    mouseX = targetX;
+    mouseY = targetY;
+
+    cursorTrail.push({ x: mouseX, y: mouseY, life: 1.0 });
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    isMouseDown = true;
+    handleSlashOrClick(mouseX, mouseY);
+  });
+
+  canvas.addEventListener('pointerup', () => {
+    isMouseDown = false;
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      triggerEMP();
+    }
+  });
+
+  function triggerEMP() {
+    if (empCharges <= 0 || isGameOver || isWaveWon) return;
+    empCharges--;
+    empEl.textContent = `${empCharges} Charges`;
+    sound.explosion();
+
+    // Wipe all malware
+    malwareList.forEach(m => {
+      score += 50;
+      threatsKilled++;
+    });
+    malwareList = [];
+    hijackTimer = 0;
+    alertEl.classList.add('hidden');
+
+    killsEl.textContent = threatsKilled.toString();
+    scoreEl.textContent = score.toString();
+  }
+
+  function handleSlashOrClick(x: number, y: number) {
+    if (isGameOver || isWaveWon) return;
+    sound.click();
+
+    for (let i = malwareList.length - 1; i >= 0; i--) {
+      const m = malwareList[i];
+
+      // Check if clicked close button on popup [X]
+      const closeBoxX = m.x + m.width - 20;
+      const closeBoxY = m.y + 2;
+      const hitClose = (x >= closeBoxX - 4 && x <= closeBoxX + 18 && y >= closeBoxY - 4 && y <= closeBoxY + 18);
+
+      // Or general slash hit
+      const hitWindow = (x >= m.x && x <= m.x + m.width && y >= m.y && y <= m.y + m.height);
+
+      if (hitClose || hitWindow) {
+        m.health -= hitClose ? 2 : 1;
+        sound.blip();
+
+        if (m.health <= 0) {
+          malwareList.splice(i, 1);
+          threatsKilled++;
+          score += (m.type === 'ransomware' ? 100 : 50);
+          killsEl.textContent = threatsKilled.toString();
+          scoreEl.textContent = score.toString();
+
+          // Glitch solved
+          if (m.type === 'glitch') {
+            hijackTimer = 0;
+            alertEl.classList.add('hidden');
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  function startWave(w: number) {
+    isGameOver = false;
+    isWaveWon = false;
+    currentWave = w;
+    waveEl.textContent = w.toString();
+    modal.classList.add('hidden');
+    alertEl.classList.add('hidden');
+    hijackTimer = 0;
+
+    initFiles();
+    updateFilesAliveHUD();
+
+    malwareList = [];
+    totalWaveThreats = 10 + w * 6;
+    spawnedWaveThreats = 0;
+    spawnTimer = 0;
+
+    player.trackGamePlay('cursorsiege');
+  }
+
+  function spawnThreat() {
+    if (spawnedWaveThreats >= totalWaveThreats) return;
+    spawnedWaveThreats++;
+
+    const types: MalwareWindow['type'][] = ['popup', 'worm', 'ransomware'];
+    if (currentWave >= 2) types.push('glitch');
+
+    const type = types[Math.floor(Math.random() * types.length)];
+    const startY = 40 + Math.random() * 400;
+
+    // Target a living file
+    const livingFiles = files.filter(f => f.health > 0);
+    if (livingFiles.length === 0) return;
+    const targetFileIndex = files.indexOf(livingFiles[Math.floor(Math.random() * livingFiles.length)]);
+
+    let title = 'ERROR 404';
+    let msg = 'Malicious script detected';
+    let w = 150;
+    let h = 80;
+    let health = 1;
+
+    if (type === 'popup') {
+      title = 'FREE PRIZE WINNER!';
+      msg = 'Click here to claim $1,000,000!';
+      w = 160;
+      h = 80;
+    } else if (type === 'ransomware') {
+      title = '💀 RANSOMWARE LOCKED';
+      msg = 'Encrypting local partition...';
+      w = 170;
+      h = 90;
+      health = 2;
+    } else if (type === 'glitch') {
+      title = '⚡ SYSTEM GLITCH';
+      msg = 'Inverting cursor vector!';
+      w = 140;
+      h = 75;
+      hijackTimer = 180;
+      alertEl.classList.remove('hidden');
+      sound.playTone(220, 'sawtooth', 0.3, 0.2);
+    } else if (type === 'worm') {
+      title = '🐛 TROJAN WORM';
+      msg = 'Eating disk blocks...';
+      w = 130;
+      h = 60;
+    }
+
+    malwareList.push({
+      type,
+      title,
+      msg,
+      x: canvas.width + 10,
+      y: startY,
+      vx: -(1.2 + currentWave * 0.25),
+      vy: (Math.random() - 0.5) * 0.8,
+      width: w,
+      height: h,
+      targetFileIndex,
+      health
+    });
+  }
+
+  function updateFilesAliveHUD() {
+    const alive = files.filter(f => f.health > 0).length;
+    filesAliveEl.textContent = `${alive}/${files.length}`;
+    if (alive === 0 && !isGameOver) {
+      gameOver();
+    }
+  }
+
+  function update() {
+    if (isGameOver || isWaveWon) return;
+
+    if (hijackTimer > 0) {
+      hijackTimer--;
+      if (hijackTimer <= 0) alertEl.classList.add('hidden');
+    }
+
+    // Spawn ticker
+    spawnTimer++;
+    if (spawnTimer % Math.max(30, 90 - currentWave * 10) === 0) {
+      spawnThreat();
+    }
+
+    // Update malware
+    for (let i = malwareList.length - 1; i >= 0; i--) {
+      const m = malwareList[i];
+      const target = files[m.targetFileIndex];
+
+      if (target && target.health > 0) {
+        // Crawl toward target file
+        const dx = (target.x + 40) - m.x;
+        const dy = (target.y + 20) - m.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 10) {
+          m.x += (dx / dist) * Math.abs(m.vx);
+          m.y += (dy / dist) * Math.abs(m.vx);
+        } else {
+          // Attack file
+          target.health -= 0.6;
+          if (target.health <= 0) {
+            target.health = 0;
+            updateFilesAliveHUD();
+            sound.playTone(180, 'sawtooth', 0.2, 0.15);
+          }
+        }
+      } else {
+        m.x += m.vx;
+      }
+    }
+
+    // Fade trail
+    for (let i = cursorTrail.length - 1; i >= 0; i--) {
+      cursorTrail[i].life -= 0.05;
+      if (cursorTrail[i].life <= 0) cursorTrail.splice(i, 1);
+    }
+
+    // Check wave clear
+    if (spawnedWaveThreats >= totalWaveThreats && malwareList.length === 0 && !isWaveWon) {
+      winWave();
+    }
+  }
+
+  function render() {
+    ctx.fillStyle = '#008080'; // Classic Windows 95 Desktop Teal
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Desktop Grid / Subtle CRT scanline feel
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+    for (let y = 0; y < canvas.height; y += 4) {
+      ctx.fillRect(0, y, canvas.width, 2);
+    }
+
+    // Draw Files on Desktop
+    files.forEach(f => {
+      ctx.save();
+      const isDead = f.health <= 0;
+
+      // Icon Box
+      ctx.fillStyle = isDead ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 128, 0.2)';
+      ctx.fillRect(f.x - 10, f.y - 10, 80, 80);
+
+      // Icon
+      ctx.font = '28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(isDead ? '🗑️' : f.icon, f.x + 30, f.y + 25);
+
+      // Label
+      ctx.fillStyle = isDead ? '#ef4444' : '#ffffff';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(f.name, f.x + 30, f.y + 45);
+
+      // Health Bar
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(f.x - 5, f.y + 52, 70, 6);
+      ctx.fillStyle = f.health > 40 ? '#22c55e' : '#ef4444';
+      ctx.fillRect(f.x - 5, f.y + 52, (f.health / f.maxHealth) * 70, 6);
+
+      ctx.restore();
+    });
+
+    // Draw Malware Windows
+    malwareList.forEach(m => {
+      ctx.save();
+      // Drop Shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(m.x + 4, m.y + 4, m.width, m.height);
+
+      // Window Body (Windows 95 gray)
+      ctx.fillStyle = m.type === 'ransomware' ? '#ffe4e6' : '#d4d0c8';
+      ctx.fillRect(m.x, m.y, m.width, m.height);
+
+      // Window 3D Bevel Borders
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(m.x, m.y, m.width, m.height);
+
+      // Title Bar
+      ctx.fillStyle = m.type === 'ransomware' ? '#991b1b' : (m.type === 'glitch' ? '#6b21a8' : '#000080');
+      ctx.fillRect(m.x + 2, m.y + 2, m.width - 4, 18);
+
+      // Title Text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(m.title, m.x + 6, m.y + 14);
+
+      // Close Button [X]
+      const btnX = m.x + m.width - 18;
+      const btnY = m.y + 3;
+      ctx.fillStyle = '#c0c0c0';
+      ctx.fillRect(btnX, btnY, 14, 14);
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText('✕', btnX + 3, btnY + 11);
+
+      // Message Body
+      ctx.fillStyle = '#000000';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(m.msg, m.x + 6, m.y + 38);
+
+      // Threat Health Dots
+      if (m.health > 1) {
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 8px monospace';
+        ctx.fillText(`HP: ${m.health}`, m.x + 6, m.y + 52);
+      }
+
+      ctx.restore();
+    });
+
+    // Draw Laser Cursor Trail
+    ctx.save();
+    cursorTrail.forEach(t => {
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, 4 * t.life, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(236, 72, 153, ${t.life * 0.7})`;
+      ctx.fill();
+    });
+    ctx.restore();
+
+    // Draw Virtual Retro Cursor (Laser Arrow)
+    ctx.save();
+    ctx.translate(mouseX, mouseY);
+    ctx.shadowColor = '#f43f5e';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, 18);
+    ctx.lineTo(5, 14);
+    ctx.lineTo(9, 21);
+    ctx.lineTo(12, 19);
+    ctx.lineTo(8, 12);
+    ctx.lineTo(14, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function winWave() {
+    isWaveWon = true;
+    sound.victory();
+    launchConfetti();
+    player.addScore('cursorsiege', score);
+    player.addXP(220);
+
+    modalIcon.textContent = '🛡️';
+    modalTitle.textContent = `Threat Wave ${currentWave} Repelled!`;
+    modalMsg.textContent = 'Your desktop filesystem remains intact. Antivirus defrag protocol complete.';
+    modalScore.textContent = `+220 XP • Total Threat Score: ${score}`;
+    modalBtn.textContent = 'Boot Next Wave →';
+    modal.classList.remove('hidden');
+  }
+
+  function gameOver() {
+    isGameOver = true;
+    sound.gameOver();
+    player.addScore('cursorsiege', score);
+
+    modalIcon.textContent = '💥';
+    modalTitle.textContent = 'Blue Screen of Death!';
+    modalMsg.textContent = 'All core desktop files have been compromised and encrypted by malware.';
+    modalScore.textContent = `Waves Survived: ${currentWave - 1} • Final Score: ${score}`;
+    modalBtn.textContent = 'Reboot System';
+    modal.classList.remove('hidden');
+  }
+
+  modalBtn.addEventListener('click', () => {
+    if (isWaveWon) {
+      currentWave++;
+      startWave(currentWave);
+    } else {
+      score = 0;
+      threatsKilled = 0;
+      empCharges = 2;
+      empEl.textContent = '2 Charges';
+      killsEl.textContent = '0';
+      scoreEl.textContent = '0';
+      startWave(1);
+    }
+  });
+
+  restartBtn.addEventListener('click', () => {
+    sound.click();
+    startWave(currentWave);
+  });
+
+  startBtn.addEventListener('click', () => {
+    triggerEMP();
+  });
+
+  // Init
+  startWave(1);
+  loop();
+</script>

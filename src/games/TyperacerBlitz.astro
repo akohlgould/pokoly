@@ -1,0 +1,96 @@
+---
+// TypeRacer Blitz: Cyber Shooter
+---
+
+<div id="typer-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>WPM: <span id="type-wpm" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Score: <span id="type-score" class="font-mono font-bold text-brand-gold">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="type-canvas" width="320" height="380" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('type-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const wpmEl = document.getElementById('type-wpm')!;
+  const scoreEl = document.getElementById('type-score')!;
+
+  const WORDS = ['NEON', 'CYBER', 'LASER', 'PULSE', 'ROBOT', 'TURBO', 'MATRIX', 'PIXEL'];
+  let enemies: { word: string; x: number; y: number; typed: number }[] = [];
+  let score = 0;
+  let lettersTyped = 0;
+  let startTime = Date.now();
+
+  function spawn() {
+    enemies.push({
+      word: WORDS[Math.floor(Math.random() * WORDS.length)],
+      x: 30 + Math.random() * 240,
+      y: 30,
+      typed: 0
+    });
+  }
+
+  function loop() {
+    ctx.fillStyle = '#060814';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const elapsedMin = (Date.now() - startTime) / 60000;
+    const wpm = Math.floor((lettersTyped / 5) / Math.max(0.1, elapsedMin));
+    wpmEl.textContent = wpm.toString();
+
+    // Spawn enemy occasionally
+    if (Math.random() < 0.02 && enemies.length < 4) spawn();
+
+    // Update enemies
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const e = enemies[i];
+      e.y += 0.8;
+
+      if (e.y > 350) {
+        sound.explosion();
+        enemies.splice(i, 1);
+        continue;
+      }
+
+      // Draw word ship
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(e.x - 6, e.y - 14, e.word.length * 12 + 12, 22);
+
+      ctx.font = 'bold 14px monospace';
+      // Typed letters
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText(e.word.slice(0, e.typed), e.x, e.y);
+      // Untyped letters
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(e.word.slice(e.typed), e.x + e.typed * 8.5, e.y);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const key = e.key.toUpperCase();
+    enemies.forEach((enemy, idx) => {
+      if (enemy.word[enemy.typed] === key) {
+        sound.blip();
+        enemy.typed++;
+        lettersTyped++;
+        if (enemy.typed === enemy.word.length) {
+          sound.score();
+          score += 100;
+          scoreEl.textContent = score.toString();
+          enemies.splice(idx, 1);
+        }
+      }
+    });
+  });
+
+  spawn();
+  requestAnimationFrame(loop);
+</script>

@@ -1,0 +1,71 @@
+---
+// ColorClash: Stroop Reflex Duel
+---
+
+<div id="clash-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Streak: <span id="clash-streak" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Best: <span id="clash-best" class="font-mono font-bold text-brand-gold">0</span></div>
+  </div>
+
+  <div class="w-full p-8 rounded-2xl border-2 border-brand-border bg-brand-dark text-center shadow-2xl mb-4">
+    <div id="clash-rule" class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">MATCH INK COLOR</div>
+    <div id="clash-word" class="font-black text-4xl font-display">RED</div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-2 w-full" id="clash-buttons">
+    <button class="clash-btn py-3 rounded-xl border border-brand-border bg-brand-card font-bold text-red-400 hover:border-red-400" data-color="RED">RED</button>
+    <button class="clash-btn py-3 rounded-xl border border-brand-border bg-brand-card font-bold text-blue-400 hover:border-blue-400" data-color="BLUE">BLUE</button>
+    <button class="clash-btn py-3 rounded-xl border border-brand-border bg-brand-card font-bold text-green-400 hover:border-green-400" data-color="GREEN">GREEN</button>
+    <button class="clash-btn py-3 rounded-xl border border-brand-border bg-brand-card font-bold text-amber-400 hover:border-amber-400" data-color="YELLOW">YELLOW</button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const COLORS = [
+    { name: 'RED', hex: '#ef4444' },
+    { name: 'BLUE', hex: '#3b82f6' },
+    { name: 'GREEN', hex: '#10b981' },
+    { name: 'YELLOW', hex: '#f59e0b' }
+  ];
+
+  let streak = 0;
+  let best = 0;
+  let currentTargetColor = 'RED';
+
+  const wordEl = document.getElementById('clash-word')!;
+  const streakEl = document.getElementById('clash-streak')!;
+  const bestEl = document.getElementById('clash-best')!;
+
+  function nextRound() {
+    const textC = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const inkC = COLORS[Math.floor(Math.random() * COLORS.length)];
+    wordEl.textContent = textC.name;
+    wordEl.style.color = inkC.hex;
+    currentTargetColor = inkC.name; // match ink color
+  }
+
+  document.querySelectorAll('.clash-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const selected = (e.currentTarget as HTMLElement).dataset.color!;
+      if (selected === currentTargetColor) {
+        sound.score();
+        streak++;
+        streakEl.textContent = streak.toString();
+        if (streak > best) {
+          best = streak;
+          bestEl.textContent = best.toString();
+        }
+      } else {
+        sound.gameOver();
+        streak = 0;
+        streakEl.textContent = '0';
+      }
+      nextRound();
+    });
+  });
+
+  nextRound();
+</script>

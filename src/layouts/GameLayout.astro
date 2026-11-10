@@ -22,7 +22,7 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
 <BaseLayout
   title={`${game.title} - Play Free Online at Pokoly`}
   description={game.description}
-  canonical={`${siteUrl}/games/${game.slug}`}
+  canonical={`${siteUrl}/games/${game.slug}/`}
   image={`/logos/${game.slug}.svg`}
   schema={schema}
 >
@@ -50,7 +50,7 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
       <nav class="flex items-center gap-2 text-gray-400">
         <a href="/" class="hover:text-white">Home</a>
         <span>/</span>
-        <a href={`/categories/${game.category}`} class="capitalize hover:text-white">{game.category}</a>
+        <a href={`/categories/${game.category}/`} class="capitalize hover:text-white">{game.category}</a>
         <span>/</span>
         <span class="text-gray-200">{game.title}</span>
       </nav>
@@ -149,10 +149,10 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
               </span>
             </div>
             <a
-              href={`/games/${nextRecommended.slug}`}
+              href={`/games/${nextRecommended.slug}/`}
               class="flex items-center gap-1 font-bold text-brand-neon hover:underline"
             >
-              <span>Play Next</span>
+              <span>Play {nextRecommended.title.split(':')[0]}</span>
               <span>→</span>
             </a>
           </div>
@@ -186,13 +186,13 @@ const nextRecommended = relatedGames[Math.floor(Math.random() * relatedGames.len
           <div class="space-y-3">
             {relatedGames.slice(0, 4).map(rel => (
               <a
-                href={`/games/${rel.slug}`}
+                href={`/games/${rel.slug}/`}
                 class="group flex items-center gap-3 rounded-2xl border border-brand-border/40 bg-brand-dark/60 p-2.5 transition-all hover:border-brand-neon hover:bg-brand-card"
               >
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-card p-1 group-hover:scale-110 transition-transform">
                   <img
                     src={`/logos/${rel.slug}.svg`}
-                    alt={rel.title}
+                    alt={`${rel.title} - Play Free Online`}
                     class="h-9 w-9 object-contain"
                     loading="lazy"
                   />

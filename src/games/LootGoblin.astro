@@ -1,0 +1,93 @@
+---
+// LootGoblin: Inventory Battler
+---
+
+<div id="loot-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Bag Power: <span id="loot-power" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Enemy HP: <span id="loot-ehp" class="font-mono font-bold text-rose-400">100</span></div>
+  </div>
+
+  <div class="w-full p-4 bg-brand-card border-2 border-brand-border rounded-2xl shadow-2xl">
+    <div class="text-xs text-gray-400 mb-2 text-center">4×4 Backpack Grid</div>
+    <div id="loot-grid" class="grid grid-cols-4 gap-2 mb-4"></div>
+    <button id="loot-fight" class="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-all">
+      SIMULATE BATTLE!
+    </button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const ITEMS = [
+    { icon: '🗡️', name: 'Dagger', basePower: 15 },
+    { icon: '💎', name: 'Gem', basePower: 5 },
+    { icon: '🛡️', name: 'Shield', basePower: 10 },
+    { icon: '⚡', name: 'Rune', basePower: 20 }
+  ];
+
+  let grid = Array(16).fill(null);
+  grid[0] = ITEMS[0];
+  grid[1] = ITEMS[1];
+  grid[5] = ITEMS[2];
+
+  const gridEl = document.getElementById('loot-grid')!;
+  const powerEl = document.getElementById('loot-power')!;
+  const ehpEl = document.getElementById('loot-ehp')!;
+  const fightBtn = document.getElementById('loot-fight')!;
+
+  function calculatePower() {
+    let power = 0;
+    grid.forEach((item, idx) => {
+      if (item) {
+        power += item.basePower;
+        // Adjacency bonus: if dagger next to gem, +10 power
+        if (item.name === 'Dagger') {
+          const adj = [idx - 1, idx + 1, idx - 4, idx + 4];
+          adj.forEach(a => {
+            if (grid[a] && grid[a].name === 'Gem') power += 10;
+          });
+        }
+      }
+    });
+    powerEl.textContent = power.toString();
+    return power;
+  }
+
+  function render() {
+    gridEl.innerHTML = '';
+    grid.forEach((item, idx) => {
+      const cell = document.createElement('div');
+      cell.className = 'w-14 h-14 rounded-xl border border-brand-border bg-brand-dark flex flex-col items-center justify-center cursor-pointer hover:border-brand-neon';
+      if (item) {
+        cell.innerHTML = `<span class="text-xl">${item.icon}</span><span class="text-[9px] text-gray-400 mt-0.5">${item.name}</span>`;
+      }
+      cell.addEventListener('click', () => {
+        sound.click();
+        if (grid[idx]) {
+          grid[idx] = null;
+        } else {
+          grid[idx] = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+        }
+        render();
+      });
+      gridEl.appendChild(cell);
+    });
+    calculatePower();
+  }
+
+  fightBtn.addEventListener('click', () => {
+    const power = calculatePower();
+    sound.score();
+    if (power >= 60) {
+      sound.victory();
+      alert(`🎉 Victory! Backpack layout dealt ${power} DMG and defeated the dungeon monster!`);
+    } else {
+      sound.blip();
+      alert(`⚠️ Need at least 60 Power! Current: ${power}. Try pairing Daggers next to Gems!`);
+    }
+  });
+
+  render();
+</script>

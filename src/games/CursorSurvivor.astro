@@ -1,0 +1,86 @@
+---
+// CursorSurvivor: Bullet Evasion
+---
+
+<div id="cursor-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Survived: <span id="cur-time" class="font-mono font-bold text-brand-neon">0.0s</span></div>
+    <div>Best: <span id="cur-best" class="font-mono font-bold text-brand-gold">0.0s</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="cur-canvas" width="320" height="340" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('cur-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const timeEl = document.getElementById('cur-time')!;
+  const bestEl = document.getElementById('cur-best')!;
+
+  let cursor = { x: 160, y: 170 };
+  let bullets: { x: number; y: number; vx: number; vy: number }[] = [];
+  let startTime = Date.now();
+  let best = 0;
+
+  function loop() {
+    ctx.fillStyle = '#080811';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    timeEl.textContent = `${elapsed}s`;
+
+    // Spawn bullets
+    if (Math.random() < 0.1) {
+      bullets.push({
+        x: Math.random() < 0.5 ? 0 : canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 5,
+        vy: (Math.random() - 0.5) * 5
+      });
+    }
+
+    // Update bullets
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i];
+      b.x += b.vx;
+      b.y += b.vy;
+
+      // Check collision with cursor
+      if (Math.hypot(b.x - cursor.x, b.y - cursor.y) < 8) {
+        sound.explosion();
+        const score = parseFloat(elapsed);
+        if (score > best) best = score;
+        bestEl.textContent = `${best.toFixed(1)}s`;
+        bullets = [];
+        startTime = Date.now();
+        break;
+      }
+
+      // Draw bullet
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw cursor target
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(cursor.x, cursor.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    cursor.x = e.clientX - rect.left;
+    cursor.y = e.clientY - rect.top;
+  });
+
+  requestAnimationFrame(loop);
+</script>

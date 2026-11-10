@@ -1,0 +1,66 @@
+---
+// IdleFactory: Infinite Forge
+---
+
+<div id="factory-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Gears: <span id="fac-gears" class="font-mono font-bold text-brand-gold">0</span></div>
+    <div>Per Sec: <span id="fac-gps" class="font-mono font-bold text-brand-neon">+0/s</span></div>
+  </div>
+
+  <button id="fac-click" class="w-full h-32 rounded-2xl bg-gradient-to-br from-amber-600 to-brand-accent font-display font-black text-2xl text-white shadow-xl hover:scale-105 active:scale-95 transition-all flex flex-col items-center justify-center">
+    <span>⚙️ FORGE GEAR</span>
+    <span class="text-xs text-amber-200 mt-1 font-normal">+1 Gear per Click</span>
+  </button>
+
+  <div class="grid grid-cols-2 gap-2 mt-4 w-full">
+    <button class="buy-fac rounded-xl border border-brand-border bg-brand-card p-3 text-left hover:border-brand-neon" data-cost="15" data-gps="1">
+      <div class="font-bold text-white text-xs">Conveyor</div>
+      <div class="text-[10px] text-gray-400 mt-0.5">Cost: 15G (+1/s)</div>
+    </button>
+    <button class="buy-fac rounded-xl border border-brand-border bg-brand-card p-3 text-left hover:border-brand-neon" data-cost="100" data-gps="8">
+      <div class="font-bold text-white text-xs">Steam Engine</div>
+      <div class="text-[10px] text-gray-400 mt-0.5">Cost: 100G (+8/s)</div>
+    </button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  let gears = 0;
+  let gps = 0;
+
+  const gearsEl = document.getElementById('fac-gears')!;
+  const gpsEl = document.getElementById('fac-gps')!;
+  const clickBtn = document.getElementById('fac-click')!;
+
+  clickBtn.addEventListener('click', () => {
+    sound.click();
+    gears++;
+    gearsEl.textContent = gears.toString();
+  });
+
+  document.querySelectorAll('.buy-fac').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const el = e.currentTarget as HTMLElement;
+      const cost = parseInt(el.dataset.cost!);
+      const inc = parseInt(el.dataset.gps!);
+
+      if (gears >= cost) {
+        sound.score();
+        gears -= cost;
+        gps += inc;
+        gearsEl.textContent = gears.toString();
+        gpsEl.textContent = `+${gps}/s`;
+      }
+    });
+  });
+
+  setInterval(() => {
+    if (gps > 0) {
+      gears += gps;
+      gearsEl.textContent = gears.toString();
+    }
+  }, 1000);
+</script>

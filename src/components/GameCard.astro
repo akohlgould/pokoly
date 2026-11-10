@@ -40,9 +40,10 @@ const { game } = Astro.props;
 
   <!-- Visual Artwork / Logo Banner -->
   <a
-    href={`/games/${game.slug}`}
+    href={`/games/${game.slug}/`}
     class="relative my-3 flex h-36 sm:h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4 transition-all duration-500 group-hover:scale-[1.02]"
     style={`background: radial-gradient(circle at center, ${game.color}25 0%, #0d111d 85%);`}
+    aria-label={`Play ${game.title} online`}
   >
     <!-- Ambient Radial Aura -->
     <div
@@ -56,7 +57,7 @@ const { game } = Astro.props;
     <!-- Logo with Floating Drop Shadow -->
     <img
       src={`/logos/${game.slug}.svg`}
-      alt={`${game.title} Logo`}
+      alt={`${game.title} - Free Online Browser Game Icon`}
       class="relative z-10 h-24 w-24 sm:h-28 sm:w-28 object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110"
       loading="lazy"
     />
@@ -79,7 +80,7 @@ const { game } = Astro.props;
   <!-- Content & Metadata -->
   <div class="flex-1 flex flex-col justify-between">
     <div>
-      <a href={`/games/${game.slug}`} class="block">
+      <a href={`/games/${game.slug}/`} class="block">
         <h3 class="font-display text-base font-bold text-white transition-colors duration-200 group-hover:text-brand-neon">
           {game.title}
         </h3>
@@ -102,7 +103,8 @@ const { game } = Astro.props;
       </div>
 
       <a
-        href={`/games/${game.slug}`}
+        href={`/games/${game.slug}/`}
+        aria-label={`Play ${game.title} free online`}
         class="inline-flex items-center gap-1 rounded-xl bg-white/5 px-2.5 py-1 font-display text-xs font-bold text-gray-200 border border-white/10 transition-all duration-200 hover:bg-brand-neon hover:text-brand-dark hover:border-brand-neon hover:shadow-lg hover:shadow-brand-neon/25"
       >
         <span>Play</span>

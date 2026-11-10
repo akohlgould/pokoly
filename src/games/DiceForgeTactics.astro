@@ -1,0 +1,117 @@
+---
+// DiceForge: Tactics Duel
+---
+
+<div id="dice-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Player HP: <span id="dice-php" class="font-mono font-bold text-emerald-400">100</span></div>
+    <div>Enemy HP: <span id="dice-ehp" class="font-mono font-bold text-rose-400">120</span></div>
+    <div>Rerolls: <span id="dice-rerolls" class="font-mono font-bold text-brand-gold">2</span></div>
+  </div>
+
+  <div class="w-full p-4 bg-brand-dark border-2 border-brand-border rounded-2xl shadow-2xl flex flex-col items-center">
+    <div class="text-xs text-gray-400 mb-2">Enemy Intent: <span class="font-bold text-rose-400">⚔️ Attacks for 15 DMG</span></div>
+    <div id="dice-tray" class="flex gap-3 my-4"></div>
+    <div class="flex gap-2 w-full mt-2">
+      <button id="dice-roll-btn" class="flex-1 rounded-xl bg-brand-accent py-2.5 text-xs font-bold text-white hover:scale-105 active:scale-95 transition-all">Roll Dice</button>
+      <button id="dice-end-turn" class="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 py-2.5 text-xs font-bold text-white hover:scale-105 active:scale-95 transition-all">Execute Attack</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const FACES = [
+    { icon: '⚔️', type: 'atk', val: 15 },
+    { icon: '🛡️', type: 'def', val: 15 },
+    { icon: '⚡', type: 'mag', val: 25 },
+    { icon: '🧪', type: 'heal', val: 15 },
+    { icon: '⚔️', type: 'atk', val: 15 },
+    { icon: '🛡️', type: 'def', val: 15 }
+  ];
+
+  let pHP = 100;
+  let eHP = 120;
+  let rerolls = 2;
+  let dice = [
+    { face: FACES[0], locked: false },
+    { face: FACES[1], locked: false },
+    { face: FACES[2], locked: false }
+  ];
+
+  const phpEl = document.getElementById('dice-php')!;
+  const ehpEl = document.getElementById('dice-ehp')!;
+  const rerollsEl = document.getElementById('dice-rerolls')!;
+  const trayEl = document.getElementById('dice-tray')!;
+  const rollBtn = document.getElementById('dice-roll-btn') as HTMLButtonElement;
+  const endBtn = document.getElementById('dice-end-turn')!;
+
+  function render() {
+    phpEl.textContent = pHP.toString();
+    ehpEl.textContent = eHP.toString();
+    rerollsEl.textContent = rerolls.toString();
+    rollBtn.disabled = rerolls <= 0;
+
+    trayEl.innerHTML = '';
+    dice.forEach((d, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `w-16 h-16 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-150 ${
+        d.locked ? 'bg-brand-neon/20 border-brand-neon shadow-lg scale-95' : 'bg-brand-card border-brand-border text-white hover:border-gray-400'
+      }`;
+      btn.innerHTML = `<span class="text-2xl">${d.face.icon}</span><span class="text-[10px] text-gray-400 mt-1 font-mono">${d.face.val}</span>`;
+      btn.addEventListener('click', () => {
+        sound.click();
+        d.locked = !d.locked;
+        render();
+      });
+      trayEl.appendChild(btn);
+    });
+  }
+
+  rollBtn.addEventListener('click', () => {
+    if (rerolls <= 0) return;
+    sound.score();
+    rerolls--;
+    dice.forEach(d => {
+      if (!d.locked) {
+        d.face = FACES[Math.floor(Math.random() * FACES.length)];
+      }
+    });
+    render();
+  });
+
+  endBtn.addEventListener('click', () => {
+    sound.victory();
+    let dmg = 0;
+    let def = 0;
+    dice.forEach(d => {
+      if (d.face.type === 'atk' || d.face.type === 'mag') dmg += d.face.val;
+      if (d.face.type === 'def') def += d.face.val;
+      if (d.face.type === 'heal') pHP = Math.min(100, pHP + d.face.val);
+      d.locked = false;
+    });
+
+    eHP = Math.max(0, eHP - dmg);
+    const enemyDmg = Math.max(0, 15 - def);
+    pHP = Math.max(0, pHP - enemyDmg);
+
+    if (eHP <= 0) {
+      sound.victory();
+      alert('🎉 Rogue Cyborg Defeated!');
+      eHP = 150;
+      pHP = 100;
+    } else if (pHP <= 0) {
+      sound.gameOver();
+      alert('💥 Systems Destroyed! Game Over.');
+      eHP = 120;
+      pHP = 100;
+    }
+
+    rerolls = 2;
+    dice.forEach(d => d.face = FACES[Math.floor(Math.random() * FACES.length)]);
+    render();
+  });
+
+  render();
+</script>

@@ -1,0 +1,53 @@
+---
+// PipeMaster: Energy Conduit
+---
+
+<div id="pipe-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Moves: <span id="pipe-moves" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Status: <span id="pipe-status" class="font-bold text-amber-400">UNPOWERED</span></div>
+  </div>
+
+  <div class="p-4 bg-brand-dark border-2 border-brand-border rounded-2xl shadow-2xl">
+    <div id="pipe-grid" class="grid grid-cols-4 gap-2"></div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  let angles = [0, 90, 180, 270, 90, 0, 270, 180, 0, 90, 180, 270, 90, 0, 270, 180];
+  let moves = 0;
+
+  const gridEl = document.getElementById('pipe-grid')!;
+  const movesEl = document.getElementById('pipe-moves')!;
+  const statusEl = document.getElementById('pipe-status')!;
+
+  function render() {
+    gridEl.innerHTML = '';
+    movesEl.textContent = moves.toString();
+
+    angles.forEach((deg, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'w-16 h-16 rounded-xl border border-brand-border bg-brand-card flex items-center justify-center font-mono font-bold text-xl text-brand-neon hover:border-brand-neon transition-transform';
+      btn.style.transform = `rotate(${deg}deg)`;
+      btn.textContent = '━';
+      btn.addEventListener('click', () => {
+        sound.click();
+        moves++;
+        angles[idx] = (angles[idx] + 90) % 360;
+        render();
+
+        if (angles.every(a => a % 180 === 0)) {
+          sound.victory();
+          statusEl.textContent = 'POWERED!';
+          statusEl.className = 'font-bold text-brand-neon';
+          alert('🎉 Energy Circuit Completed!');
+        }
+      });
+      gridEl.appendChild(btn);
+    });
+  }
+
+  render();
+</script>

@@ -1,0 +1,987 @@
+---
+// Cymatica: Harmonic Waveform Architect
+// Innovative Chladni Plate & Acoustic Radiation Force Resonator
+---
+
+<div id="cymatica-container" class="relative w-full max-w-4xl mx-auto bg-[#070913] rounded-2xl overflow-hidden border border-cyan-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0c1022]/95 border-b border-cyan-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-bold text-xl shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+        ≋
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent font-black">CYMATICA</span>
+          <span id="cym-mode-badge" class="px-2 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-300 rounded-md border border-cyan-500/40">LEVEL 1</span>
+        </div>
+        <div id="cym-level-title" class="text-[10px] sm:text-xs text-slate-400">CHLADNI NODAL RESONANCE &bull; MONOCHORD</div>
+      </div>
+    </div>
+
+    <!-- Center Metric: Harmonic Stability -->
+    <div class="hidden sm:flex items-center gap-3 bg-[#080d1e] px-4 py-1.5 rounded-xl border border-cyan-500/30">
+      <div class="flex flex-col">
+        <span class="text-[10px] text-slate-400 font-bold">HARMONIC STABILITY</span>
+        <div class="flex items-center gap-2">
+          <div class="w-24 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+            <div id="cym-stability-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-150" style="width: 0%"></div>
+          </div>
+          <span id="cym-stability-val" class="font-bold text-cyan-300 text-xs font-mono">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode and Controls -->
+    <div class="flex items-center gap-2">
+      <button id="cym-audio-toggle" class="p-2 bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-300 border border-cyan-500/30 rounded-xl transition-all" title="Toggle Drone Synth">
+        <svg id="cym-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+        <svg id="cym-sound-off" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+      </button>
+
+      <button id="cym-sandbox-btn" class="px-2.5 sm:px-3 py-1.5 bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-bold transition-all">
+        ZEN SANDBOX
+      </button>
+
+      <button id="cym-reset-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all">
+        RESET
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas Playfield -->
+  <div class="relative w-full h-[480px] sm:h-[540px] bg-[#050711] overflow-hidden flex items-center justify-center">
+    <canvas id="cym-canvas" class="w-full h-full cursor-crosshair block touch-none"></canvas>
+
+    <!-- Node Tuner Quick Bar (Floating below canvas) -->
+    <div id="cym-tuner-panel" class="absolute bottom-3 left-3 right-3 sm:left-6 sm:right-6 bg-[#0a0e20]/90 backdrop-blur-md border border-cyan-500/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xl transition-all">
+      <div class="flex items-center gap-3">
+        <span class="text-cyan-400 font-bold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          ACTIVE EMITTER:
+        </span>
+        <span id="cym-selected-node-label" class="text-white font-mono bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">Node #1 (220 Hz)</span>
+      </div>
+
+      <!-- Frequency & Phase controls -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 text-[11px]">FREQ:</span>
+          <button class="cym-freq-preset px-2 py-1 bg-slate-800 hover:bg-cyan-900/50 text-cyan-200 rounded border border-slate-700 font-mono text-[11px]" data-freq="220">220Hz (A3)</button>
+          <button class="cym-freq-preset px-2 py-1 bg-slate-800 hover:bg-cyan-900/50 text-cyan-200 rounded border border-slate-700 font-mono text-[11px]" data-freq="330">330Hz (E4)</button>
+          <button class="cym-freq-preset px-2 py-1 bg-slate-800 hover:bg-cyan-900/50 text-cyan-200 rounded border border-slate-700 font-mono text-[11px]" data-freq="440">440Hz (A4)</button>
+          <button class="cym-freq-preset px-2 py-1 bg-slate-800 hover:bg-cyan-900/50 text-cyan-200 rounded border border-slate-700 font-mono text-[11px]" data-freq="550">550Hz (C#5)</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400 text-[11px]">PHASE:</span>
+          <button id="cym-phase-flip" class="px-2 py-1 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 rounded border border-amber-500/40 font-mono text-[11px]" title="Flip Phase by 180° for Destructive Interference">
+            FLIP 180° (π)
+          </button>
+        </div>
+
+        <button id="cym-pulse-btn" class="px-3 py-1 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:brightness-110 text-white rounded-lg font-bold text-[11px] shadow-md transition-all active:scale-95">
+          ACOUSTIC PULSE
+        </button>
+      </div>
+    </div>
+
+    <!-- Level Instructions Pill (Top Left Inside Canvas) -->
+    <div class="absolute top-3 left-3 sm:left-6 max-w-sm pointer-events-none">
+      <div class="bg-[#090e1f]/85 backdrop-blur-md border border-cyan-500/20 px-3.5 py-2 rounded-xl text-slate-300 text-[11px] shadow-lg">
+        <span class="text-cyan-300 font-bold">OBJECTIVE:</span>
+        <span id="cym-objective-text" class="text-slate-200 ml-1">Drag the emitter node so that quiet nodal lines align with the central Harmonic Core!</span>
+      </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div id="cym-victory-modal" class="absolute inset-0 bg-[#04060f]/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-[#0c1024] border border-cyan-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(6,182,212,0.25)]">
+        <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-pulse">
+          ✨
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black text-white mb-1 tracking-wide">HARMONIC LOCK ACHIEVED!</h2>
+        <p class="text-xs sm:text-sm text-cyan-200 mb-4" id="cym-victory-desc">Acoustic resonance stabilized. The quantum particles have formed a coherent Chladni mandala!</p>
+        
+        <div class="grid grid-cols-3 gap-2 text-xs font-mono mb-6 bg-[#080c1d] p-3 rounded-xl border border-cyan-500/20">
+          <div>
+            <div class="text-slate-400 text-[10px]">STABILITY</div>
+            <div id="cym-stat-stability" class="text-cyan-300 font-bold text-sm">98%</div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-[10px]">TIME</div>
+            <div id="cym-stat-time" class="text-white font-bold text-sm">14s</div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-[10px]">RESONANCE XP</div>
+            <div class="text-emerald-400 font-bold text-sm">+250 XP</div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+          <button id="cym-next-btn" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-500 hover:brightness-110 text-slate-950 font-black text-xs rounded-xl shadow-lg transition-all active:scale-95">
+            NEXT HARMONIC &rarr;
+          </button>
+          <button id="cym-replay-btn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl border border-slate-600 transition-all">
+            REPLAY
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  interface EmitterNode {
+    id: number;
+    x: number;
+    y: number;
+    freq: number;        // Hz (e.g. 220, 330, 440)
+    amplitude: number;   // 0.0 to 1.5
+    phase: number;       // radians (0 to 2*PI)
+    isDissonant?: boolean; // Red hazard emitter that requires cancellation
+    locked?: boolean;    // Fixed position
+  }
+
+  interface ResonanceTarget {
+    x: number;
+    y: number;
+    radius: number;
+    charge: number;      // 0 to 100
+    targetCharge: number;// Needed to stabilize
+    color: string;
+    label: string;
+  }
+
+  interface QuantumMote {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    alpha: number;
+    hue: number;
+  }
+
+  interface LevelConfig {
+    id: number;
+    name: string;
+    subtitle: string;
+    objective: string;
+    victoryText: string;
+    emitters: EmitterNode[];
+    targets: ResonanceTarget[];
+    maxNodes: number;
+    durationToHold: number; // Seconds of stability required
+  }
+
+  // --- Handcrafted Levels with Real Acoustic Mechanics ---
+  const LEVELS: LevelConfig[] = [
+    {
+      id: 1,
+      name: "LEVEL 1",
+      subtitle: "CHLADNI NODAL RESONANCE • MONOCHORD",
+      objective: "Drag Emitter #1 so its nodal circle intersects the central Core to shepherd 50+ particles into it!",
+      victoryText: "First Harmonic unlocked! Sand motes aligned with the zero-vibration nodal ring.",
+      maxNodes: 1,
+      durationToHold: 2.5,
+      emitters: [
+        { id: 1, x: 0.3, y: 0.35, freq: 220, amplitude: 1.0, phase: 0 }
+      ],
+      targets: [
+        { x: 0.5, y: 0.5, radius: 45, charge: 0, targetCharge: 40, color: "#06b6d4", label: "CORE α" }
+      ]
+    },
+    {
+      id: 2,
+      name: "LEVEL 2",
+      subtitle: "THE PERFECT FIFTH • CONSONANCE (3:2 RATIO)",
+      objective: "Pair the 220Hz fundamental with the 330Hz overtone to sculpt dual nodal channels into both Cores!",
+      victoryText: "Consonance achieved! The 3:2 frequency ratio carved harmonic nodal superhighways.",
+      maxNodes: 2,
+      durationToHold: 3.0,
+      emitters: [
+        { id: 1, x: 0.25, y: 0.5, freq: 220, amplitude: 1.0, phase: 0 },
+        { id: 2, x: 0.75, y: 0.5, freq: 330, amplitude: 1.0, phase: 0 }
+      ],
+      targets: [
+        { x: 0.35, y: 0.25, radius: 36, charge: 0, targetCharge: 35, color: "#38bdf8", label: "NODE 1" },
+        { x: 0.65, y: 0.75, radius: 36, charge: 0, targetCharge: 35, color: "#a855f7", label: "NODE 2" }
+      ]
+    },
+    {
+      id: 3,
+      name: "LEVEL 3",
+      subtitle: "DESTRUCTIVE INTERFERENCE • ACOUSTIC CLOAK",
+      objective: "A rogue dissonance source (red) disrupts the core! Tune Emitter #2 to 180° phase inversion to cancel it out!",
+      victoryText: "Destructive interference confirmed! Anti-phase soundwaves extinguished the acoustic hazard.",
+      maxNodes: 2,
+      durationToHold: 3.0,
+      emitters: [
+        { id: 1, x: 0.35, y: 0.5, freq: 330, amplitude: 1.2, phase: 0, isDissonant: true, locked: true },
+        { id: 2, x: 0.65, y: 0.5, freq: 330, amplitude: 1.0, phase: 0 }
+      ],
+      targets: [
+        { x: 0.5, y: 0.5, radius: 40, charge: 0, targetCharge: 45, color: "#10b981", label: "SANCTUARY" }
+      ]
+    },
+    {
+      id: 4,
+      name: "LEVEL 4",
+      subtitle: "TRIADIC MANDALA • SACRED HARMONY",
+      objective: "Form a Major Triad (A3 - C#5 - E4). Position 3 emitters in a triangular nexus to power all 3 Cores simultaneously!",
+      victoryText: "Triadic resonance locked! The standing waves generated a 3-fold symmetric Chladni mandala.",
+      maxNodes: 3,
+      durationToHold: 3.5,
+      emitters: [
+        { id: 1, x: 0.25, y: 0.7, freq: 220, amplitude: 1.0, phase: 0 },
+        { id: 2, x: 0.75, y: 0.7, freq: 330, amplitude: 1.0, phase: 0 },
+        { id: 3, x: 0.5, y: 0.2, freq: 550, amplitude: 1.0, phase: 0 }
+      ],
+      targets: [
+        { x: 0.5, y: 0.45, radius: 34, charge: 0, targetCharge: 30, color: "#06b6d4", label: "PYLON A" },
+        { x: 0.32, y: 0.4, radius: 34, charge: 0, targetCharge: 30, color: "#fbbf24", label: "PYLON B" },
+        { x: 0.68, y: 0.4, radius: 34, charge: 0, targetCharge: 30, color: "#ec4899", label: "PYLON C" }
+      ]
+    },
+    {
+      id: 5,
+      name: "LEVEL 5",
+      subtitle: "RESONANCE SINGULARITY • CHLADNI MASTER",
+      objective: "Coordinate high-order harmonics across 4 emitters to maintain 90%+ total system stability!",
+      victoryText: "Cymatic Master! You have mastered acoustic wave mechanics and harmonic topology.",
+      maxNodes: 4,
+      durationToHold: 4.0,
+      emitters: [
+        { id: 1, x: 0.2, y: 0.3, freq: 220, amplitude: 1.0, phase: 0 },
+        { id: 2, x: 0.8, y: 0.3, freq: 330, amplitude: 1.0, phase: 0 },
+        { id: 3, x: 0.2, y: 0.7, freq: 440, amplitude: 1.0, phase: 0 },
+        { id: 4, x: 0.8, y: 0.7, freq: 550, amplitude: 1.0, phase: 0 }
+      ],
+      targets: [
+        { x: 0.5, y: 0.3, radius: 38, charge: 0, targetCharge: 40, color: "#38bdf8", label: "NEXUS 1" },
+        { x: 0.5, y: 0.7, radius: 38, charge: 0, targetCharge: 40, color: "#a855f7", label: "NEXUS 2" }
+      ]
+    }
+  ];
+
+  // --- Real-time Web Audio Harmonic Synthesizer ---
+  class CymaticaSynthesizer {
+    private ctx: AudioContext | null = null;
+    private masterGain: GainNode | null = null;
+    private oscillators: Map<number, { osc: OscillatorNode; gain: GainNode }> = new Map();
+    public isMuted: boolean = false;
+
+    public init() {
+      if (!this.ctx && typeof window !== 'undefined') {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          this.ctx = new AudioCtx();
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+
+          // Add a warm lowpass filter to create ambient soundscape
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1400, this.ctx.currentTime);
+          filter.Q.setValueAtTime(1.5, this.ctx.currentTime);
+
+          this.masterGain.connect(filter);
+          filter.connect(this.ctx.destination);
+        }
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    public updateEmitters(emitters: EmitterNode[]) {
+      if (!this.ctx || !this.masterGain || this.isMuted) return;
+
+      const activeIds = new Set(emitters.map(e => e.id));
+
+      // Remove defunct oscs
+      for (const [id, node] of this.oscillators.entries()) {
+        if (!activeIds.has(id)) {
+          node.gain.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + 0.1);
+          setTimeout(() => {
+            try { node.osc.stop(); node.osc.disconnect(); } catch (_) {}
+          }, 120);
+          this.oscillators.delete(id);
+        }
+      }
+
+      // Add or update active oscs
+      emitters.forEach(emitter => {
+        let oscData = this.oscillators.get(emitter.id);
+        if (!oscData) {
+          const osc = this.ctx!.createOscillator();
+          const gain = this.ctx!.createGain();
+          osc.type = emitter.isDissonant ? 'sawtooth' : 'sine';
+          osc.frequency.setValueAtTime(emitter.freq, this.ctx!.currentTime);
+          gain.gain.setValueAtTime(0.001, this.ctx!.currentTime);
+          gain.gain.linearRampToValueAtTime(emitter.isDissonant ? 0.04 : 0.07, this.ctx!.currentTime + 0.15);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain!);
+          osc.start();
+
+          oscData = { osc, gain };
+          this.oscillators.set(emitter.id, oscData);
+        } else {
+          oscData.osc.frequency.setTargetAtTime(emitter.freq, this.ctx!.currentTime, 0.05);
+        }
+      });
+    }
+
+    public chimeSuccess() {
+      if (this.isMuted) return;
+      this.init();
+      if (!this.ctx) return;
+      // Celestial harmonic chord arpeggio
+      const chord = [440, 554.37, 659.25, 880, 1108.7];
+      chord.forEach((freq, idx) => {
+        setTimeout(() => {
+          sound.playTone(freq, 'triangle', 0.6, 0.12, 0.001);
+        }, idx * 90);
+      });
+    }
+
+    public pulseSound() {
+      if (this.isMuted) return;
+      this.init();
+      sound.playTone(180, 'sine', 0.4, 0.25, 0.001);
+      setTimeout(() => sound.playTone(360, 'triangle', 0.3, 0.15, 0.001), 60);
+    }
+
+    public toggleMute(): boolean {
+      this.isMuted = !this.isMuted;
+      if (this.masterGain && this.ctx) {
+        this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.08, this.ctx.currentTime);
+      }
+      return this.isMuted;
+    }
+  }
+
+  // --- Main Game Engine ---
+  const canvas = document.getElementById('cym-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  // UI Elements
+  const modeBadge = document.getElementById('cym-mode-badge')!;
+  const levelTitle = document.getElementById('cym-level-title')!;
+  const objectiveText = document.getElementById('cym-objective-text')!;
+  const stabilityBar = document.getElementById('cym-stability-bar')!;
+  const stabilityVal = document.getElementById('cym-stability-val')!;
+  const selectedNodeLabel = document.getElementById('cym-selected-node-label')!;
+  const audioToggle = document.getElementById('cym-audio-toggle')!;
+  const soundOnIcon = document.getElementById('cym-sound-on')!;
+  const soundOffIcon = document.getElementById('cym-sound-off')!;
+  const sandboxBtn = document.getElementById('cym-sandbox-btn')!;
+  const resetBtn = document.getElementById('cym-reset-btn')!;
+  const phaseFlipBtn = document.getElementById('cym-phase-flip')!;
+  const pulseBtn = document.getElementById('cym-pulse-btn')!;
+  const victoryModal = document.getElementById('cym-victory-modal')!;
+  const victoryDesc = document.getElementById('cym-victory-desc')!;
+  const statStability = document.getElementById('cym-stat-stability')!;
+  const statTime = document.getElementById('cym-stat-time')!;
+  const nextBtn = document.getElementById('cym-next-btn')!;
+  const replayBtn = document.getElementById('cym-replay-btn')!;
+
+  const synth = new CymaticaSynthesizer();
+
+  let currentLevelIdx = 0;
+  let isSandbox = false;
+  let currentLevel = LEVELS[0];
+
+  let emitters: EmitterNode[] = [];
+  let targets: ResonanceTarget[] = [];
+  let motes: QuantumMote[] = [];
+  const MOTE_COUNT = 550;
+
+  let selectedEmitterId: number | null = 1;
+  let draggingNodeId: number | null = null;
+  let levelStartTime = Date.now();
+  let stableDuration = 0;
+  let isLevelWon = false;
+  let animationFrameId: number;
+
+  // Wave calculation grid for performance (50 x 36 cells)
+  const GRID_COLS = 50;
+  const GRID_ROWS = 36;
+  const waveField = new Float32Array(GRID_COLS * GRID_ROWS);
+
+  // Resize canvas for crisp Retina rendering
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.scale(dpr, dpr);
+  }
+
+  function getLogicalSize() {
+    const rect = canvas.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  }
+
+  // Initialize Particles (Quantum Sand)
+  function initMotes() {
+    const { width, height } = getLogicalSize();
+    motes = [];
+    for (let i = 0; i < MOTE_COUNT; i++) {
+      motes.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: 1.2 + Math.random() * 1.6,
+        alpha: 0.4 + Math.random() * 0.5,
+        hue: 180 + Math.random() * 40 // Cyan/Azure
+      });
+    }
+  }
+
+  // Load a Level
+  function loadLevel(idx: number) {
+    currentLevelIdx = idx;
+    isSandbox = false;
+    currentLevel = LEVELS[currentLevelIdx];
+    isLevelWon = false;
+    stableDuration = 0;
+    levelStartTime = Date.now();
+
+    modeBadge.textContent = currentLevel.name;
+    modeBadge.className = "px-2 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-300 rounded-md border border-cyan-500/40";
+    levelTitle.textContent = currentLevel.subtitle;
+    objectiveText.textContent = currentLevel.objective;
+    victoryModal.classList.add('hidden');
+    sandboxBtn.textContent = "ZEN SANDBOX";
+    sandboxBtn.className = "px-2.5 sm:px-3 py-1.5 bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-bold transition-all";
+
+    // Clone emitters & targets
+    const { width, height } = getLogicalSize();
+    emitters = currentLevel.emitters.map(e => ({
+      ...e,
+      x: e.x * width,
+      y: e.y * height
+    }));
+
+    targets = currentLevel.targets.map(t => ({
+      ...t,
+      x: t.x * width,
+      y: t.y * height,
+      charge: 0
+    }));
+
+    selectedEmitterId = emitters[0]?.id ?? null;
+    updateSelectedLabel();
+    synth.updateEmitters(emitters);
+  }
+
+  function startSandbox() {
+    isSandbox = true;
+    isLevelWon = false;
+    stableDuration = 0;
+    modeBadge.textContent = "ZEN SANDBOX";
+    modeBadge.className = "px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-300 rounded-md border border-purple-500/40";
+    levelTitle.textContent = "CHLADNI HARMONIC WEAVER • UNLIMITED FREQUENCIES";
+    objectiveText.textContent = "Drag and tune emitters to explore sacred Chladni mandalas and celestial ambient soundscapes.";
+    victoryModal.classList.add('hidden');
+    sandboxBtn.textContent = "EXIT SANDBOX";
+    sandboxBtn.className = "px-2.5 sm:px-3 py-1.5 bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all";
+
+    const { width, height } = getLogicalSize();
+    emitters = [
+      { id: 1, x: width * 0.3, y: height * 0.5, freq: 220, amplitude: 1.0, phase: 0 },
+      { id: 2, x: width * 0.7, y: height * 0.5, freq: 330, amplitude: 1.0, phase: 0 },
+      { id: 3, x: width * 0.5, y: height * 0.25, freq: 440, amplitude: 0.9, phase: 0 }
+    ];
+    targets = [
+      { x: width * 0.5, y: height * 0.5, radius: 45, charge: 0, targetCharge: 100, color: "#a855f7", label: "ZENITH" }
+    ];
+
+    selectedEmitterId = 1;
+    updateSelectedLabel();
+    synth.updateEmitters(emitters);
+  }
+
+  function updateSelectedLabel() {
+    const sel = emitters.find(e => e.id === selectedEmitterId);
+    if (sel) {
+      selectedNodeLabel.textContent = `Node #${sel.id} (${sel.freq} Hz${sel.isDissonant ? ' • ROGUE' : ''})`;
+      selectedNodeLabel.className = sel.isDissonant 
+        ? "text-rose-300 font-mono bg-rose-950/60 px-2 py-0.5 rounded border border-rose-500/30"
+        : "text-white font-mono bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30";
+    } else {
+      selectedNodeLabel.textContent = "None Selected";
+    }
+  }
+
+  // --- Real-time Wave Equation & Acoustic Radiation Force Simulation ---
+  // Psi(x, y, t) = Sum [ A_i * sin(k_i * r_i - omega_i * t + phi_i) ]
+  // Acoustic radiation force pushing particles to nodal lines: F = -alpha * grad(|Psi|^2)
+  function sampleWaveField(x: number, y: number, time: number): { psi: number; gradX: number; gradY: number } {
+    let psi = 0;
+    let gradX = 0;
+    let gradY = 0;
+
+    for (let i = 0; i < emitters.length; i++) {
+      const em = emitters[i];
+      const dx = x - em.x;
+      const dy = y - em.y;
+      const r = Math.sqrt(dx * dx + dy * dy) + 0.001;
+
+      // Wave number proportional to frequency (scaled for canvas visual wavelengths)
+      const k = (em.freq / 220) * 0.045; 
+      const omega = (em.freq / 220) * 4.0;
+      const theta = k * r - omega * time + em.phase;
+
+      // Amplitude falls gently with distance
+      const falloff = em.amplitude / (1 + r * 0.0015);
+      const waveVal = falloff * Math.sin(theta);
+      psi += waveVal;
+
+      // Analytical derivative for acoustic radiation force
+      const dTheta_dx = k * (dx / r);
+      const dTheta_dy = k * (dy / r);
+      const dWave_dx = falloff * Math.cos(theta) * dTheta_dx;
+      const dWave_dy = falloff * Math.cos(theta) * dTheta_dy;
+
+      gradX += dWave_dx;
+      gradY += dWave_dy;
+    }
+
+    // Force is gradient of intensity |Psi|^2: grad(|Psi|^2) = 2 * Psi * grad(Psi)
+    const acousticForceX = 2 * psi * gradX;
+    const acousticForceY = 2 * psi * gradY;
+
+    return { psi, gradX: acousticForceX, gradY: acousticForceY };
+  }
+
+  // Update & Draw Loop
+  function tick(timestamp: number) {
+    const timeSec = timestamp * 0.001;
+    const { width, height } = getLogicalSize();
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 1. Draw Deep Acoustic Membrane Background
+    const bgGrad = ctx.createRadialGradient(width / 2, height / 2, 20, width / 2, height / 2, width * 0.7);
+    bgGrad.addColorStop(0, '#0a0e22');
+    bgGrad.addColorStop(0.7, '#060814');
+    bgGrad.addColorStop(1, '#020408');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Render Wave Interference Heatmap Grid (Sub-sampled for 60fps buttery smoothness)
+    const cellW = width / GRID_COLS;
+    const cellH = height / GRID_ROWS;
+
+    for (let r = 0; r < GRID_ROWS; r++) {
+      const py = (r + 0.5) * cellH;
+      for (let c = 0; c < GRID_COLS; c++) {
+        const px = (c + 0.5) * cellW;
+        const { psi } = sampleWaveField(px, py, timeSec);
+        const amp = Math.abs(psi);
+
+        // Near-zero amplitude is a Nodal Line (dark luminous void)
+        // High amplitude glows cyan / violet / amber
+        if (amp > 0.15) {
+          const intensity = Math.min(amp * 0.28, 0.45);
+          ctx.fillStyle = `rgba(6, 182, 212, ${intensity})`;
+          ctx.fillRect(c * cellW, r * cellH, cellW + 0.5, cellH + 0.5);
+        } else {
+          // Subtle glow along nodal line boundary
+          ctx.fillStyle = `rgba(168, 85, 247, 0.07)`;
+          ctx.fillRect(c * cellW, r * cellH, cellW + 0.5, cellH + 0.5);
+        }
+      }
+    }
+
+    // 3. Draw Resonance Targets / Cores
+    let totalTargetStability = 0;
+
+    targets.forEach(tgt => {
+      // Check how many motes are inside target radius
+      let motesInside = 0;
+      for (let i = 0; i < motes.length; i++) {
+        const m = motes[i];
+        const d = Math.hypot(m.x - tgt.x, m.y - tgt.y);
+        if (d < tgt.radius) {
+          motesInside++;
+        }
+      }
+
+      // Smoothly charge up based on motes count
+      const targetPercent = Math.min(100, Math.floor((motesInside / tgt.targetCharge) * 100));
+      tgt.charge += (targetPercent - tgt.charge) * 0.1;
+      totalTargetStability += tgt.charge;
+
+      const isSatisfied = tgt.charge >= 95;
+
+      // Draw Collector Sacred Rings
+      ctx.save();
+      ctx.translate(tgt.x, tgt.y);
+
+      // Rotating resonance ring
+      ctx.rotate(timeSec * (isSatisfied ? 2.5 : 0.8));
+      ctx.beginPath();
+      ctx.arc(0, 0, tgt.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = isSatisfied ? '#34d399' : (tgt.color + 'aa');
+      ctx.lineWidth = isSatisfied ? 3.5 : 2;
+      ctx.setLineDash([8, 6]);
+      ctx.stroke();
+
+      // Inner core glow
+      ctx.beginPath();
+      ctx.arc(0, 0, tgt.radius * 0.65, 0, Math.PI * 2);
+      ctx.fillStyle = isSatisfied ? 'rgba(52, 211, 153, 0.25)' : 'rgba(6, 182, 212, 0.1)';
+      ctx.fill();
+      ctx.strokeStyle = isSatisfied ? '#10b981' : tgt.color;
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Geometric cross-hairs
+      ctx.beginPath();
+      ctx.moveTo(-tgt.radius * 0.4, 0);
+      ctx.lineTo(tgt.radius * 0.4, 0);
+      ctx.moveTo(0, -tgt.radius * 0.4);
+      ctx.lineTo(0, tgt.radius * 0.4);
+      ctx.strokeStyle = tgt.color;
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Label and Charge %
+      ctx.fillStyle = isSatisfied ? '#34d399' : '#cbd5e1';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(tgt.label, tgt.x, tgt.y - tgt.radius - 8);
+      ctx.fillStyle = isSatisfied ? '#a7f3d0' : '#38bdf8';
+      ctx.fillText(`${Math.round(tgt.charge)}%`, tgt.x, tgt.y + 4);
+    });
+
+    const avgStability = targets.length > 0 ? Math.round(totalTargetStability / targets.length) : 0;
+    stabilityBar.style.width = `${avgStability}%`;
+    stabilityVal.textContent = `${avgStability}%`;
+
+    // 4. Update and Render Quantum Sand Motes (Acoustic Radiation Force Physics)
+    ctx.lineWidth = 1;
+    for (let i = 0; i < motes.length; i++) {
+      const m = motes[i];
+
+      // Sample acoustic radiation force gradient at mote position
+      const { gradX, gradY, psi } = sampleWaveField(m.x, m.y, timeSec);
+
+      // Acoustic radiation force pushes particle away from high amplitude toward nodes
+      const forceMultiplier = 14.0;
+      m.vx -= gradX * forceMultiplier * 0.016;
+      m.vy -= gradY * forceMultiplier * 0.016;
+
+      // Add gentle Brownian thermal noise
+      m.vx += (Math.random() - 0.5) * 0.25;
+      m.vy += (Math.random() - 0.5) * 0.25;
+
+      // Viscous air damping on membrane
+      m.vx *= 0.94;
+      m.vy *= 0.94;
+
+      // Apply velocity
+      m.x += m.vx;
+      m.y += m.vy;
+
+      // Screen boundary bounce
+      if (m.x < 4) { m.x = 4; m.vx *= -0.7; }
+      if (m.x > width - 4) { m.x = width - 4; m.vx *= -0.7; }
+      if (m.y < 4) { m.y = 4; m.vy *= -0.7; }
+      if (m.y > height - 4) { m.y = height - 4; m.vy *= -0.7; }
+
+      // If particle is near a nodal line (|psi| < 0.2), it glows brighter and locks in
+      const nearNode = Math.abs(psi) < 0.25;
+
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, nearNode ? m.size * 1.3 : m.size, 0, Math.PI * 2);
+      ctx.fillStyle = nearNode 
+        ? `hsla(${m.hue + 40}, 90%, 75%, 0.9)` 
+        : `hsla(${m.hue}, 70%, 55%, 0.45)`;
+      ctx.fill();
+    }
+
+    // 5. Draw Emitter Nodes
+    emitters.forEach(em => {
+      const isSelected = em.id === selectedEmitterId;
+      const isDragging = em.id === draggingNodeId;
+
+      ctx.save();
+      ctx.translate(em.x, em.y);
+
+      // Pulsing radiation ripple around emitter
+      const pulsePhase = (timeSec * (em.freq / 80)) % 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 16 + pulsePhase * 28, 0, Math.PI * 2);
+      ctx.strokeStyle = em.isDissonant 
+        ? `rgba(239, 68, 68, ${1 - pulsePhase})`
+        : `rgba(6, 182, 212, ${0.8 * (1 - pulsePhase)})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Base emitter circle
+      ctx.beginPath();
+      ctx.arc(0, 0, isDragging ? 19 : 16, 0, Math.PI * 2);
+      ctx.fillStyle = em.isDissonant ? '#7f1d1d' : (isSelected ? '#083344' : '#0f172a');
+      ctx.fill();
+      ctx.strokeStyle = em.isDissonant 
+        ? '#ef4444' 
+        : (isSelected ? '#22d3ee' : '#38bdf8');
+      ctx.lineWidth = isSelected ? 3 : 2;
+      ctx.stroke();
+
+      // Frequency label inside emitter
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${em.freq}Hz`, 0, 0);
+
+      // Phase badge if phase shifted
+      if (Math.abs(em.phase) > 0.01) {
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 8px monospace';
+        ctx.fillText('π', 0, 13);
+      }
+
+      ctx.restore();
+    });
+
+    // 6. Check Victory Condition in Puzzle Campaign
+    if (!isSandbox && !isLevelWon) {
+      if (avgStability >= 90) {
+        stableDuration += 0.016;
+        if (stableDuration >= currentLevel.durationToHold) {
+          triggerVictory();
+        }
+      } else {
+        stableDuration = Math.max(0, stableDuration - 0.01);
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(tick);
+  }
+
+  function triggerVictory() {
+    isLevelWon = true;
+    synth.chimeSuccess();
+    launchConfetti();
+    player.addXp(250);
+
+    const elapsed = Math.round((Date.now() - levelStartTime) / 1000);
+    statStability.textContent = `${Math.min(100, Math.round(parseFloat(stabilityVal.textContent || '95')))}%`;
+    statTime.textContent = `${elapsed}s`;
+    victoryDesc.textContent = currentLevel.victoryText;
+    victoryModal.classList.remove('hidden');
+  }
+
+  // --- Interaction & Event Handlers ---
+  function getCanvasCoords(e: MouseEvent | TouchEvent): { x: number; y: number } {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+
+  function handlePointerDown(e: MouseEvent | TouchEvent) {
+    synth.init();
+    const { x, y } = getCanvasCoords(e);
+
+    // Check if clicked an existing emitter
+    const hit = emitters.find(em => Math.hypot(em.x - x, em.y - y) < 26);
+    if (hit) {
+      if (!hit.locked) {
+        draggingNodeId = hit.id;
+      }
+      selectedEmitterId = hit.id;
+      updateSelectedLabel();
+      sound.click();
+    } else if (isSandbox && emitters.length < 6) {
+      // In sandbox mode, click empty space to add new emitter!
+      const newId = emitters.length > 0 ? Math.max(...emitters.map(em => em.id)) + 1 : 1;
+      const pitches = [220, 330, 440, 550, 660];
+      const nextFreq = pitches[(newId - 1) % pitches.length];
+      const newEmitter: EmitterNode = {
+        id: newId,
+        x,
+        y,
+        freq: nextFreq,
+        amplitude: 1.0,
+        phase: 0
+      };
+      emitters.push(newEmitter);
+      selectedEmitterId = newId;
+      updateSelectedLabel();
+      synth.updateEmitters(emitters);
+      sound.blip();
+    }
+  }
+
+  function handlePointerMove(e: MouseEvent | TouchEvent) {
+    if (draggingNodeId !== null) {
+      const { x, y } = getCanvasCoords(e);
+      const { width, height } = getLogicalSize();
+      const node = emitters.find(em => em.id === draggingNodeId);
+      if (node && !node.locked) {
+        node.x = Math.max(20, Math.min(width - 20, x));
+        node.y = Math.max(20, Math.min(height - 20, y));
+      }
+    }
+  }
+
+  function handlePointerUp() {
+    draggingNodeId = null;
+  }
+
+  // Mouse & Touch listeners
+  canvas.addEventListener('mousedown', handlePointerDown);
+  window.addEventListener('mousemove', handlePointerMove);
+  window.addEventListener('mouseup', handlePointerUp);
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handlePointerDown(e);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    handlePointerMove(e);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', handlePointerUp);
+
+  // Tuner Button Handlers
+  document.querySelectorAll('.cym-freq-preset').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      synth.init();
+      const freq = parseInt((e.currentTarget as HTMLElement).dataset.freq || '220', 10);
+      const sel = emitters.find(em => em.id === selectedEmitterId);
+      if (sel && !sel.locked) {
+        sel.freq = freq;
+        updateSelectedLabel();
+        synth.updateEmitters(emitters);
+        sound.blip();
+      }
+    });
+  });
+
+  phaseFlipBtn.addEventListener('click', () => {
+    synth.init();
+    const sel = emitters.find(em => em.id === selectedEmitterId);
+    if (sel) {
+      sel.phase = sel.phase === 0 ? Math.PI : 0;
+      sound.click();
+    }
+  });
+
+  pulseBtn.addEventListener('click', () => {
+    synth.init();
+    synth.pulseSound();
+    // Acoustic shockwave dispersing motes momentarily
+    motes.forEach(m => {
+      const dx = m.x - canvas.width / 2;
+      const dy = m.y - canvas.height / 2;
+      const d = Math.hypot(dx, dy) + 1;
+      m.vx += (dx / d) * 6;
+      m.vy += (dy / d) * 6;
+    });
+  });
+
+  audioToggle.addEventListener('click', () => {
+    synth.init();
+    const muted = synth.toggleMute();
+    if (muted) {
+      soundOnIcon.classList.add('hidden');
+      soundOffIcon.classList.remove('hidden');
+    } else {
+      soundOnIcon.classList.remove('hidden');
+      soundOffIcon.classList.add('hidden');
+      synth.updateEmitters(emitters);
+    }
+  });
+
+  sandboxBtn.addEventListener('click', () => {
+    synth.init();
+    if (isSandbox) {
+      loadLevel(currentLevelIdx);
+    } else {
+      startSandbox();
+    }
+    sound.click();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    synth.init();
+    if (isSandbox) {
+      startSandbox();
+    } else {
+      loadLevel(currentLevelIdx);
+    }
+    sound.click();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    synth.init();
+    if (currentLevelIdx < LEVELS.length - 1) {
+      loadLevel(currentLevelIdx + 1);
+    } else {
+      startSandbox();
+    }
+    sound.click();
+  });
+
+  replayBtn.addEventListener('click', () => {
+    synth.init();
+    loadLevel(currentLevelIdx);
+    sound.click();
+  });
+
+  // Handle window resizing
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    if (isSandbox) {
+      startSandbox();
+    } else {
+      loadLevel(currentLevelIdx);
+    }
+  });
+
+  // Keyboard controls
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' && e.target === document.body) {
+      e.preventDefault();
+      pulseBtn.click();
+    } else if (e.key === 'r' || e.key === 'R') {
+      resetBtn.click();
+    } else if (e.key === '1') {
+      (document.querySelector('.cym-freq-preset[data-freq="220"]') as HTMLButtonElement)?.click();
+    } else if (e.key === '2') {
+      (document.querySelector('.cym-freq-preset[data-freq="330"]') as HTMLButtonElement)?.click();
+    } else if (e.key === '3') {
+      (document.querySelector('.cym-freq-preset[data-freq="440"]') as HTMLButtonElement)?.click();
+    } else if (e.key === '4') {
+      (document.querySelector('.cym-freq-preset[data-freq="550"]') as HTMLButtonElement)?.click();
+    }
+  });
+
+  // Init Game
+  resizeCanvas();
+  initMotes();
+  loadLevel(0);
+  requestAnimationFrame(tick);
+</script>

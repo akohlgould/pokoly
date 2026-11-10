@@ -1,0 +1,1265 @@
+---
+// PenumbraNull.astro - Inverted Shadow Physics & Negative Space Platformer
+---
+<div class="relative w-full h-[680px] bg-slate-950 rounded-2xl border border-cyan-500/30 overflow-hidden flex flex-col select-none font-mono text-cyan-100 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+  <!-- HUD Header -->
+  <div class="h-14 bg-slate-900/95 border-b border-cyan-500/20 px-4 flex items-center justify-between text-xs sm:text-sm z-20 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 font-bold shadow-inner">
+        🌑
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2">
+          <span>PENUMBRA NULL</span>
+          <span id="sector-badge" class="px-2 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/40">SECTOR 1: HELIOS PRIME</span>
+        </div>
+        <div class="text-[10px] text-cyan-400/70">LIGHT IS VACUUM &bull; SHADOW IS MATTER</div>
+      </div>
+    </div>
+
+    <!-- Center Gauges: Ablation Buffer & Harvest Quota -->
+    <div class="flex items-center gap-4">
+      <!-- Shield / Ablation Buffer -->
+      <div class="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-full border border-slate-700/80">
+        <span class="text-slate-400 text-[11px] font-bold">ABLATION:</span>
+        <div class="w-24 sm:w-28 h-2.5 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+          <div id="ablation-bar" class="h-full bg-cyan-400 rounded-full transition-all duration-75 shadow-[0_0_8px_#22d3ee]" style="width: 100%"></div>
+        </div>
+        <span id="ablation-pct" class="text-xs font-bold text-cyan-300 min-w-[36px]">100%</span>
+      </div>
+
+      <!-- Lux Harvest Progress -->
+      <div class="hidden sm:flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-full border border-slate-700/80">
+        <span class="text-amber-400 text-[11px] font-bold">LUX HARVEST:</span>
+        <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+          <div id="harvest-bar" class="h-full bg-amber-400 rounded-full transition-all duration-150 shadow-[0_0_6px_#f59e0b]" style="width: 0%"></div>
+        </div>
+        <span id="harvest-text" class="text-xs font-bold text-amber-300">0/100</span>
+      </div>
+
+      <!-- Score -->
+      <div class="flex items-center gap-1.5 bg-slate-950/80 px-3 py-1.5 rounded-full border border-slate-700/80">
+        <span class="text-slate-400 text-[11px]">SCORE:</span>
+        <span id="score-text" class="text-white font-bold text-xs sm:text-sm">0</span>
+      </div>
+    </div>
+
+    <!-- Actions & Sound Toggle -->
+    <div class="flex items-center gap-2">
+      <button id="sound-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-600 rounded-lg text-xs transition-all flex items-center gap-1">
+        <span id="sound-icon">🔊</span>
+      </button>
+      <button id="reset-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-xs transition-all">
+        RESET
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Arena Viewport -->
+  <div class="relative flex-1 bg-[#f8fafc] overflow-hidden flex items-center justify-center">
+    <canvas id="penumbra-canvas" class="w-full h-full cursor-crosshair touch-none"></canvas>
+
+    <!-- Exposure Alert Overlay (Flashes red when player is in raw lethal light) -->
+    <div id="light-burn-overlay" class="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-100 bg-red-600/25 mix-blend-screen"></div>
+
+    <!-- Floating HUD Overlay & Instructions -->
+    <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between pointer-events-none text-xs z-10">
+      <div class="bg-slate-950/85 backdrop-blur-md px-3.5 py-2 rounded-xl border border-cyan-500/30 text-slate-200 shadow-2xl pointer-events-auto flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <span class="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 rounded text-[10px] font-bold border border-cyan-500/40">AIM</span>
+          <span class="text-slate-300 text-[11px]">Rotate Blade</span>
+        </div>
+        <div class="h-3 w-px bg-slate-700"></div>
+        <div class="flex items-center gap-2">
+          <span class="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 rounded text-[10px] font-bold border border-cyan-500/40">HOLD CLICK</span>
+          <span class="text-slate-300 text-[11px]">Slingshot Snap</span>
+        </div>
+        <div class="h-3 w-px bg-slate-700"></div>
+        <div class="flex items-center gap-2">
+          <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-bold border border-amber-500/40">SHIFT / R-CLICK</span>
+          <span class="text-slate-300 text-[11px]">Prism Shunt</span>
+        </div>
+      </div>
+
+      <!-- Shunt Ready Indicator -->
+      <div class="bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-slate-300 shadow-lg flex items-center gap-2">
+        <span class="text-slate-400 text-[11px]">SHUNT:</span>
+        <span id="shunt-status" class="text-emerald-400 font-bold text-xs tracking-wider">READY [SHIFT]</span>
+      </div>
+    </div>
+
+    <!-- Mobile On-Screen Action Buttons -->
+    <div class="sm:hidden absolute right-4 bottom-16 flex flex-col gap-2 z-10 pointer-events-auto">
+      <button id="touch-focus-btn" class="w-14 h-14 rounded-full bg-cyan-600/80 active:bg-cyan-400 border-2 border-cyan-300 text-white font-bold text-xs shadow-lg flex items-center justify-center backdrop-blur-md">
+        FOCUS
+      </button>
+      <button id="touch-shunt-btn" class="w-14 h-14 rounded-full bg-amber-600/80 active:bg-amber-400 border-2 border-amber-300 text-white font-bold text-xs shadow-lg flex items-center justify-center backdrop-blur-md">
+        SHUNT
+      </button>
+    </div>
+
+    <!-- Sector Complete / Victory Modal -->
+    <div id="victory-modal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-slate-900 border border-cyan-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(6,182,212,0.3)]">
+        <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+          ✨
+        </div>
+        <h2 id="victory-title" class="text-xl sm:text-2xl font-bold text-white mb-2 tracking-wide">SECTOR 1 CONVERGED!</h2>
+        <p id="victory-desc" class="text-xs sm:text-sm text-cyan-200 mb-4">You sculpted shadow matter and harvested the quantum photon core. The slipstream beckons.</p>
+        <div class="flex justify-center gap-4 text-xs text-cyan-300 font-bold mb-6 bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <div>TOTAL SCORE: <span id="stat-score" class="text-white">0</span></div>
+          <div>LUX MOTES: <span class="text-amber-400">100</span></div>
+          <div>XP EARNED: <span class="text-emerald-400">+250 XP</span></div>
+        </div>
+        <div class="flex gap-3 justify-center">
+          <button id="next-sector-btn" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-sm rounded-xl shadow-lg transition-all active:scale-95">
+            ENTER NEXT SECTOR &rarr;
+          </button>
+          <button id="replay-sector-btn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm rounded-xl border border-slate-600 transition-all">
+            REPLAY
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dissolution / Loss Modal -->
+    <div id="fail-modal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-30 p-6">
+      <div class="bg-slate-900 border border-red-500/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_60px_rgba(239,68,68,0.3)]">
+        <div class="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-pulse">
+          ☀️
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-red-400 mb-2">CORE DISSOLVED!</h2>
+        <p class="text-xs sm:text-sm text-slate-300 mb-4">Your aperture core stayed in the searing photon void for too long without shadow shelter. Matter evaporated into nothingness.</p>
+        <div class="text-xs text-slate-400 mb-6 bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <span>Remember: </span>
+          <span class="text-cyan-300 font-bold">Cast your shadow under the core to form solid ground!</span>
+        </div>
+        <button id="retry-fail-btn" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg active:scale-95">
+          RE-ENGAGE APERTURE
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  // --- Audio Synthesis Engine ---
+  class PenumbraAudio {
+    private ctx: AudioContext | null = null;
+    private droneOsc: OscillatorType | null = null;
+    private filterNode: BiquadFilterNode | null = null;
+    private droneGain: GainNode | null = null;
+    public enabled = true;
+
+    private init() {
+      if (!this.ctx && typeof window !== 'undefined') {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          this.ctx = new AudioCtx();
+          try {
+            // Setup ambient continuous drone
+            const osc = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(65, this.ctx.currentTime); // Low C drone
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(150, this.ctx.currentTime);
+
+            gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start();
+            this.filterNode = filter;
+            this.droneGain = gain;
+          } catch (e) {
+            // Audio policy
+          }
+        }
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    public updateExposure(inShadow: boolean, healthRatio: number) {
+      if (!this.enabled) return;
+      this.init();
+      if (!this.ctx || !this.filterNode || !this.droneGain) return;
+
+      const targetFreq = inShadow ? 140 : 1200 + (1 - healthRatio) * 3500;
+      const targetVol = inShadow ? 0.03 : 0.12;
+
+      this.filterNode.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.08);
+      this.droneGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.08);
+    }
+
+    public playBounce() {
+      if (!this.enabled) return;
+      this.init();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.12);
+    }
+
+    public playIncinerate() {
+      if (!this.enabled) return;
+      this.init();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(220, this.ctx.currentTime + 0.15);
+
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.15);
+    }
+
+    public playSlingshot() {
+      if (!this.enabled) return;
+      this.init();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.18);
+
+      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.18);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.18);
+    }
+
+    public playShunt() {
+      if (!this.enabled) return;
+      this.init();
+      if (!this.ctx) return;
+
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.25);
+
+      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.25);
+    }
+  }
+
+  const sfx = new PenumbraAudio();
+
+  // --- DOM Elements ---
+  const canvas = document.getElementById('penumbra-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const ablationBar = document.getElementById('ablation-bar')!;
+  const ablationPct = document.getElementById('ablation-pct')!;
+  const harvestBar = document.getElementById('harvest-bar')!;
+  const harvestText = document.getElementById('harvest-text')!;
+  const scoreText = document.getElementById('score-text')!;
+  const sectorBadge = document.getElementById('sector-badge')!;
+  const lightBurnOverlay = document.getElementById('light-burn-overlay')!;
+  const shuntStatus = document.getElementById('shunt-status')!;
+  const soundBtn = document.getElementById('sound-btn')!;
+  const soundIcon = document.getElementById('sound-icon')!;
+  const resetBtn = document.getElementById('reset-btn')!;
+  const victoryModal = document.getElementById('victory-modal')!;
+  const failModal = document.getElementById('fail-modal')!;
+  const nextSectorBtn = document.getElementById('next-sector-btn')!;
+  const replaySectorBtn = document.getElementById('replay-sector-btn')!;
+  const retryFailBtn = document.getElementById('retry-fail-btn')!;
+  const statScore = document.getElementById('stat-score')!;
+  const touchFocusBtn = document.getElementById('touch-focus-btn')!;
+  const touchShuntBtn = document.getElementById('touch-shunt-btn')!;
+
+  // --- Types & Physics Structures ---
+  interface Vec2 {
+    x: number;
+    y: number;
+  }
+
+  interface LightSource {
+    id: string;
+    pos: Vec2;
+    color: string;
+    orbitCenter: Vec2;
+    orbitRadius: Vec2;
+    orbitSpeed: number;
+    phase: number;
+    radius: number;
+  }
+
+  interface OccluderSegment {
+    p1: Vec2;
+    p2: Vec2;
+  }
+
+  interface ShadowHull {
+    lightOrigin: Vec2;
+    poly: Vec2[];
+  }
+
+  interface PhotonicEnemy {
+    id: number;
+    pos: Vec2;
+    vel: Vec2;
+    radius: number;
+    hp: number;
+  }
+
+  interface LuxMote {
+    pos: Vec2;
+    vel: Vec2;
+    life: number;
+    maxLife: number;
+  }
+
+  interface Particle {
+    pos: Vec2;
+    vel: Vec2;
+    color: string;
+    alpha: number;
+    radius: number;
+    life: number;
+    decay: number;
+  }
+
+  // --- Sector Data Configurations ---
+  const SECTORS = [
+    {
+      name: 'SECTOR 1: HELIOS PRIME',
+      targetLux: 60,
+      lights: [
+        {
+          id: 'sun-1',
+          pos: { x: 450, y: 70 },
+          color: '#ffffff',
+          orbitCenter: { x: 450, y: 80 },
+          orbitRadius: { x: 260, y: 40 },
+          orbitSpeed: 0.7,
+          phase: 0,
+          radius: 18,
+        },
+      ],
+      spawnRate: 2.2,
+      prisms: [],
+    },
+    {
+      name: 'SECTOR 2: BINARY PULSAR',
+      targetLux: 90,
+      lights: [
+        {
+          id: 'sun-alpha',
+          pos: { x: 300, y: 60 },
+          color: '#fbbf24',
+          orbitCenter: { x: 350, y: 70 },
+          orbitRadius: { x: 200, y: 30 },
+          orbitSpeed: 1.0,
+          phase: 0,
+          radius: 16,
+        },
+        {
+          id: 'sun-beta',
+          pos: { x: 600, y: 60 },
+          color: '#38bdf8',
+          orbitCenter: { x: 550, y: 70 },
+          orbitRadius: { x: 220, y: 35 },
+          orbitSpeed: -0.9,
+          phase: Math.PI,
+          radius: 14,
+        },
+      ],
+      spawnRate: 1.7,
+      prisms: [],
+    },
+    {
+      name: 'SECTOR 3: REFRACTIVE NEXUS',
+      targetLux: 120,
+      lights: [
+        {
+          id: 'sun-pulsar',
+          pos: { x: 450, y: 60 },
+          color: '#ffffff',
+          orbitCenter: { x: 450, y: 75 },
+          orbitRadius: { x: 320, y: 45 },
+          orbitSpeed: 1.3,
+          phase: 0,
+          radius: 20,
+        },
+      ],
+      spawnRate: 1.3,
+      prisms: [
+        // Static environmental crystalline occluders that cast permanent dynamic shadows
+        { p1: { x: 320, y: 260 }, p2: { x: 420, y: 260 } },
+        { p1: { x: 480, y: 260 }, p2: { x: 580, y: 260 } },
+      ],
+    },
+    {
+      name: 'SECTOR 4: EVENT HORIZON',
+      targetLux: 150,
+      lights: [
+        {
+          id: 'black-flare-1',
+          pos: { x: 250, y: 60 },
+          color: '#f43f5e',
+          orbitCenter: { x: 300, y: 80 },
+          orbitRadius: { x: 250, y: 50 },
+          orbitSpeed: 1.8,
+          phase: 0,
+          radius: 22,
+        },
+        {
+          id: 'black-flare-2',
+          pos: { x: 650, y: 60 },
+          color: '#a855f7',
+          orbitCenter: { x: 600, y: 80 },
+          orbitRadius: { x: 250, y: 50 },
+          orbitSpeed: -1.6,
+          phase: Math.PI / 2,
+          radius: 18,
+        },
+      ],
+      spawnRate: 1.0,
+      prisms: [
+        { p1: { x: 400, y: 230 }, p2: { x: 500, y: 230 } },
+      ],
+    },
+  ];
+
+  // --- Runtime Game State ---
+  let currentSectorIndex = 0;
+  let score = 0;
+  let collectedLux = 0;
+  let isGameOver = false;
+  let isVictory = false;
+
+  // Player state
+  const playerState = {
+    pos: { x: 450, y: 360 },
+    vel: { x: 0, y: 0 },
+    radius: 12,
+    ablationBuffer: 0.35, // seconds (max 0.35s)
+    maxAblation: 0.35,
+    bladeAngle: 0,
+    bladeRadius: 42,
+    bladeLength: 95,
+    isFocusing: false,
+    focusCharge: 0, // 0 to 1
+    shuntCooldown: 0, // cooldown timer in seconds
+    isShunting: false,
+    shuntTimer: 0,
+  };
+
+  let pointerPos: Vec2 = { x: 450, y: 200 };
+  let lights: LightSource[] = [];
+  let enemies: PhotonicEnemy[] = [];
+  let luxMotes: LuxMote[] = [];
+  let particles: Particle[] = [];
+  let shadowHulls: ShadowHull[] = [];
+  let nextEnemyId = 1;
+  let spawnTimer = 0;
+
+  // Track key states
+  const keys: Record<string, boolean> = {};
+
+  // --- Shadow Geometry Engine ---
+  const FAR_PROJECTION = 3200;
+
+  function computeShadowHulls(light: LightSource, segments: OccluderSegment[]): ShadowHull[] {
+    const hulls: ShadowHull[] = [];
+
+    for (const seg of segments) {
+      const d1x = seg.p1.x - light.pos.x;
+      const d1y = seg.p1.y - light.pos.y;
+      const d2x = seg.p2.x - light.pos.x;
+      const d2y = seg.p2.y - light.pos.y;
+
+      // Surface normal check (light faces segment)
+      const nx = -(seg.p2.y - seg.p1.y);
+      const ny = seg.p2.x - seg.p1.x;
+      const dot = nx * d1x + ny * d1y;
+      if (dot <= 0) continue;
+
+      const len1 = Math.hypot(d1x, d1y) || 1;
+      const len2 = Math.hypot(d2x, d2y) || 1;
+
+      const p1Far: Vec2 = {
+        x: seg.p1.x + (d1x / len1) * FAR_PROJECTION,
+        y: seg.p1.y + (d1y / len1) * FAR_PROJECTION,
+      };
+
+      const p2Far: Vec2 = {
+        x: seg.p2.x + (d2x / len2) * FAR_PROJECTION,
+        y: seg.p2.y + (d2y / len2) * FAR_PROJECTION,
+      };
+
+      hulls.push({
+        lightOrigin: light.pos,
+        poly: [seg.p1, seg.p2, p2Far, p1Far],
+      });
+    }
+
+    return hulls;
+  }
+
+  function isPointInShadow(p: Vec2, hulls: ShadowHull[]): boolean {
+    for (const hull of hulls) {
+      if (pointInConvexPoly(p, hull.poly)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function pointInConvexPoly(p: Vec2, poly: Vec2[]): boolean {
+    let hasNeg = false;
+    let hasPos = false;
+
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i];
+      const b = poly[(i + 1) % poly.length];
+      const cross = (p.x - a.x) * (b.y - a.y) - (p.y - a.y) * (b.x - a.x);
+
+      if (cross < 0) hasNeg = true;
+      if (cross > 0) hasPos = true;
+      if (hasNeg && hasPos) return false;
+    }
+
+    return true;
+  }
+
+  // --- Resizing & Device Pixel Ratio Setup ---
+  let canvasWidth = 900;
+  let canvasHeight = 600;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvasWidth = rect.width;
+    canvasHeight = rect.height;
+    ctx.resetTransform?.();
+    ctx.scale(dpr, dpr);
+  }
+
+  // --- Sector Initialization ---
+  function initSector(sectorIdx: number) {
+    currentSectorIndex = sectorIdx % SECTORS.length;
+    const config = SECTORS[currentSectorIndex];
+
+    collectedLux = 0;
+    isGameOver = false;
+    isVictory = false;
+
+    sectorBadge.textContent = config.name;
+    harvestBar.style.width = '0%';
+    harvestText.textContent = `0/${config.targetLux}`;
+    ablationBar.style.width = '100%';
+    ablationPct.textContent = '100%';
+    scoreText.textContent = score.toString();
+
+    victoryModal.classList.add('hidden');
+    failModal.classList.add('hidden');
+    lightBurnOverlay.style.opacity = '0';
+
+    // Deep clone lights from config
+    lights = config.lights.map((l) => ({
+      ...l,
+      pos: { ...l.pos },
+      orbitCenter: { ...l.orbitCenter },
+      orbitRadius: { ...l.orbitRadius },
+    }));
+
+    // Reset player
+    playerState.pos = { x: canvasWidth / 2 || 450, y: canvasHeight * 0.6 || 360 };
+    playerState.vel = { x: 0, y: 0 };
+    playerState.ablationBuffer = playerState.maxAblation;
+    playerState.isFocusing = false;
+    playerState.focusCharge = 0;
+    playerState.shuntCooldown = 0;
+    playerState.isShunting = false;
+
+    enemies = [];
+    luxMotes = [];
+    particles = [];
+    spawnTimer = 0;
+
+    // Spawn 2 starter enemies
+    spawnEnemy();
+    spawnEnemy();
+  }
+
+  function spawnEnemy() {
+    const config = SECTORS[currentSectorIndex];
+    if (enemies.length >= 8) return;
+
+    const angle = Math.random() * Math.PI * 2;
+    const spawnDist = Math.max(canvasWidth, canvasHeight) * 0.45;
+    const center = { x: canvasWidth / 2, y: canvasHeight / 2 };
+
+    enemies.push({
+      id: nextEnemyId++,
+      pos: {
+        x: Math.max(40, Math.min(canvasWidth - 40, center.x + Math.cos(angle) * spawnDist)),
+        y: Math.max(60, Math.min(canvasHeight - 60, center.y + Math.sin(angle) * spawnDist * 0.6)),
+      },
+      vel: { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 },
+      radius: 11,
+      hp: 1,
+    });
+  }
+
+  function spawnBurstParticles(x: number, y: number, color: string, count = 12) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 40 + Math.random() * 160;
+      particles.push({
+        pos: { x, y },
+        vel: { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed },
+        color,
+        alpha: 1,
+        radius: 2 + Math.random() * 3,
+        life: 0,
+        decay: 1.5 + Math.random() * 2,
+      });
+    }
+  }
+
+  function triggerShunt() {
+    if (playerState.shuntCooldown > 0 || isGameOver || isVictory) return;
+    playerState.isShunting = true;
+    playerState.shuntTimer = 0.35; // 0.35s burst
+    playerState.shuntCooldown = 4.0; // 4s cooldown
+    sfx.playShunt();
+    spawnBurstParticles(playerState.pos.x, playerState.pos.y, '#38bdf8', 20);
+
+    // Kinetic outward blast
+    playerState.vel.x += Math.cos(playerState.bladeAngle) * 350;
+    playerState.vel.y += Math.sin(playerState.bladeAngle) * 350;
+  }
+
+  // --- Input Handlers ---
+  function updatePointer(e: PointerEvent) {
+    const rect = canvas.getBoundingClientRect();
+    pointerPos.x = e.clientX - rect.left;
+    pointerPos.y = e.clientY - rect.top;
+  }
+
+  canvas.addEventListener('pointermove', updatePointer);
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.button === 2) {
+      // Right click -> Shunt
+      triggerShunt();
+      return;
+    }
+    updatePointer(e);
+    playerState.isFocusing = true;
+  });
+
+  window.addEventListener('pointerup', (e) => {
+    if (playerState.isFocusing) {
+      // Slingshot snap!
+      if (playerState.focusCharge > 0.35) {
+        const impulse = 380 * playerState.focusCharge;
+        playerState.vel.x += Math.cos(playerState.bladeAngle) * impulse;
+        playerState.vel.y += Math.sin(playerState.bladeAngle) * impulse;
+        sfx.playSlingshot();
+        spawnBurstParticles(playerState.pos.x, playerState.pos.y, '#22d3ee', 10);
+      }
+      playerState.isFocusing = false;
+      playerState.focusCharge = 0;
+    }
+  });
+
+  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  window.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key === 'Shift' || e.key.toLowerCase() === 'e') {
+      triggerShunt();
+    }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      playerState.isFocusing = true;
+    }
+    if (e.key.toLowerCase() === 'r') {
+      initSector(currentSectorIndex);
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+    if (e.code === 'Space' && playerState.isFocusing) {
+      if (playerState.focusCharge > 0.35) {
+        const impulse = 380 * playerState.focusCharge;
+        playerState.vel.x += Math.cos(playerState.bladeAngle) * impulse;
+        playerState.vel.y += Math.sin(playerState.bladeAngle) * impulse;
+        sfx.playSlingshot();
+      }
+      playerState.isFocusing = false;
+      playerState.focusCharge = 0;
+    }
+  });
+
+  // Mobile buttons
+  touchFocusBtn.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    playerState.isFocusing = true;
+  });
+  touchFocusBtn.addEventListener('pointerup', () => {
+    if (playerState.isFocusing) {
+      const impulse = 380 * Math.max(0.4, playerState.focusCharge);
+      playerState.vel.x += Math.cos(playerState.bladeAngle) * impulse;
+      playerState.vel.y += Math.sin(playerState.bladeAngle) * impulse;
+      sfx.playSlingshot();
+      playerState.isFocusing = false;
+      playerState.focusCharge = 0;
+    }
+  });
+  touchShuntBtn.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    triggerShunt();
+  });
+
+  // Sound Toggle
+  soundBtn.addEventListener('click', () => {
+    sfx.enabled = !sfx.enabled;
+    soundIcon.textContent = sfx.enabled ? '🔊' : '🔇';
+    soundBtn.classList.toggle('text-cyan-300', sfx.enabled);
+    soundBtn.classList.toggle('text-slate-500', !sfx.enabled);
+  });
+
+  resetBtn.addEventListener('click', () => initSector(currentSectorIndex));
+  retryFailBtn.addEventListener('click', () => initSector(currentSectorIndex));
+  replaySectorBtn.addEventListener('click', () => initSector(currentSectorIndex));
+
+  nextSectorBtn.addEventListener('click', () => {
+    initSector(currentSectorIndex + 1);
+  });
+
+  // --- Main Game Physics Loop (Fixed 60Hz Tick) ---
+  let lastTimestamp = performance.now();
+
+  function gameLoop(now: number) {
+    const rawDt = (now - lastTimestamp) / 1000;
+    lastTimestamp = now;
+    const dt = Math.min(rawDt, 0.05); // Prevent spiral on background tab
+
+    update(dt);
+    render();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  function update(dt: number) {
+    if (isGameOver || isVictory) return;
+
+    const p = playerState;
+
+    // 1. Aim Occluder Blade toward pointer
+    const dx = pointerPos.x - p.pos.x;
+    const dy = pointerPos.y - p.pos.y;
+    p.bladeAngle = Math.atan2(dy, dx);
+
+    // Charge slingshot if focusing
+    if (p.isFocusing) {
+      p.focusCharge = Math.min(1.0, p.focusCharge + dt * 1.8);
+      p.bladeRadius = 42 - p.focusCharge * 22; // Blade pulls tighter into core
+    } else {
+      p.bladeRadius = 42;
+    }
+
+    // Cooldown management
+    if (p.shuntCooldown > 0) {
+      p.shuntCooldown = Math.max(0, p.shuntCooldown - dt);
+      shuntStatus.textContent = `RECHARGING (${p.shuntCooldown.toFixed(1)}s)`;
+      shuntStatus.className = 'text-amber-400 font-bold text-xs tracking-wider';
+    } else {
+      shuntStatus.textContent = 'READY [SHIFT]';
+      shuntStatus.className = 'text-emerald-400 font-bold text-xs tracking-wider';
+    }
+
+    if (p.isShunting) {
+      p.shuntTimer -= dt;
+      if (p.shuntTimer <= 0) p.isShunting = false;
+    }
+
+    // 2. Animate Dynamic Lights
+    for (const light of lights) {
+      light.phase += light.orbitSpeed * dt;
+      light.pos.x = light.orbitCenter.x + Math.sin(light.phase) * light.orbitRadius.x;
+      light.pos.y = light.orbitCenter.y + Math.cos(light.phase * 0.8) * light.orbitRadius.y;
+    }
+
+    // 3. Assemble Active Occluder Segments
+    const halfLen = p.bladeLength / 2;
+    const normalAngle = p.bladeAngle + Math.PI / 2;
+    const centerBlade: Vec2 = {
+      x: p.pos.x + Math.cos(p.bladeAngle) * p.bladeRadius,
+      y: p.pos.y + Math.sin(p.bladeAngle) * p.bladeRadius,
+    };
+
+    const playerBlade: OccluderSegment = {
+      p1: {
+        x: centerBlade.x + Math.cos(normalAngle) * halfLen,
+        y: centerBlade.y + Math.sin(normalAngle) * halfLen,
+      },
+      p2: {
+        x: centerBlade.x - Math.cos(normalAngle) * halfLen,
+        y: centerBlade.y - Math.sin(normalAngle) * halfLen,
+      },
+    };
+
+    const currentConfig = SECTORS[currentSectorIndex];
+    const allSegments: OccluderSegment[] = [playerBlade, ...(currentConfig.prisms || [])];
+
+    // 4. Compute Real-time Shadow Polygons from all Lights
+    shadowHulls = [];
+    for (const light of lights) {
+      const hulls = computeShadowHulls(light, allSegments);
+      shadowHulls.push(...hulls);
+    }
+
+    // 5. Inverted Reality Physics: Gravity & Negative Space
+    const GRAVITY = 520; // downward drift
+    p.vel.y += GRAVITY * dt;
+
+    const projectedPos: Vec2 = {
+      x: p.pos.x + p.vel.x * dt,
+      y: p.pos.y + p.vel.y * dt,
+    };
+
+    // Check if player is safely sheltered by shadow (or actively shunting)
+    const sheltered = isPointInShadow(projectedPos, shadowHulls) || p.isShunting;
+
+    if (sheltered) {
+      // IN SHADOW: Solid ground, surface friction, shield replenishment!
+      p.ablationBuffer = Math.min(p.maxAblation, p.ablationBuffer + dt * 2.2);
+      p.vel.x *= Math.pow(0.82, dt * 60); // Traction friction
+      p.vel.y *= Math.pow(0.92, dt * 60); // Air resistance inside shadow
+      p.pos = projectedPos;
+    } else {
+      // IN RAW LIGHT: Lethal vacuum ablation!
+      p.ablationBuffer -= dt;
+      p.pos = projectedPos; // Zero drag in light
+
+      // Spawn sizzling ablation sparks
+      if (Math.random() < 0.6) {
+        spawnBurstParticles(p.pos.x, p.pos.y, '#f87171', 2);
+      }
+
+      if (p.ablationBuffer <= 0) {
+        // Player Dissolved!
+        p.ablationBuffer = 0;
+        isGameOver = true;
+        failModal.classList.remove('hidden');
+        lightBurnOverlay.style.opacity = '0';
+        sfx.updateExposure(true, 1);
+        return;
+      }
+    }
+
+    // Boundary constraints
+    if (p.pos.x < p.radius) {
+      p.pos.x = p.radius;
+      p.vel.x = -p.vel.x * 0.5;
+    }
+    if (p.pos.x > canvasWidth - p.radius) {
+      p.pos.x = canvasWidth - p.radius;
+      p.vel.x = -p.vel.x * 0.5;
+    }
+    if (p.pos.y < p.radius + 30) {
+      p.pos.y = p.radius + 30;
+      p.vel.y = Math.abs(p.vel.y) * 0.4;
+    }
+    if (p.pos.y > canvasHeight - p.radius - 10) {
+      // Hit bottom void
+      p.pos.y = canvasHeight - p.radius - 10;
+      p.vel.y = -Math.abs(p.vel.y) * 0.7;
+    }
+
+    // Update HUD & Audio for Exposure
+    const healthRatio = p.ablationBuffer / p.maxAblation;
+    ablationBar.style.width = `${Math.max(0, healthRatio * 100)}%`;
+    ablationPct.textContent = `${Math.round(healthRatio * 100)}%`;
+    ablationBar.style.backgroundColor = healthRatio > 0.5 ? '#22d3ee' : '#ef4444';
+
+    if (!sheltered) {
+      lightBurnOverlay.style.opacity = `${(1 - healthRatio) * 0.8 + 0.1}`;
+    } else {
+      lightBurnOverlay.style.opacity = '0';
+    }
+
+    sfx.updateExposure(sheltered, healthRatio);
+
+    // 6. Photonic Entities Behavior
+    spawnTimer += dt;
+    if (spawnTimer >= currentConfig.spawnRate) {
+      spawnTimer = 0;
+      spawnEnemy();
+    }
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const e = enemies[i];
+
+      // Entity seeks player
+      const edx = p.pos.x - e.pos.x;
+      const edy = p.pos.y - e.pos.y;
+      const dist = Math.hypot(edx, edy) || 1;
+
+      const SPEED = 85;
+      e.vel.x += (edx / dist) * SPEED * dt;
+      e.vel.y += (edy / dist) * SPEED * dt;
+      e.vel.x *= Math.pow(0.96, dt * 60);
+      e.vel.y *= Math.pow(0.96, dt * 60);
+
+      e.pos.x += e.vel.x * dt;
+      e.pos.y += e.vel.y * dt;
+
+      // Entities cannot cross shadow boundaries! If they hit shadow, they deflect
+      const inDarkness = isPointInShadow(e.pos, shadowHulls);
+      if (inDarkness) {
+        // Push entity out of shadow
+        e.vel.x = -e.vel.x * 1.2;
+        e.vel.y = -e.vel.y * 1.2;
+        e.pos.x += e.vel.x * dt * 2;
+        e.pos.y += e.vel.y * dt * 2;
+      } else {
+        // Entity in light void: check if within focused light beam -> Incineration!
+        // When entity is exposed to light while near player or in high intensity zone
+        const distToPlayer = Math.hypot(e.pos.x - p.pos.x, e.pos.y - p.pos.y);
+
+        // If player slashes or uncovers entity, incinerate!
+        if (distToPlayer < 90 && !sheltered) {
+          // Incinerate entity!
+          spawnBurstParticles(e.pos.x, e.pos.y, '#f59e0b', 16);
+          sfx.playIncinerate();
+
+          // Drop Lux Motes
+          for (let m = 0; m < 3; m++) {
+            luxMotes.push({
+              pos: { x: e.pos.x + (Math.random() - 0.5) * 16, y: e.pos.y + (Math.random() - 0.5) * 16 },
+              vel: { x: (Math.random() - 0.5) * 80, y: (Math.random() - 0.5) * 80 },
+              life: 0,
+              maxLife: 7.0,
+            });
+          }
+
+          score += 150;
+          scoreText.textContent = score.toString();
+          enemies.splice(i, 1);
+          continue;
+        }
+      }
+
+      // Check collision with player
+      if (dist < p.radius + e.radius) {
+        // Impact! Drain ablation shield
+        p.ablationBuffer -= 0.15;
+        p.vel.x += (edx / dist) * 180;
+        p.vel.y += (edy / dist) * 180;
+        spawnBurstParticles(e.pos.x, e.pos.y, '#f43f5e', 8);
+        sfx.playBounce();
+      }
+    }
+
+    // 7. Lux Motes Collection
+    for (let i = luxMotes.length - 1; i >= 0; i--) {
+      const m = luxMotes[i];
+      m.life += dt;
+      if (m.life >= m.maxLife) {
+        luxMotes.splice(i, 1);
+        continue;
+      }
+
+      // Gravitational attraction toward player
+      const mdx = p.pos.x - m.pos.x;
+      const mdy = p.pos.y - m.pos.y;
+      const mdist = Math.hypot(mdx, mdy) || 1;
+
+      if (mdist < 140) {
+        m.vel.x += (mdx / mdist) * 260 * dt;
+        m.vel.y += (mdy / mdist) * 260 * dt;
+      }
+
+      m.pos.x += m.vel.x * dt;
+      m.pos.y += m.vel.y * dt;
+      m.vel.x *= Math.pow(0.95, dt * 60);
+      m.vel.y *= Math.pow(0.95, dt * 60);
+
+      // Collect mote
+      if (mdist < p.radius + 10) {
+        collectedLux++;
+        score += 25;
+        scoreText.textContent = score.toString();
+
+        const config = SECTORS[currentSectorIndex];
+        const progress = Math.min(1.0, collectedLux / config.targetLux);
+        harvestBar.style.width = `${progress * 100}%`;
+        harvestText.textContent = `${collectedLux}/${config.targetLux}`;
+
+        sfx.playBounce();
+        spawnBurstParticles(m.pos.x, m.pos.y, '#38bdf8', 4);
+        luxMotes.splice(i, 1);
+
+        // Check Victory / Sector Convergence
+        if (collectedLux >= config.targetLux && !isVictory) {
+          isVictory = true;
+          victoryModal.classList.remove('hidden');
+          statScore.textContent = score.toString();
+          launchConfetti();
+          sound.success();
+          player.addXp(250);
+          player.recordGamePlay('penumbra-null', score);
+          return;
+        }
+      }
+    }
+
+    // 8. Update Particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const pt = particles[i];
+      pt.life += dt;
+      pt.alpha = Math.max(0, 1 - pt.life * pt.decay);
+      pt.pos.x += pt.vel.x * dt;
+      pt.pos.y += pt.vel.y * dt;
+      if (pt.alpha <= 0) particles.splice(i, 1);
+    }
+  }
+
+  // --- Render Loop (Vector Precision Graphics) ---
+  function render() {
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+    // 1. The Blinding Photon Void (Background)
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Subtle photon grid scanlines
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.45)';
+    ctx.lineWidth = 1;
+    const GRID_STEP = 40;
+    for (let x = 0; x < canvasWidth; x += GRID_STEP) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvasHeight);
+      ctx.stroke();
+    }
+    for (let y = 0; y < canvasHeight; y += GRID_STEP) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvasWidth, y);
+      ctx.stroke();
+    }
+
+    // 2. Render Solid Cast Shadow Geometry (Negative Space Matter)
+    ctx.save();
+    for (const hull of shadowHulls) {
+      // Solid umbra fill
+      ctx.fillStyle = '#050508';
+      ctx.beginPath();
+      ctx.moveTo(hull.poly[0].x, hull.poly[0].y);
+      for (let i = 1; i < hull.poly.length; i++) {
+        ctx.lineTo(hull.poly[i].x, hull.poly[i].y);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Penumbra Rim Luminescence (The physical collision edge)
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2.0;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 3. Render Static Optical Prisms (if sector has them)
+    const currentConfig = SECTORS[currentSectorIndex];
+    if (currentConfig.prisms) {
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      for (const prism of currentConfig.prisms) {
+        ctx.beginPath();
+        ctx.moveTo(prism.p1.x, prism.p1.y);
+        ctx.lineTo(prism.p2.x, prism.p2.y);
+        ctx.stroke();
+      }
+    }
+
+    // 4. Render Orbiting Light Sources (The Suns)
+    for (const light of lights) {
+      ctx.save();
+      // Outer solar halo
+      const grad = ctx.createRadialGradient(light.pos.x, light.pos.y, 4, light.pos.x, light.pos.y, light.radius * 3.5);
+      grad.addColorStop(0, light.color);
+      grad.addColorStop(0.3, 'rgba(251, 191, 36, 0.6)');
+      grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(light.pos.x, light.pos.y, light.radius * 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Solar Core
+      ctx.beginPath();
+      ctx.arc(light.pos.x, light.pos.y, light.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = light.color;
+      ctx.shadowBlur = 24;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 5. Render Lux Motes
+    for (const m of luxMotes) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(m.pos.x, m.pos.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 6. Render Photonic Enemies (Solar Amoebas)
+    for (const e of enemies) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(e.pos.x, e.pos.y, e.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#f59e0b';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 16;
+      ctx.fill();
+
+      // Core nucleus
+      ctx.beginPath();
+      ctx.arc(e.pos.x, e.pos.y, e.radius * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 7. Render Player Occluder Blade
+    const p = playerState;
+    const normalAngle = p.bladeAngle + Math.PI / 2;
+    const halfLen = p.bladeLength / 2;
+    const centerBlade: Vec2 = {
+      x: p.pos.x + Math.cos(p.bladeAngle) * p.bladeRadius,
+      y: p.pos.y + Math.sin(p.bladeAngle) * p.bladeRadius,
+    };
+
+    const b1 = {
+      x: centerBlade.x + Math.cos(normalAngle) * halfLen,
+      y: centerBlade.y + Math.sin(normalAngle) * halfLen,
+    };
+    const b2 = {
+      x: centerBlade.x - Math.cos(normalAngle) * halfLen,
+      y: centerBlade.y - Math.sin(normalAngle) * halfLen,
+    };
+
+    // Occluder connecting struts
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(p.pos.x, p.pos.y);
+    ctx.lineTo(centerBlade.x, centerBlade.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // The Blade Silhouette
+    ctx.save();
+    ctx.strokeStyle = p.isFocusing ? '#38bdf8' : '#0f172a';
+    ctx.lineWidth = p.isFocusing ? 6 : 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(b1.x, b1.y);
+    ctx.lineTo(b2.x, b2.y);
+    ctx.stroke();
+    ctx.restore();
+
+    // 8. Render Player Aperture Core
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.pos.x, p.pos.y, p.radius, 0, Math.PI * 2);
+
+    const healthRatio = p.ablationBuffer / p.maxAblation;
+    if (p.isShunting) {
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 30;
+    } else {
+      ctx.fillStyle = healthRatio > 0.4 ? '#00f0ff' : '#ef4444';
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = 18;
+    }
+    ctx.fill();
+
+    // Inner Core Eye
+    ctx.beginPath();
+    ctx.arc(p.pos.x, p.pos.y, p.radius * 0.4, 0, Math.PI * 2);
+    ctx.fillStyle = '#050508';
+    ctx.fill();
+    ctx.restore();
+
+    // 9. Render Particles
+    for (const pt of particles) {
+      ctx.save();
+      ctx.globalAlpha = pt.alpha;
+      ctx.beginPath();
+      ctx.arc(pt.pos.x, pt.pos.y, pt.radius, 0, Math.PI * 2);
+      ctx.fillStyle = pt.color;
+      ctx.shadowColor = pt.color;
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // --- Bootstrap Game ---
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  initSector(0);
+  requestAnimationFrame(gameLoop);
+</script>

@@ -6,19 +6,39 @@ import { GAMES } from '../data/games';
 
 const siteUrl = (Astro.site?.toString() || 'https://pokoly.com').replace(/\/$/, '');
 
-const unblockedSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'Free Unblocked Games for School & Work - Pokoly',
-  description: 'Play safe, fast, and unblocked browser games at school or work. No downloads, zero restrictions, and 100% free HTML5 games.',
-  url: `${siteUrl}/unblocked`
-};
+const unblockedSchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Free Unblocked Games for School & Work - Pokoly',
+    description: 'Play safe, fast, and unblocked browser games at school or work. No downloads, zero restrictions, and 100% free HTML5 games.',
+    url: `${siteUrl}/unblocked/`
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${siteUrl}/`
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Unblocked Games',
+        item: `${siteUrl}/unblocked/`
+      }
+    ]
+  }
+];
 ---
 
 <BaseLayout
   title="Unblocked Games for School & Work - Play Free Online at Pokoly"
   description="Play the best free unblocked games online. Works on school Chromebooks, office PCs, and mobile devices with zero downloads, zero VPNs, and instant 60 FPS loading."
-  canonical={`${siteUrl}/unblocked`}
+  canonical={`${siteUrl}/unblocked/`}
   schema={unblockedSchema}
 >
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">

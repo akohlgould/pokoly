@@ -1,0 +1,68 @@
+---
+// Sudoku Blitz: Speed Logic
+---
+
+<div id="sudoku-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Errors: <span id="sdk-err" class="font-mono font-bold text-red-400">0/3</span></div>
+    <button id="sdk-reset" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300">Reset</button>
+  </div>
+
+  <div class="p-3 bg-brand-dark border-2 border-brand-border rounded-2xl shadow-2xl">
+    <div id="sdk-grid" class="grid grid-cols-4 gap-1.5"></div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  // 4x4 mini sudoku
+  const INITIAL = [1, 0, 0, 4, 0, 4, 1, 0, 0, 1, 4, 0, 4, 0, 0, 1];
+  const SOLVED = [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1];
+  let board = [...INITIAL];
+  let errors = 0;
+
+  const gridEl = document.getElementById('sdk-grid')!;
+  const errEl = document.getElementById('sdk-err')!;
+  const resetBtn = document.getElementById('sdk-reset')!;
+
+  function render() {
+    gridEl.innerHTML = '';
+    board.forEach((val, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `w-14 h-14 rounded-xl border font-mono font-black text-xl transition-all ${
+        INITIAL[idx] !== 0 ? 'bg-brand-card border-brand-border text-gray-400' : 'bg-brand-dark border-brand-neon text-brand-neon hover:bg-brand-neon/20'
+      }`;
+      btn.textContent = val !== 0 ? val.toString() : '';
+      btn.disabled = INITIAL[idx] !== 0;
+
+      btn.addEventListener('click', () => {
+        sound.click();
+        board[idx] = (board[idx] % 4) + 1;
+        if (board[idx] !== SOLVED[idx]) {
+          sound.blip();
+          errors++;
+          errEl.textContent = `${errors}/3`;
+        } else {
+          sound.score();
+        }
+        render();
+
+        if (board.every((v, i) => v === SOLVED[i])) {
+          sound.victory();
+          alert('🎉 Sudoku Grid Completed with Perfect Logic!');
+        }
+      });
+      gridEl.appendChild(btn);
+    });
+  }
+
+  resetBtn.addEventListener('click', () => {
+    board = [...INITIAL];
+    errors = 0;
+    errEl.textContent = '0/3';
+    render();
+  });
+
+  render();
+</script>

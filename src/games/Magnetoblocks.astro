@@ -1,0 +1,84 @@
+---
+// MagnetoBlocks: Polar Match
+---
+
+<div id="magneto-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Score: <span id="mag-score" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Next Pole: <span id="mag-next" class="font-bold text-red-400">RED (+)</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="mag-canvas" width="300" height="360" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('mag-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('mag-score')!;
+  const nextEl = document.getElementById('mag-next')!;
+
+  let score = 0;
+  let nextIsRed = true;
+  let blocks: { x: number; y: number; isRed: boolean }[] = [];
+
+  function draw() {
+    ctx.fillStyle = '#0a0a14';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid lanes
+    ctx.strokeStyle = '#1e293b';
+    for (let i = 1; i < 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 60, 0);
+      ctx.lineTo(i * 60, 360);
+      ctx.stroke();
+    }
+
+    // Draw blocks
+    blocks.forEach(b => {
+      ctx.fillStyle = b.isRed ? '#ef4444' : '#3b82f6';
+      ctx.fillRect(b.x * 60 + 6, b.y * 60 + 6, 48, 48);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.isRed ? '+' : '-', b.x * 60 + 30, b.y * 60 + 30);
+    });
+  }
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const col = Math.floor((e.clientX - rect.left) / 60);
+    if (col < 0 || col >= 5) return;
+
+    sound.click();
+    // Find lowest empty slot in column
+    const colBlocks = blocks.filter(b => b.x === col);
+    if (colBlocks.length >= 6) return;
+
+    const row = 5 - colBlocks.length;
+    blocks.push({ x: col, y: row, isRed: nextIsRed });
+
+    // Check adjacent magnetic snap
+    const adjacent = blocks.filter(b => Math.abs(b.x - col) + Math.abs(b.y - row) === 1);
+    adjacent.forEach(adj => {
+      if (adj.isRed !== nextIsRed) {
+        sound.score();
+        score += 50;
+      }
+    });
+
+    scoreEl.textContent = score.toString();
+    nextIsRed = !nextIsRed;
+    nextEl.textContent = nextIsRed ? 'RED (+)' : 'BLUE (-)';
+    nextEl.className = nextIsRed ? 'font-bold text-red-400' : 'font-bold text-blue-400';
+    draw();
+  });
+
+  draw();
+</script>

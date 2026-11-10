@@ -1,0 +1,1643 @@
+---
+// Gravifold.astro - Spacetime Origami & Topological Physics Puzzle
+---
+
+<div id="gravifold-container" class="relative w-full max-w-4xl mx-auto bg-[#070b16] rounded-2xl overflow-hidden border border-cyan-500/30 flex flex-col select-none font-mono shadow-[0_0_50px_rgba(6,182,212,0.18)]">
+  <!-- HUD Header -->
+  <div class="h-16 bg-[#0c1224]/95 border-b border-cyan-500/20 px-3 sm:px-6 flex items-center justify-between text-xs text-slate-300 z-10 backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-black text-xl shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+        ◬
+      </div>
+      <div>
+        <div class="text-white font-bold tracking-wider flex items-center gap-2 text-sm sm:text-base">
+          <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent font-black tracking-widest">GRAVIFOLD</span>
+          <span id="gf-level-badge" class="px-2 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-300 rounded-md border border-cyan-500/40 font-bold">CHAMBER 1</span>
+        </div>
+        <div id="gf-level-title" class="text-[10px] sm:text-xs text-slate-400">ORIGAMI GENESIS &bull; THE FIRST CREASE</div>
+      </div>
+    </div>
+
+    <!-- Center Status: Fold State & Cores -->
+    <div class="hidden sm:flex items-center gap-4 bg-[#080d1e] px-4 py-1.5 rounded-xl border border-cyan-500/30">
+      <!-- Cores Collected -->
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-slate-400">CORES:</span>
+        <div id="gf-cores-indicator" class="flex gap-1.5 text-amber-400 text-sm">
+          <span>◇</span>
+          <span>◇</span>
+          <span>◇</span>
+        </div>
+      </div>
+
+      <div class="w-px h-4 bg-slate-700"></div>
+
+      <!-- Fold Status Pill -->
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-slate-400">TOPOLOGY:</span>
+        <span id="gf-status-pill" class="text-xs font-bold text-cyan-300 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-700/50">
+          FLAT (UNFOLDED)
+        </span>
+      </div>
+    </div>
+
+    <!-- Top Action Buttons -->
+    <div class="flex items-center gap-2">
+      <button id="gf-audio-toggle" class="p-2 bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-300 border border-cyan-500/30 rounded-xl transition-all" title="Toggle Sound">
+        <svg id="gf-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+        <svg id="gf-sound-off" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+      </button>
+
+      <button id="gf-chambers-btn" class="px-2.5 sm:px-3 py-1.5 bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-bold transition-all">
+        CHAMBERS
+      </button>
+
+      <button id="gf-reset-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-all flex items-center gap-1">
+        <span>RESET</span>
+        <span class="text-[10px] text-slate-500 hidden sm:inline">(R)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas Playfield -->
+  <div class="relative w-full h-[480px] sm:h-[530px] bg-[#050814] overflow-hidden flex items-center justify-center">
+    <canvas id="gf-canvas" class="w-full h-full cursor-crosshair block touch-none"></canvas>
+
+    <!-- Floating In-Game Hint Pill -->
+    <div id="gf-hint-banner" class="absolute top-3 left-4 right-4 sm:left-auto sm:right-4 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-cyan-500/30 text-cyan-200 text-xs shadow-lg flex items-center gap-2 pointer-events-none transition-opacity duration-300">
+      <span class="text-cyan-400 font-bold">HINT:</span>
+      <span id="gf-hint-text">Drag to crease space, then press FOLD SPACE to bridge the abyss.</span>
+    </div>
+
+    <!-- Active Fold Toolbar (Bottom Canvas) -->
+    <div class="absolute bottom-3 left-3 right-3 sm:left-6 sm:right-6 bg-[#0a0f24]/90 backdrop-blur-md border border-cyan-500/30 rounded-xl p-2.5 sm:p-3 flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-2xl">
+      <!-- Crease Presets & Freehand -->
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-slate-400 font-bold mr-1 hidden sm:inline">CREASE:</span>
+        <button id="gf-preset-vert" class="px-2.5 py-1 bg-slate-800/80 hover:bg-cyan-950/60 text-slate-300 hover:text-cyan-300 border border-slate-700 rounded-lg text-xs transition-all active:scale-95">
+          VERTICAL
+        </button>
+        <button id="gf-preset-horiz" class="px-2.5 py-1 bg-slate-800/80 hover:bg-cyan-950/60 text-slate-300 hover:text-cyan-300 border border-slate-700 rounded-lg text-xs transition-all active:scale-95">
+          HORIZONTAL
+        </button>
+        <button id="gf-preset-diag" class="px-2.5 py-1 bg-slate-800/80 hover:bg-cyan-950/60 text-slate-300 hover:text-cyan-300 border border-slate-700 rounded-lg text-xs transition-all active:scale-95">
+          DIAGONAL
+        </button>
+        <button id="gf-flip-side-btn" class="px-2 py-1 bg-slate-800/80 hover:bg-indigo-950/60 text-indigo-300 border border-slate-700 rounded-lg text-xs transition-all flex items-center gap-1" title="Flip Fold Direction">
+          <span>⇄ FLIP</span>
+        </button>
+      </div>
+
+      <!-- Primary Action Buttons: FOLD & LAUNCH -->
+      <div class="flex items-center gap-2 ml-auto">
+        <button id="gf-fold-toggle-btn" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.35)] transition-all active:scale-95 flex items-center gap-1.5">
+          <span id="gf-fold-icon">◬</span>
+          <span id="gf-fold-label">FOLD SPACE</span>
+          <span class="text-[10px] opacity-75 font-mono ml-0.5">(SPACE)</span>
+        </button>
+
+        <button id="gf-launch-btn" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all active:scale-95 flex items-center gap-1.5">
+          <span>⚡</span>
+          <span id="gf-launch-label">LAUNCH ORB</span>
+          <span class="text-[10px] opacity-75 font-mono ml-0.5">(L)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chambers Drawer / Selector Modal -->
+    <div id="gf-chambers-modal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center z-40 p-4">
+      <div class="bg-[#0b1022] border border-cyan-500/40 p-6 rounded-2xl max-w-lg w-full text-center shadow-2xl">
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-cyan-500/20">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span class="text-cyan-400">◬</span> SELECT TOPOLOGICAL CHAMBER
+          </h3>
+          <button id="gf-close-chambers-btn" class="text-slate-400 hover:text-white p-1">&times;</button>
+        </div>
+        <div id="gf-chambers-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-4">
+          <!-- Populated dynamically via JS -->
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+          <span>COMPLETED: <span id="gf-completed-count" class="text-cyan-300 font-bold">0</span>/8</span>
+          <button id="gf-sandbox-mode-btn" class="px-3 py-1 bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 rounded-lg text-xs font-bold transition-all">
+            🎲 DAILY PROCEDURAL SEED
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chamber Cleared / Victory Modal -->
+    <div id="gf-victory-modal" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-40 p-6">
+      <div class="bg-[#0a0f22] border border-cyan-400/50 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-[0_0_50px_rgba(6,182,212,0.25)] animate-in fade-in zoom-in duration-200">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-400/40 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce text-cyan-300">
+          ✦
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black text-white mb-1 tracking-wider">CHAMBER COLLAPSED!</h2>
+        <p id="gf-victory-msg" class="text-xs sm:text-sm text-cyan-200/80 mb-5">Spacetime singularity successfully bypassed via topological folding.</p>
+
+        <div class="grid grid-cols-3 gap-2 text-xs font-bold mb-6 bg-[#060a17] p-3 rounded-xl border border-cyan-500/30">
+          <div>
+            <div class="text-[10px] text-slate-400">FOLDS USED</div>
+            <div id="gf-stat-folds" class="text-cyan-300 text-sm mt-0.5">1</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-400">CORES SECURED</div>
+            <div id="gf-stat-cores" class="text-amber-400 text-sm mt-0.5">3/3</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-400">XP REWARD</div>
+            <div class="text-emerald-400 text-sm mt-0.5">+150 XP</div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 justify-center">
+          <button id="gf-next-chamber-btn" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-1.5">
+            <span>NEXT CHAMBER</span>
+            <span>&rarr;</span>
+          </button>
+          <button id="gf-replay-chamber-btn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm rounded-xl border border-slate-700 transition-all">
+            RETRY
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  // --- Audio Synthesis Extensions for Gravifold ---
+  class GravifoldAudio {
+    private ctx: AudioContext | null = null;
+    public enabled = true;
+
+    private getContext(): AudioContext | null {
+      if (!this.enabled) return null;
+      if (!this.ctx && typeof window !== 'undefined') {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+      return this.ctx;
+    }
+
+    // Realistic paper whoosh using bandpass-filtered noise sweep
+    public foldWhoosh(isFolding: boolean) {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      try {
+        const bufferSize = ctx.sampleRate * 0.25;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.Q.value = 4.0;
+
+        const now = ctx.currentTime;
+        if (isFolding) {
+          filter.frequency.setValueAtTime(300, now);
+          filter.frequency.exponentialRampToValueAtTime(2400, now + 0.12);
+          filter.frequency.exponentialRampToValueAtTime(600, now + 0.24);
+        } else {
+          filter.frequency.setValueAtTime(1800, now);
+          filter.frequency.exponentialRampToValueAtTime(400, now + 0.22);
+        }
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.24);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+      } catch (e) {}
+    }
+
+    // Kinetic Paper Slingshot impulse sound
+    public slingshot() {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      try {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(90, now);
+        osc.frequency.exponentialRampToValueAtTime(550, now + 0.18);
+
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      } catch (e) {}
+    }
+
+    // Quantum Core Pickup Arpeggio
+    public pickupCore(index: number) {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      try {
+        const freqs = [659.25, 830.61, 987.77, 1318.51]; // E5, G#5, B5, E6
+        const freq = freqs[Math.min(index, freqs.length - 1)];
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.15);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } catch (e) {}
+    }
+
+    // Orb Bounce on Platform
+    public bounce(vel: number) {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      try {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        const vol = Math.min(0.16, Math.max(0.03, vel * 0.02));
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320 + Math.random() * 80, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      } catch (e) {}
+    }
+
+    // Singularity Cleared Fanfare
+    public victoryFanfare() {
+      const notes = [440, 554.37, 659.25, 880, 1108.73];
+      notes.forEach((freq, i) => {
+        setTimeout(() => {
+          sound.playTone(freq, 'sine', 0.25, 0.14);
+        }, i * 90);
+      });
+    }
+
+    public hazardHit() {
+      sound.playTone(130, 'sawtooth', 0.18, 0.2);
+    }
+  }
+
+  const gfAudio = new GravifoldAudio();
+
+  // --- Logical Viewport & Physics Geometry ---
+  const VIEW_W = 800;
+  const VIEW_H = 500;
+
+  interface Point {
+    x: number;
+    y: number;
+  }
+
+  interface Segment {
+    p1: Point;
+    p2: Point;
+    type?: 'solid' | 'laser' | 'ramp' | 'trampoline';
+    color?: string;
+  }
+
+  interface QuantumCore {
+    x: number;
+    y: number;
+    collected: boolean;
+    origX: number;
+    origY: number;
+  }
+
+  interface CreaseLine {
+    p1: Point;
+    p2: Point;
+    normal: Point; // Unit normal vector pointing towards folded half
+    side: 1 | -1;  // 1 = side of positive normal folds, -1 = inverted
+  }
+
+  interface ChamberDef {
+    id: number;
+    title: string;
+    subtitle: string;
+    hint: string;
+    startPos: Point;
+    startVel: Point;
+    goalPos: Point;
+    platforms: Segment[];
+    cores: Point[];
+    initialCrease: { p1: Point; p2: Point; side?: 1 | -1 };
+    invertedGravity?: boolean;
+    maxCreases?: number;
+  }
+
+  // --- Handcrafted Chambers ---
+  const CHAMBERS: ChamberDef[] = [
+    {
+      id: 1,
+      title: "ORIGAMI GENESIS",
+      subtitle: "THE FIRST CREASE &bull; BRIDGING THE VOID",
+      hint: "Draw or adjust the vertical crease in the center, then press FOLD SPACE (SPACEBAR) to fuse the two distant cliffs!",
+      startPos: { x: 120, y: 150 },
+      startVel: { x: 1.2, y: 0 },
+      goalPos: { x: 680, y: 220 },
+      platforms: [
+        // Left starting cliff
+        { p1: { x: 80, y: 190 }, p2: { x: 260, y: 230 }, type: 'solid' },
+        // Right goal cliff across 350px void
+        { p1: { x: 540, y: 250 }, p2: { x: 740, y: 250 }, type: 'solid' },
+        // Bottom containment
+        { p1: { x: 0, y: 490 }, p2: { x: 800, y: 490 }, type: 'solid' }
+      ],
+      cores: [
+        { x: 200, y: 180 },
+        { x: 620, y: 220 }
+      ],
+      initialCrease: { p1: { x: 400, y: 40 }, p2: { x: 400, y: 460 }, side: 1 }
+    },
+    {
+      id: 2,
+      title: "LASER REFRACTION",
+      subtitle: "PARITY FLIP &bull; BYPASSING THERMAL HAZARDS",
+      hint: "A lethal red laser barrier blocks the direct path. Fold diagonally to wrap space around the hazard beam!",
+      startPos: { x: 100, y: 120 },
+      startVel: { x: 2.0, y: 0 },
+      goalPos: { x: 700, y: 420 },
+      platforms: [
+        // Top left chute
+        { p1: { x: 60, y: 160 }, p2: { x: 240, y: 200 }, type: 'solid' },
+        // Lethal laser in center
+        { p1: { x: 400, y: 60 }, p2: { x: 400, y: 360 }, type: 'laser' },
+        // Lower bounce ramps
+        { p1: { x: 280, y: 380 }, p2: { x: 480, y: 420 }, type: 'solid' },
+        { p1: { x: 560, y: 460 }, p2: { x: 760, y: 440 }, type: 'solid' }
+      ],
+      cores: [
+        { x: 180, y: 150 },
+        { x: 380, y: 350 },
+        { x: 640, y: 410 }
+      ],
+      initialCrease: { p1: { x: 560, y: 60 }, p2: { x: 240, y: 440 }, side: 1 }
+    },
+    {
+      id: 3,
+      title: "KINETIC CATAPULT",
+      subtitle: "ELASTIC REBOUND &bull; MOMENTUM SLINGSHOT",
+      hint: "Catch the falling orb on the folded slope, then press UNFOLD (SPACEBAR) mid-roll to catapult it skyward into the goal!",
+      startPos: { x: 120, y: 80 },
+      startVel: { x: 1.5, y: 0 },
+      goalPos: { x: 400, y: 110 },
+      platforms: [
+        // Top start
+        { p1: { x: 80, y: 120 }, p2: { x: 220, y: 160 }, type: 'solid' },
+        // Deep bottom funnel
+        { p1: { x: 180, y: 380 }, p2: { x: 380, y: 440 }, type: 'solid' },
+        { p1: { x: 420, y: 440 }, p2: { x: 620, y: 380 }, type: 'solid' },
+        // High ceiling goal enclosure
+        { p1: { x: 330, y: 140 }, p2: { x: 470, y: 140 }, type: 'solid' },
+        { p1: { x: 330, y: 70 }, p2: { x: 330, y: 140 }, type: 'solid' },
+        { p1: { x: 470, y: 70 }, p2: { x: 470, y: 140 }, type: 'solid' }
+      ],
+      cores: [
+        { x: 300, y: 380 },
+        { x: 400, y: 220 }
+      ],
+      initialCrease: { p1: { x: 100, y: 300 }, p2: { x: 700, y: 300 }, side: 1 }
+    },
+    {
+      id: 4,
+      title: "TWIN DIMENSIONS",
+      subtitle: "CONVERGENT AXIS &bull; KEY HARVESTING",
+      hint: "Quantum cores are placed in opposing diagonal corners. Fold diagonally to align all keys into a single descending runway!",
+      startPos: { x: 100, y: 100 },
+      startVel: { x: 2.2, y: 0 },
+      goalPos: { x: 680, y: 380 },
+      platforms: [
+        { p1: { x: 60, y: 140 }, p2: { x: 260, y: 190 }, type: 'solid' },
+        { p1: { x: 320, y: 260 }, p2: { x: 500, y: 310 }, type: 'solid' },
+        { p1: { x: 540, y: 420 }, p2: { x: 740, y: 400 }, type: 'solid' },
+        // Hazard trap in center
+        { p1: { x: 280, y: 380 }, p2: { x: 480, y: 380 }, type: 'laser' }
+      ],
+      cores: [
+        { x: 220, y: 150 },
+        { x: 420, y: 240 },
+        { x: 600, y: 360 }
+      ],
+      initialCrease: { p1: { x: 680, y: 80 }, p2: { x: 120, y: 440 }, side: 1 }
+    },
+    {
+      id: 5,
+      title: "GRAVITATIONAL INVERSION",
+      subtitle: "CHIRAL TOPOLOGY &bull; CEILING DRIFT",
+      hint: "Space folded here experiences INVERTED GRAVITY! The orb will fall upward toward ceiling platforms while folded.",
+      invertedGravity: true,
+      startPos: { x: 100, y: 380 },
+      startVel: { x: 1.8, y: -0.5 },
+      goalPos: { x: 680, y: 120 },
+      platforms: [
+        // Low launching platform
+        { p1: { x: 60, y: 420 }, p2: { x: 240, y: 420 }, type: 'solid' },
+        // High ceiling rail
+        { p1: { x: 460, y: 150 }, p2: { x: 740, y: 150 }, type: 'solid' },
+        // Mid-air divider
+        { p1: { x: 300, y: 200 }, p2: { x: 500, y: 200 }, type: 'solid' }
+      ],
+      cores: [
+        { x: 180, y: 380 },
+        { x: 400, y: 160 },
+        { x: 580, y: 120 }
+      ],
+      initialCrease: { p1: { x: 380, y: 40 }, p2: { x: 380, y: 460 }, side: 1 }
+    },
+    {
+      id: 6,
+      title: "THE ACCORDION",
+      subtitle: "QUADRANT COMPRESSION &bull; THREE-FOLD MAZE",
+      hint: "Compress the zigzag maze by bisecting the playfield horizontally to superimpose the top and bottom corridors!",
+      startPos: { x: 100, y: 80 },
+      startVel: { x: 2.2, y: 0 },
+      goalPos: { x: 120, y: 420 },
+      platforms: [
+        // Level 1 (top)
+        { p1: { x: 60, y: 120 }, p2: { x: 720, y: 140 }, type: 'solid' },
+        // Level 2 (mid)
+        { p1: { x: 80, y: 270 }, p2: { x: 740, y: 250 }, type: 'solid' },
+        // Level 3 (bottom)
+        { p1: { x: 60, y: 450 }, p2: { x: 720, y: 450 }, type: 'solid' },
+        // Laser tripwire on mid level
+        { p1: { x: 420, y: 250 }, p2: { x: 420, y: 330 }, type: 'laser' }
+      ],
+      cores: [
+        { x: 400, y: 100 },
+        { x: 650, y: 210 },
+        { x: 300, y: 410 }
+      ],
+      initialCrease: { p1: { x: 60, y: 250 }, p2: { x: 740, y: 250 }, side: 1 }
+    },
+    {
+      id: 7,
+      title: "MÖBIUS TUNNEL",
+      subtitle: "TOPOLOGICAL WORMHOLE &bull; SEAM CROSSING",
+      hint: "Fold diagonally and release the orb with high horizontal speed. Watch it cross the crease seam into the alternate coordinate manifold!",
+      startPos: { x: 120, y: 100 },
+      startVel: { x: 2.5, y: 0 },
+      goalPos: { x: 700, y: 240 },
+      platforms: [
+        { p1: { x: 80, y: 140 }, p2: { x: 280, y: 180 }, type: 'solid' },
+        { p1: { x: 500, y: 280 }, p2: { x: 740, y: 280 }, type: 'solid' },
+        // Guard lasers surrounding goal
+        { p1: { x: 480, y: 180 }, p2: { x: 480, y: 340 }, type: 'laser' },
+        { p1: { x: 300, y: 420 }, p2: { x: 500, y: 460 }, type: 'solid' }
+      ],
+      cores: [
+        { x: 240, y: 140 },
+        { x: 400, y: 390 },
+        { x: 620, y: 240 }
+      ],
+      initialCrease: { p1: { x: 500, y: 40 }, p2: { x: 280, y: 460 }, side: 1 }
+    },
+    {
+      id: 8,
+      title: "SINGULARITY MASTER",
+      subtitle: "THE GRAND ORIGAMI &bull; SPACETIME REFORGED",
+      hint: "The ultimate synthesis: Harvest all 3 cores by folding space to align the ramp, then unfold to execute a kinetic launch into the singularity!",
+      startPos: { x: 100, y: 100 },
+      startVel: { x: 2.0, y: 0 },
+      goalPos: { x: 680, y: 80 },
+      platforms: [
+        { p1: { x: 60, y: 140 }, p2: { x: 240, y: 180 }, type: 'solid' },
+        { p1: { x: 260, y: 320 }, p2: { x: 480, y: 380 }, type: 'solid' },
+        { p1: { x: 540, y: 280 }, p2: { x: 740, y: 240 }, type: 'solid' },
+        // Ceiling goal cage
+        { p1: { x: 620, y: 110 }, p2: { x: 740, y: 110 }, type: 'solid' },
+        // Deadly laser grids
+        { p1: { x: 480, y: 160 }, p2: { x: 480, y: 300 }, type: 'laser' },
+        { p1: { x: 240, y: 360 }, p2: { x: 240, y: 480 }, type: 'laser' }
+      ],
+      cores: [
+        { x: 180, y: 140 },
+        { x: 370, y: 310 },
+        { x: 640, y: 220 }
+      ],
+      initialCrease: { p1: { x: 420, y: 40 }, p2: { x: 420, y: 460 }, side: 1 }
+    }
+  ];
+
+  // --- Game State Variables ---
+  let currentChamberIdx = 0;
+  let completedChambers = new Set<number>();
+  let foldsUsedThisChamber = 0;
+
+  // Active Crease
+  let crease: CreaseLine = {
+    p1: { x: 400, y: 40 },
+    p2: { x: 400, y: 460 },
+    normal: { x: 1, y: 0 },
+    side: 1
+  };
+
+  // Fold Animation State
+  let foldProgress = 0.0; // 0.0 = completely unfolded/flat, 1.0 = completely folded
+  let isFolded = false;
+  let foldAnimSpeed = 0.07; // ~15 frames to fold/unfold
+
+  // Interactive Crease Dragging
+  let isDraggingCrease = false;
+  let dragHandle: 'p1' | 'p2' | 'new' | null = null;
+  let dragStart: Point = { x: 0, y: 0 };
+
+  // Ball State
+  interface Orb {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+    active: boolean;
+    trail: Point[];
+  }
+
+  let orb: Orb = {
+    x: 120,
+    y: 150,
+    vx: 0,
+    vy: 0,
+    radius: 11,
+    active: false,
+    trail: []
+  };
+
+  // Active Level Cores & Platforms
+  let activeCores: QuantumCore[] = [];
+  let isGameOver = false;
+
+  // Particle Engine
+  interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number;
+    maxLife: number;
+    color: string;
+    size: number;
+  }
+  let particles: Particle[] = [];
+
+  // Canvas & Elements
+  const canvas = document.getElementById('gf-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const levelBadge = document.getElementById('gf-level-badge')!;
+  const levelTitle = document.getElementById('gf-level-title')!;
+  const statusPill = document.getElementById('gf-status-pill')!;
+  const coresIndicator = document.getElementById('gf-cores-indicator')!;
+  const hintText = document.getElementById('gf-hint-text')!;
+  const foldToggleBtn = document.getElementById('gf-fold-toggle-btn')!;
+  const foldLabel = document.getElementById('gf-fold-label')!;
+  const foldIcon = document.getElementById('gf-fold-icon')!;
+  const launchBtn = document.getElementById('gf-launch-btn')!;
+  const launchLabel = document.getElementById('gf-launch-label')!;
+  const resetBtn = document.getElementById('gf-reset-btn')!;
+  const chambersBtn = document.getElementById('gf-chambers-btn')!;
+  const chambersModal = document.getElementById('gf-chambers-modal')!;
+  const closeChambersBtn = document.getElementById('gf-close-chambers-btn')!;
+  const chambersGrid = document.getElementById('gf-chambers-grid')!;
+  const completedCountEl = document.getElementById('gf-completed-count')!;
+  const victoryModal = document.getElementById('gf-victory-modal')!;
+  const statFolds = document.getElementById('gf-stat-folds')!;
+  const statCores = document.getElementById('gf-stat-cores')!;
+  const nextChamberBtn = document.getElementById('gf-next-chamber-btn')!;
+  const replayChamberBtn = document.getElementById('gf-replay-chamber-btn')!;
+  const presetVert = document.getElementById('gf-preset-vert')!;
+  const presetHoriz = document.getElementById('gf-preset-horiz')!;
+  const presetDiag = document.getElementById('gf-preset-diag')!;
+  const flipSideBtn = document.getElementById('gf-flip-side-btn')!;
+  const audioToggle = document.getElementById('gf-audio-toggle')!;
+  const soundOnIcon = document.getElementById('gf-sound-on')!;
+  const soundOffIcon = document.getElementById('gf-sound-off')!;
+  const sandboxModeBtn = document.getElementById('gf-sandbox-mode-btn')!;
+
+  // --- Geometric Reflection Helper Functions ---
+
+  function updateCreaseNormal() {
+    const dx = crease.p2.x - crease.p1.x;
+    const dy = crease.p2.y - crease.p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    // Unit vector along crease
+    const ux = dx / len;
+    const uy = dy / len;
+    // Normal perpendicular (rotated 90 deg clockwise)
+    crease.normal = {
+      x: -uy * crease.side,
+      y: ux * crease.side
+    };
+  }
+
+  // Signed distance from point P to crease line
+  function distToCrease(p: Point): number {
+    const vx = p.x - crease.p1.x;
+    const vy = p.y - crease.p1.y;
+    return vx * crease.normal.x + vy * crease.normal.y;
+  }
+
+  // Reflect point across crease line
+  function reflectPoint(p: Point): Point {
+    const d = distToCrease(p);
+    return {
+      x: p.x - 2 * d * crease.normal.x,
+      y: p.y - 2 * d * crease.normal.y
+    };
+  }
+
+  // Get current physical coordinate of a point based on foldProgress
+  function getFoldedPoint(p: Point): Point {
+    const d = distToCrease(p);
+    if (d <= 0 || foldProgress === 0) {
+      return { x: p.x, y: p.y };
+    }
+    const ref = reflectPoint(p);
+    return {
+      x: p.x * (1 - foldProgress) + ref.x * foldProgress,
+      y: p.y * (1 - foldProgress) + ref.y * foldProgress
+    };
+  }
+
+  // --- Canvas Resizing & Transform Mapping ---
+  let canvasScale = 1;
+  let canvasOffsetX = 0;
+  let canvasOffsetY = 0;
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    canvasScale = Math.min(rect.width / VIEW_W, rect.height / VIEW_H);
+    canvasOffsetX = (rect.width - VIEW_W * canvasScale) / 2;
+    canvasOffsetY = (rect.height - VIEW_H * canvasScale) / 2;
+  }
+
+  function screenToView(clientX: number, clientY: number): Point {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left - canvasOffsetX) / canvasScale,
+      y: (clientY - rect.top - canvasOffsetY) / canvasScale
+    };
+  }
+
+  // --- Chamber Initialization ---
+  function loadChamber(index: number) {
+    currentChamberIdx = index;
+    const ch = CHAMBERS[index % CHAMBERS.length];
+
+    levelBadge.textContent = `CHAMBER ${ch.id}`;
+    levelTitle.innerHTML = `${ch.title} &bull; ${ch.subtitle}`;
+    hintText.textContent = ch.hint;
+
+    // Reset Crease
+    crease.p1 = { ...ch.initialCrease.p1 };
+    crease.p2 = { ...ch.initialCrease.p2 };
+    crease.side = ch.initialCrease.side || 1;
+    updateCreaseNormal();
+
+    // Reset Fold
+    foldProgress = 0.0;
+    isFolded = false;
+    updateFoldUI();
+
+    // Reset Cores
+    activeCores = ch.cores.map(c => ({
+      x: c.x,
+      y: c.y,
+      origX: c.x,
+      origY: c.y,
+      collected: false
+    }));
+    updateCoresUI();
+
+    // Reset Orb
+    resetOrb();
+
+    // Track play
+    player.trackGamePlay('gravifold');
+    isGameOver = false;
+    foldsUsedThisChamber = 0;
+  }
+
+  function resetOrb() {
+    const ch = CHAMBERS[currentChamberIdx % CHAMBERS.length];
+    orb.x = ch.startPos.x;
+    orb.y = ch.startPos.y;
+    orb.vx = 0;
+    orb.vy = 0;
+    orb.active = false;
+    orb.trail = [];
+    launchLabel.textContent = "LAUNCH ORB";
+  }
+
+  function launchOrb() {
+    if (orb.active) {
+      resetOrb();
+      return;
+    }
+    const ch = CHAMBERS[currentChamberIdx % CHAMBERS.length];
+    orb.x = ch.startPos.x;
+    orb.y = ch.startPos.y;
+    orb.vx = ch.startVel.x;
+    orb.vy = ch.startVel.y;
+    orb.active = true;
+    orb.trail = [];
+    launchLabel.textContent = "RESET ORB";
+    sound.score();
+  }
+
+  function toggleFold() {
+    isFolded = !isFolded;
+    foldsUsedThisChamber++;
+    gfAudio.foldWhoosh(isFolded);
+
+    // If unfolding while ball is on folded flap, apply kinetic slingshot impulse!
+    if (!isFolded && orb.active) {
+      const d = distToCrease(orb);
+      if (d > -30) {
+        // Boost opposite to normal direction
+        orb.vx -= crease.normal.x * 9.5;
+        orb.vy -= crease.normal.y * 9.5;
+        gfAudio.slingshot();
+        spawnParticles(orb.x, orb.y, '#22d3ee', 24);
+      }
+    }
+
+    updateFoldUI();
+  }
+
+  function updateFoldUI() {
+    if (isFolded) {
+      foldLabel.textContent = "UNFOLD SPACE";
+      foldIcon.textContent = "◬";
+      statusPill.textContent = "FOLDED (WARP ON)";
+      statusPill.className = "text-xs font-bold text-amber-300 px-2 py-0.5 rounded bg-amber-950/60 border border-amber-500/50";
+      foldToggleBtn.className = "px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.35)] transition-all active:scale-95 flex items-center gap-1.5";
+    } else {
+      foldLabel.textContent = "FOLD SPACE";
+      foldIcon.textContent = "◬";
+      statusPill.textContent = "FLAT (UNFOLDED)";
+      statusPill.className = "text-xs font-bold text-cyan-300 px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-700/50";
+      foldToggleBtn.className = "px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.35)] transition-all active:scale-95 flex items-center gap-1.5";
+    }
+  }
+
+  function updateCoresUI() {
+    const total = activeCores.length;
+    const collected = activeCores.filter(c => c.collected).length;
+    let html = '';
+    for (let i = 0; i < total; i++) {
+      html += activeCores[i].collected ? '<span class="text-amber-300 scale-110">◈</span>' : '<span class="text-slate-600">◇</span>';
+    }
+    coresIndicator.innerHTML = html;
+  }
+
+  function spawnParticles(x: number, y: number, color: string, count = 12) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 4 + 1;
+      particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1.0,
+        maxLife: Math.random() * 20 + 20,
+        color,
+        size: Math.random() * 3 + 1.5
+      });
+    }
+  }
+
+  // --- Physics & Collision Engine ---
+  function distanceToSegment(p: Point, p1: Point, p2: Point): { dist: number; closest: Point } {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const l2 = dx * dx + dy * dy;
+    if (l2 === 0) return { dist: Math.hypot(p.x - p1.x, p.y - p1.y), closest: p1 };
+
+    let t = ((p.x - p1.x) * dx + (p.y - p1.y) * dy) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const closest = { x: p1.x + t * dx, y: p1.y + t * dy };
+    return { dist: Math.hypot(p.x - closest.x, p.y - closest.y), closest };
+  }
+
+  function stepPhysics() {
+    // Fold animation easing
+    const targetFold = isFolded ? 1.0 : 0.0;
+    if (Math.abs(foldProgress - targetFold) > 0.001) {
+      foldProgress += (targetFold - foldProgress) * 0.22;
+      if (Math.abs(foldProgress - targetFold) < 0.005) foldProgress = targetFold;
+    }
+
+    if (!orb.active || isGameOver) return;
+
+    const ch = CHAMBERS[currentChamberIdx % CHAMBERS.length];
+
+    // Gravity calculation
+    let g = 0.28;
+    if (ch.invertedGravity) {
+      // Invert gravity if on folded side
+      const d = distToCrease(orb);
+      if (d > 0 && foldProgress > 0.5) g = -0.28;
+    }
+
+    orb.vy += g;
+    orb.vx *= 0.998;
+    orb.vy *= 0.998;
+
+    // Predicted new position
+    const nextX = orb.x + orb.vx;
+    const nextY = orb.y + orb.vy;
+
+    // Check collision with all active platforms (both native and reflected)
+    const activeSegments: Segment[] = [];
+    for (const plat of ch.platforms) {
+      // Check native segment
+      activeSegments.push({
+        p1: getFoldedPoint(plat.p1),
+        p2: getFoldedPoint(plat.p2),
+        type: plat.type,
+        color: plat.color
+      });
+
+      // If folded, also add the reflected platform directly into collision map!
+      if (foldProgress > 0.8) {
+        const d1 = distToCrease(plat.p1);
+        const d2 = distToCrease(plat.p2);
+        if (d1 > 0 || d2 > 0) {
+          activeSegments.push({
+            p1: reflectPoint(plat.p1),
+            p2: reflectPoint(plat.p2),
+            type: plat.type,
+            color: plat.color
+          });
+        }
+      }
+    }
+
+    // Platform collisions
+    for (const seg of activeSegments) {
+      const { dist, closest } = distanceToSegment({ x: nextX, y: nextY }, seg.p1, seg.p2);
+      if (dist < orb.radius) {
+        // Laser collision: Lethal reset!
+        if (seg.type === 'laser') {
+          gfAudio.hazardHit();
+          spawnParticles(orb.x, orb.y, '#ef4444', 20);
+          resetOrb();
+          return;
+        }
+
+        // Solid platform bounce
+        const nx = (nextX - closest.x) / (dist || 1);
+        const ny = (nextY - closest.y) / (dist || 1);
+
+        // Separate
+        orb.x = closest.x + nx * (orb.radius + 0.5);
+        orb.y = closest.y + ny * (orb.radius + 0.5);
+
+        // Reflect velocity with restitution
+        const dot = orb.vx * nx + orb.vy * ny;
+        if (dot < 0) {
+          const restitution = seg.type === 'trampoline' ? 1.2 : 0.62;
+          orb.vx -= (1 + restitution) * dot * nx;
+          orb.vy -= (1 + restitution) * dot * ny;
+
+          // Tangential friction
+          orb.vx *= 0.94;
+
+          gfAudio.bounce(Math.hypot(orb.vx, orb.vy));
+          spawnParticles(closest.x, closest.y, '#38bdf8', 4);
+        }
+        return;
+      }
+    }
+
+    orb.x = nextX;
+    orb.y = nextY;
+
+    // Trail history
+    orb.trail.push({ x: orb.x, y: orb.y });
+    if (orb.trail.length > 22) orb.trail.shift();
+
+    // Check Quantum Core pickups
+    activeCores.forEach((core, i) => {
+      if (core.collected) return;
+      // Core can be collected at native position or reflected folded position!
+      const currPos = getFoldedPoint({ x: core.origX, y: core.origY });
+      const d1 = Math.hypot(orb.x - currPos.x, orb.y - currPos.y);
+
+      let d2 = 999;
+      if (foldProgress > 0.8) {
+        const refPos = reflectPoint({ x: core.origX, y: core.origY });
+        d2 = Math.hypot(orb.x - refPos.x, orb.y - refPos.y);
+      }
+
+      if (d1 < orb.radius + 14 || d2 < orb.radius + 14) {
+        core.collected = true;
+        gfAudio.pickupCore(i);
+        spawnParticles(orb.x, orb.y, '#f59e0b', 16);
+        updateCoresUI();
+        player.addXP(25, 'Secured Quantum Core');
+      }
+    });
+
+    // Check Goal Singularity
+    const activeGoal = getFoldedPoint(ch.goalPos);
+    let distGoal = Math.hypot(orb.x - activeGoal.x, orb.y - activeGoal.y);
+    if (foldProgress > 0.8) {
+      const refGoal = reflectPoint(ch.goalPos);
+      distGoal = Math.min(distGoal, Math.hypot(orb.x - refGoal.x, orb.y - refGoal.y));
+    }
+
+    // Gravitational suction into goal vortex
+    if (distGoal < 45) {
+      orb.vx += (activeGoal.x - orb.x) * 0.08;
+      orb.vy += (activeGoal.y - orb.y) * 0.08;
+      orb.vx *= 0.85;
+      orb.vy *= 0.85;
+    }
+
+    // Victory Trigger!
+    if (distGoal < 14) {
+      completeChamber();
+    }
+
+    // Out of bounds reset
+    if (orb.y > VIEW_H + 80 || orb.y < -120 || orb.x < -80 || orb.x > VIEW_W + 80) {
+      gfAudio.hazardHit();
+      resetOrb();
+    }
+  }
+
+  function completeChamber() {
+    isGameOver = true;
+    orb.active = false;
+    completedChambers.add(currentChamberIdx);
+
+    gfAudio.victoryFanfare();
+    launchConfetti();
+
+    player.addXP(150, `Collapsed Chamber ${currentChamberIdx + 1}`);
+    player.progressQuest('get_score', 100);
+
+    const coresCount = activeCores.filter(c => c.collected).length;
+    statFolds.textContent = String(foldsUsedThisChamber);
+    statCores.textContent = `${coresCount}/${activeCores.length}`;
+    victoryModal.classList.remove('hidden');
+  }
+
+  // --- Rendering Loop (60 FPS Canvas) ---
+  let time = 0;
+
+  function render() {
+    time += 0.03;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(canvasOffsetX, canvasOffsetY);
+    ctx.scale(canvasScale, canvasScale);
+
+    // 1. Blueprint Grid Background
+    renderBackground();
+
+    // 2. Crease Line & Visual Paper Fold Flap
+    renderFoldLayers();
+
+    // 3. Platforms & Lasers
+    renderPlatforms();
+
+    // 4. Quantum Cores & Goal Singularity
+    renderCollectiblesAndGoal();
+
+    // 5. The Kinetic Orb & Trails
+    renderOrb();
+
+    // 6. Particle Bursts
+    renderParticles();
+
+    ctx.restore();
+
+    stepPhysics();
+    requestAnimationFrame(render);
+  }
+
+  function renderBackground() {
+    // Deep starry cosmic gradient
+    const grad = ctx.createLinearGradient(0, 0, VIEW_W, VIEW_H);
+    grad.addColorStop(0, '#060a16');
+    grad.addColorStop(1, '#090f24');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    // Subtle isometric/orthogonal blueprint grid
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.04)';
+    ctx.lineWidth = 1;
+    const step = 40;
+    for (let x = 0; x <= VIEW_W; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, VIEW_H);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= VIEW_H; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(VIEW_W, y);
+      ctx.stroke();
+    }
+
+    // Border glowing frame
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(2, 2, VIEW_W - 4, VIEW_H - 4);
+  }
+
+  function renderFoldLayers() {
+    // Extend crease line to screen boundaries
+    const dx = crease.p2.x - crease.p1.x;
+    const dy = crease.p2.y - crease.p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+
+    const farA = { x: crease.p1.x - ux * 1000, y: crease.p1.y - uy * 1000 };
+    const farB = { x: crease.p2.x + ux * 1000, y: crease.p2.y + uy * 1000 };
+
+    // If folded, draw realistic paper shading and drop shadow along crease
+    if (foldProgress > 0) {
+      ctx.save();
+      // Drop shadow along the crease onto the underlying sheet
+      const shadowDist = 24 * foldProgress;
+      const shadowGrad = ctx.createLinearGradient(
+        crease.p1.x, crease.p1.y,
+        crease.p1.x - crease.normal.x * shadowDist,
+        crease.p1.y - crease.normal.y * shadowDist
+      );
+      shadowGrad.addColorStop(0, `rgba(0, 0, 0, ${0.75 * foldProgress})`);
+      shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.fillStyle = shadowGrad;
+      ctx.beginPath();
+      ctx.moveTo(farA.x, farA.y);
+      ctx.lineTo(farB.x, farB.y);
+      ctx.lineTo(farB.x - crease.normal.x * shadowDist, farB.y - crease.normal.y * shadowDist);
+      ctx.lineTo(farA.x - crease.normal.x * shadowDist, farA.y - crease.normal.y * shadowDist);
+      ctx.closePath();
+      ctx.fill();
+
+      // Folded flap translucent holographic sheen
+      ctx.fillStyle = `rgba(14, 165, 233, ${0.08 * foldProgress})`;
+      ctx.beginPath();
+      ctx.moveTo(farA.x, farA.y);
+      ctx.lineTo(farB.x, farB.y);
+      ctx.lineTo(farB.x + crease.normal.x * 1200, farB.y + crease.normal.y * 1200);
+      ctx.lineTo(farA.x + crease.normal.x * 1200, farA.y + crease.normal.y * 1200);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Glowing Crease Line
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(farA.x, farA.y);
+    ctx.lineTo(farB.x, farB.y);
+    ctx.setLineDash([8, 6]);
+    ctx.strokeStyle = isFolded ? '#fbbf24' : '#22d3ee';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = isFolded ? '#f59e0b' : '#06b6d4';
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Crease drag handles
+    renderHandle(crease.p1);
+    renderHandle(crease.p2);
+
+    // Normal arrow indicator showing which side folds
+    const midX = (crease.p1.x + crease.p2.x) / 2;
+    const midY = (crease.p1.y + crease.p2.y) / 2;
+    const arrowLen = 32;
+    const arrowTipX = midX + crease.normal.x * arrowLen;
+    const arrowTipY = midY + crease.normal.y * arrowLen;
+
+    ctx.save();
+    ctx.strokeStyle = isFolded ? '#fbbf24' : '#38bdf8';
+    ctx.fillStyle = isFolded ? '#fbbf24' : '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(midX, midY);
+    ctx.lineTo(arrowTipX, arrowTipY);
+    ctx.stroke();
+
+    // Arrowhead
+    const angle = Math.atan2(crease.normal.y, crease.normal.x);
+    ctx.beginPath();
+    ctx.moveTo(arrowTipX, arrowTipY);
+    ctx.lineTo(arrowTipX - 8 * Math.cos(angle - 0.5), arrowTipY - 8 * Math.sin(angle - 0.5));
+    ctx.lineTo(arrowTipX - 8 * Math.cos(angle + 0.5), arrowTipY - 8 * Math.sin(angle + 0.5));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function renderHandle(p: Point) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#0f172a';
+    ctx.fill();
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#38bdf8';
+    ctx.shadowColor = '#06b6d4';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function renderPlatforms() {
+    const ch = CHAMBERS[currentChamberIdx % CHAMBERS.length];
+
+    for (const plat of ch.platforms) {
+      const p1 = getFoldedPoint(plat.p1);
+      const p2 = getFoldedPoint(plat.p2);
+
+      if (plat.type === 'laser') {
+        // Lethal Pulsing Laser Beam
+        ctx.save();
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 4 + Math.sin(time * 8) * 1.5;
+        ctx.shadowColor = '#dc2626';
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+
+        // Laser core white beam
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // High-tech Solid Platform
+        ctx.save();
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+
+        // Platform neon ridge
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#0284c7';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+
+  function renderCollectiblesAndGoal() {
+    const ch = CHAMBERS[currentChamberIdx % CHAMBERS.length];
+
+    // Singularity Goal Vortex
+    const goal = getFoldedPoint(ch.goalPos);
+    ctx.save();
+    ctx.translate(goal.x, goal.y);
+
+    // Spinning event horizon rings
+    for (let r = 24; r >= 8; r -= 8) {
+      ctx.beginPath();
+      ctx.arc(0, 0, r, time * (r % 16 === 0 ? 2 : -2), time * (r % 16 === 0 ? 2 : -2) + Math.PI * 1.6);
+      ctx.strokeStyle = r === 24 ? '#38bdf8' : '#818cf8';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+    }
+
+    // Vortex center eye
+    ctx.beginPath();
+    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.restore();
+
+    // Quantum Cores
+    activeCores.forEach((core, i) => {
+      if (core.collected) return;
+      const pos = getFoldedPoint({ x: core.origX, y: core.origY });
+
+      ctx.save();
+      ctx.translate(pos.x, pos.y);
+      ctx.rotate(time * 1.5 + i);
+
+      // Rotating diamond crystal
+      ctx.beginPath();
+      ctx.moveTo(0, -11);
+      ctx.lineTo(8, 0);
+      ctx.lineTo(0, 11);
+      ctx.lineTo(-8, 0);
+      ctx.closePath();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 14;
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  function renderOrb() {
+    const ch = CHAMBERS[currentChamberIdx % CHAMBERS.length];
+
+    // Start Dispenser chute
+    ctx.save();
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(ch.startPos.x, ch.startPos.y, orb.radius + 6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+
+    // Orb motion trail
+    if (orb.trail.length > 1) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(orb.trail[0].x, orb.trail[0].y);
+      for (let i = 1; i < orb.trail.length; i++) {
+        ctx.lineTo(orb.trail[i].x, orb.trail[i].y);
+      }
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.4)';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // The Quantum Orb itself
+    ctx.save();
+    ctx.translate(orb.x, orb.y);
+
+    // Glowing corona
+    const corona = ctx.createRadialGradient(0, 0, 2, 0, 0, orb.radius + 6);
+    corona.addColorStop(0, '#ffffff');
+    corona.addColorStop(0.4, '#38bdf8');
+    corona.addColorStop(1, 'rgba(6, 182, 212, 0)');
+    ctx.fillStyle = corona;
+    ctx.beginPath();
+    ctx.arc(0, 0, orb.radius + 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Core sphere
+    ctx.beginPath();
+    ctx.arc(0, 0, orb.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#0284c7';
+    ctx.fill();
+    ctx.strokeStyle = '#e0f2fe';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Specular highlight
+    ctx.beginPath();
+    ctx.arc(-3, -3, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function renderParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 1 / p.maxLife;
+
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // --- Input Handling: Touch & Mouse ---
+
+  function getHandleUnderMouse(p: Point): 'p1' | 'p2' | null {
+    if (Math.hypot(p.x - crease.p1.x, p.y - crease.p1.y) < 18) return 'p1';
+    if (Math.hypot(p.x - crease.p2.x, p.y - crease.p2.y) < 18) return 'p2';
+    return null;
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    const pt = screenToView(e.clientX, e.clientY);
+    const handle = getHandleUnderMouse(pt);
+    if (handle) {
+      dragHandle = handle;
+      isDraggingCrease = true;
+    } else {
+      // Start freehand crease draw
+      dragHandle = 'new';
+      dragStart = pt;
+      isDraggingCrease = true;
+      crease.p1 = { ...pt };
+      crease.p2 = { ...pt };
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDraggingCrease) return;
+    const pt = screenToView(e.clientX, e.clientY);
+
+    if (dragHandle === 'p1') {
+      crease.p1 = pt;
+      updateCreaseNormal();
+    } else if (dragHandle === 'p2') {
+      crease.p2 = pt;
+      updateCreaseNormal();
+    } else if (dragHandle === 'new') {
+      crease.p2 = pt;
+      updateCreaseNormal();
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDraggingCrease) {
+      isDraggingCrease = false;
+      // Ensure crease has minimum length
+      if (Math.hypot(crease.p2.x - crease.p1.x, crease.p2.y - crease.p1.y) < 30) {
+        // Fallback default
+        crease.p1 = { x: 400, y: 40 };
+        crease.p2 = { x: 400, y: 460 };
+      }
+      updateCreaseNormal();
+      sound.click();
+    }
+  });
+
+  // Touch support for mobile devices
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      const t = e.touches[0];
+      const pt = screenToView(t.clientX, t.clientY);
+      const handle = getHandleUnderMouse(pt);
+      if (handle) {
+        dragHandle = handle;
+      } else {
+        dragHandle = 'new';
+        dragStart = pt;
+        crease.p1 = { ...pt };
+        crease.p2 = { ...pt };
+      }
+      isDraggingCrease = true;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (isDraggingCrease && e.touches.length === 1) {
+      e.preventDefault();
+      const t = e.touches[0];
+      const pt = screenToView(t.clientX, t.clientY);
+      if (dragHandle === 'p1') crease.p1 = pt;
+      else if (dragHandle === 'p2') crease.p2 = pt;
+      else if (dragHandle === 'new') crease.p2 = pt;
+      updateCreaseNormal();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => {
+    if (isDraggingCrease) {
+      isDraggingCrease = false;
+      if (Math.hypot(crease.p2.x - crease.p1.x, crease.p2.y - crease.p1.y) < 30) {
+        crease.p1 = { x: 400, y: 40 };
+        crease.p2 = { x: 400, y: 460 };
+      }
+      updateCreaseNormal();
+      sound.click();
+    }
+  });
+
+  // --- Keyboard Shortcuts ---
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      toggleFold();
+    } else if (e.key === 'l' || e.key === 'L') {
+      launchOrb();
+    } else if (e.key === 'r' || e.key === 'R') {
+      resetOrb();
+    } else if (e.key === 'v' || e.key === 'V') {
+      setPresetVert();
+    } else if (e.key === 'h' || e.key === 'H') {
+      setPresetHoriz();
+    }
+  });
+
+  // --- Presets & UI Controls ---
+  function setPresetVert() {
+    crease.p1 = { x: 400, y: 40 };
+    crease.p2 = { x: 400, y: 460 };
+    updateCreaseNormal();
+    sound.click();
+  }
+
+  function setPresetHoriz() {
+    crease.p1 = { x: 60, y: 250 };
+    crease.p2 = { x: 740, y: 250 };
+    updateCreaseNormal();
+    sound.click();
+  }
+
+  function setPresetDiag() {
+    crease.p1 = { x: 620, y: 60 };
+    crease.p2 = { x: 180, y: 440 };
+    updateCreaseNormal();
+    sound.click();
+  }
+
+  function flipSide() {
+    crease.side = (crease.side === 1 ? -1 : 1) as 1 | -1;
+    updateCreaseNormal();
+    sound.blip();
+  }
+
+  presetVert.addEventListener('click', setPresetVert);
+  presetHoriz.addEventListener('click', setPresetHoriz);
+  presetDiag.addEventListener('click', setPresetDiag);
+  flipSideBtn.addEventListener('click', flipSide);
+
+  foldToggleBtn.addEventListener('click', toggleFold);
+  launchBtn.addEventListener('click', launchOrb);
+  resetBtn.addEventListener('click', resetOrb);
+
+  // Chambers Modal
+  chambersBtn.addEventListener('click', () => {
+    renderChambersGrid();
+    chambersModal.classList.remove('hidden');
+    sound.click();
+  });
+
+  closeChambersBtn.addEventListener('click', () => {
+    chambersModal.classList.add('hidden');
+  });
+
+  function renderChambersGrid() {
+    completedCountEl.textContent = String(completedChambers.size);
+    chambersGrid.innerHTML = '';
+    CHAMBERS.forEach((ch, idx) => {
+      const btn = document.createElement('button');
+      const isDone = completedChambers.has(idx);
+      const isCurrent = currentChamberIdx === idx;
+      btn.className = `p-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+        isCurrent
+          ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+          : isDone
+          ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50'
+          : 'bg-slate-900/80 border-slate-700/80 text-slate-400 hover:bg-slate-800 hover:text-white'
+      }`;
+      btn.innerHTML = `
+        <span class="text-sm">${isDone ? '✓' : idx + 1}</span>
+        <span class="text-[10px] truncate max-w-full">${ch.title}</span>
+      `;
+      btn.addEventListener('click', () => {
+        loadChamber(idx);
+        chambersModal.classList.add('hidden');
+      });
+      chambersGrid.appendChild(btn);
+    });
+  }
+
+  sandboxModeBtn.addEventListener('click', () => {
+    // Generate daily procedural chamber
+    generateProceduralChamber();
+    chambersModal.classList.add('hidden');
+  });
+
+  function generateProceduralChamber() {
+    const seed = Math.floor(Math.random() * 9999);
+    const startY = 120 + (seed % 180);
+    const goalX = 580 + (seed % 140);
+    const goalY = 140 + ((seed * 7) % 240);
+
+    const procChamber: ChamberDef = {
+      id: 99,
+      title: `PROCEDURAL SEED #${seed}`,
+      subtitle: "TOPOLOGICAL ANOMALY &bull; DYNAMIC FOLD",
+      hint: "Procedural spacetime manifold. Analyze platform positions and crease strategically!",
+      startPos: { x: 100, y: startY },
+      startVel: { x: 2.0, y: 0 },
+      goalPos: { x: goalX, y: goalY },
+      platforms: [
+        { p1: { x: 60, y: startY + 40 }, p2: { x: 240, y: startY + 80 }, type: 'solid' },
+        { p1: { x: goalX - 100, y: goalY + 40 }, p2: { x: goalX + 80, y: goalY + 40 }, type: 'solid' },
+        { p1: { x: 380, y: 100 }, p2: { x: 380, y: 360 }, type: 'laser' }
+      ],
+      cores: [
+        { x: 300, y: 220 },
+        { x: 500, y: 320 }
+      ],
+      initialCrease: { p1: { x: 400, y: 40 }, p2: { x: 400, y: 460 }, side: 1 }
+    };
+
+    CHAMBERS.push(procChamber);
+    loadChamber(CHAMBERS.length - 1);
+  }
+
+  // Victory Modal Actions
+  nextChamberBtn.addEventListener('click', () => {
+    victoryModal.classList.add('hidden');
+    loadChamber((currentChamberIdx + 1) % CHAMBERS.length);
+  });
+
+  replayChamberBtn.addEventListener('click', () => {
+    victoryModal.classList.add('hidden');
+    loadChamber(currentChamberIdx);
+  });
+
+  // Audio Toggle
+  audioToggle.addEventListener('click', () => {
+    gfAudio.enabled = !gfAudio.enabled;
+    sound.enabled = gfAudio.enabled;
+    if (gfAudio.enabled) {
+      soundOnIcon.classList.remove('hidden');
+      soundOffIcon.classList.add('hidden');
+    } else {
+      soundOnIcon.classList.add('hidden');
+      soundOffIcon.classList.remove('hidden');
+    }
+  });
+
+  // Window resize handler
+  window.addEventListener('resize', resizeCanvas);
+
+  // Initialize
+  resizeCanvas();
+  loadChamber(0);
+  requestAnimationFrame(render);
+</script>

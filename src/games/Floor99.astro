@@ -1,0 +1,134 @@
+---
+// Floor99: One-Button Crawler
+---
+
+<div id="floor-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Floor: <span id="floor-num" class="font-mono font-bold text-brand-gold">1/99</span></div>
+    <div>HP: <span id="floor-hp" class="font-mono font-bold text-emerald-400">3/3</span></div>
+    <div>Gold: <span id="floor-gold" class="font-mono font-bold text-white">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="floor-canvas" width="320" height="360" class="block"></canvas>
+  </div>
+
+  <button id="floor-tap-btn" class="mt-4 w-full rounded-2xl bg-gradient-to-r from-amber-600 to-brand-accent py-4 text-base font-black text-white shadow-xl hover:scale-105 active:scale-95 transition-all">
+    TAP / SPACEBAR (STEP FORWARD)
+  </button>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('floor-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const floorEl = document.getElementById('floor-num')!;
+  const hpEl = document.getElementById('floor-hp')!;
+  const goldEl = document.getElementById('floor-gold')!;
+  const tapBtn = document.getElementById('floor-tap-btn')!;
+
+  let floor = 1;
+  let hp = 3;
+  let gold = 0;
+  let playerPos = 0; // 0 to 5
+  let tiles: { type: 'empty' | 'monster' | 'spike' | 'exit'; active: boolean }[] = [];
+
+  function initFloor() {
+    playerPos = 0;
+    tiles = [
+      { type: 'empty', active: false },
+      { type: Math.random() < 0.5 ? 'monster' : 'empty', active: true },
+      { type: 'spike', active: true },
+      { type: 'monster', active: true },
+      { type: 'empty', active: false },
+      { type: 'exit', active: true }
+    ];
+    floorEl.textContent = `${floor}/99`;
+    hpEl.textContent = `${hp}/3`;
+    goldEl.textContent = gold.toString();
+    draw();
+  }
+
+  function step() {
+    if (hp <= 0) return;
+    playerPos++;
+    sound.click();
+
+    if (playerPos < tiles.length) {
+      const tile = tiles[playerPos];
+      if (tile.type === 'monster' && tile.active) {
+        sound.score();
+        tile.active = false;
+        gold += 10;
+      } else if (tile.type === 'spike' && tile.active) {
+        sound.explosion();
+        hp--;
+      } else if (tile.type === 'exit') {
+        sound.victory();
+        floor++;
+        gold += 50;
+        initFloor();
+        return;
+      }
+    }
+
+    if (hp <= 0) {
+      sound.gameOver();
+      alert(`💥 Fallen on Floor ${floor}! Try again.`);
+      floor = 1;
+      hp = 3;
+      gold = 0;
+      initFloor();
+      return;
+    }
+
+    draw();
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0f111a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    tiles.forEach((t, idx) => {
+      const y = 300 - idx * 50;
+      ctx.fillStyle = '#1e2230';
+      ctx.fillRect(40, y, 240, 40);
+      ctx.strokeStyle = '#374151';
+      ctx.strokeRect(40, y, 240, 40);
+
+      if (t.type === 'monster' && t.active) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '20px sans-serif';
+        ctx.fillText('👹 Goblin', 130, y + 26);
+      } else if (t.type === 'spike' && t.active) {
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = '18px sans-serif';
+        ctx.fillText('⚡ Spikes', 130, y + 26);
+      } else if (t.type === 'exit') {
+        ctx.fillStyle = '#10b981';
+        ctx.font = '18px sans-serif';
+        ctx.fillText('🚪 Ladder Up', 120, y + 26);
+      }
+
+      if (idx === playerPos) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '22px sans-serif';
+        ctx.fillText('🛡️ Knight', 50, y + 28);
+      }
+    });
+
+    hpEl.textContent = `${hp}/3`;
+    goldEl.textContent = gold.toString();
+  }
+
+  tapBtn.addEventListener('click', step);
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      step();
+    }
+  });
+
+  initFloor();
+</script>

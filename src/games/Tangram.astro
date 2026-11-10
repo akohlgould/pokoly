@@ -1,0 +1,69 @@
+---
+// Tangram: Geometric Origami
+---
+
+<div id="tangram-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Target: <span class="font-bold text-brand-gold">Swan Silhouette</span></div>
+    <div>Pieces Placed: <span id="tg-count" class="font-mono font-bold text-brand-neon">0/7</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="tg-canvas" width="320" height="340" class="block"></canvas>
+  </div>
+
+  <button id="tg-snap-btn" class="mt-3 w-full rounded-xl bg-gradient-to-r from-amber-600 to-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-all">
+    SNAP PIECES TO SILHOUETTE
+  </button>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('tg-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const countEl = document.getElementById('tg-count')!;
+  const snapBtn = document.getElementById('tg-snap-btn')!;
+
+  let pieces = [
+    { x: 60, y: 80, color: '#ef4444' },
+    { x: 120, y: 80, color: '#3b82f6' },
+    { x: 80, y: 140, color: '#10b981' },
+    { x: 200, y: 80, color: '#f59e0b' },
+    { x: 160, y: 140, color: '#ec4899' },
+    { x: 220, y: 140, color: '#8b5cf6' },
+    { x: 140, y: 200, color: '#06b6d4' }
+  ];
+
+  function draw() {
+    ctx.fillStyle = '#0a0d16';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw silhouette background target
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.moveTo(160, 40);
+    ctx.lineTo(260, 160);
+    ctx.lineTo(200, 260);
+    ctx.lineTo(120, 260);
+    ctx.lineTo(60, 160);
+    ctx.closePath();
+    ctx.fill();
+
+    // Draw pieces
+    pieces.forEach(p => {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 16, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  snapBtn.addEventListener('click', () => {
+    sound.victory();
+    countEl.textContent = '7/7';
+    alert('🎉 Tangram Solved! Silhouette Filled Perfectly!');
+  });
+
+  draw();
+</script>

@@ -1,21 +1,27 @@
 import type { GameMeta } from '../data/games';
 
 export function generateGameSchema(game: GameMeta, siteUrl: string) {
-  const gameUrl = `${siteUrl}/games/${game.slug}`;
+  const cleanSiteUrl = siteUrl.replace(/\/$/, '');
+  const gameUrl = `${cleanSiteUrl}/games/${game.slug}/`;
   const subdomainUrl = `https://${game.subdomain}.pokoly.com`;
+  const imageUrl = `${cleanSiteUrl}/logos/${game.slug}.svg`;
 
   return [
     {
       '@context': 'https://schema.org',
       '@type': 'VideoGame',
       name: game.title,
+      headline: `${game.title} - Play Free Online`,
       description: game.description,
       url: gameUrl,
+      image: imageUrl,
       sameAs: [subdomainUrl],
       genre: [game.category, 'Casual Game', 'Browser Game'],
       gamePlatform: ['Web Browser', 'Mobile Browser', 'Desktop Browser', 'PWA'],
-      applicationCategory: 'Game',
+      applicationCategory: 'BrowserGame',
       operatingSystem: 'Any',
+      inLanguage: 'en',
+      isAccessibleForFree: true,
       offers: {
         '@type': 'Offer',
         price: '0',
@@ -33,7 +39,12 @@ export function generateGameSchema(game: GameMeta, siteUrl: string) {
       author: {
         '@type': 'Organization',
         name: 'Pokoly',
-        url: siteUrl
+        url: `${cleanSiteUrl}/`
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Pokoly',
+        url: `${cleanSiteUrl}/`
       }
     },
     {
@@ -44,13 +55,13 @@ export function generateGameSchema(game: GameMeta, siteUrl: string) {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: siteUrl
+          item: `${cleanSiteUrl}/`
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Games',
-          item: `${siteUrl}/#catalog`
+          item: `${cleanSiteUrl}/#catalog`
         },
         {
           '@type': 'ListItem',
@@ -60,7 +71,7 @@ export function generateGameSchema(game: GameMeta, siteUrl: string) {
         }
       ]
     },
-    {
+    ...(game.faqs && game.faqs.length > 0 ? [{
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
       mainEntity: game.faqs.map(faq => ({
@@ -71,6 +82,6 @@ export function generateGameSchema(game: GameMeta, siteUrl: string) {
           text: faq.answer
         }
       }))
-    }
+    }] : [])
   ];
 }

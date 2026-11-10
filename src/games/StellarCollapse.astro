@@ -1,0 +1,131 @@
+---
+// Stellar Collapse: Gravity Merge
+---
+
+<div id="stellar-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Score: <span id="stellar-score" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Next: <span id="stellar-next" class="text-sm">🌕 Moon</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="stellar-canvas" width="340" height="340" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const TIERS = [
+    { name: 'Asteroid', r: 8, color: '#64748b', pts: 10 },
+    { name: 'Moon', r: 12, color: '#e2e8f0', pts: 20 },
+    { name: 'Mars', r: 16, color: '#ef4444', pts: 40 },
+    { name: 'Earth', r: 20, color: '#38bdf8', pts: 80 },
+    { name: 'Jupiter', r: 26, color: '#f59e0b', pts: 160 }
+  ];
+
+  const canvas = document.getElementById('stellar-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('stellar-score')!;
+  const nextEl = document.getElementById('stellar-next')!;
+
+  let score = 0;
+  let nextTier = 0;
+  let aimAngle = 0;
+  let bodies: { x: number; y: number; vx: number; vy: number; tier: number }[] = [];
+
+  function loop() {
+    ctx.fillStyle = '#05070d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = 170;
+    const cy = 170;
+
+    // Draw central sun / core
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Aim guide
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(aimAngle) * 150, cy + Math.sin(aimAngle) * 150);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Update bodies
+    for (let i = bodies.length - 1; i >= 0; i--) {
+      const b = bodies[i];
+      // Gravity toward center
+      const dx = cx - b.x;
+      const dy = cy - b.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 18) {
+        b.vx += (dx / dist) * 0.15;
+        b.vy += (dy / dist) * 0.15;
+      }
+      b.vx *= 0.98; // friction
+      b.vy *= 0.98;
+      b.x += b.vx;
+      b.y += b.vy;
+
+      // Check collisions between bodies
+      for (let j = i - 1; j >= 0; j--) {
+        const b2 = bodies[j];
+        const cDist = Math.hypot(b.x - b2.x, b.y - b2.y);
+        const minD = TIERS[b.tier].r + TIERS[b2.tier].r;
+        if (cDist < minD) {
+          if (b.tier === b2.tier && b.tier < TIERS.length - 1) {
+            sound.merge();
+            b.tier++;
+            score += TIERS[b.tier].pts;
+            scoreEl.textContent = score.toString();
+            bodies.splice(j, 1);
+            break;
+          } else {
+            // Elastic bounce
+            b.vx = -b.vx * 0.5;
+            b.vy = -b.vy * 0.5;
+          }
+        }
+      }
+
+      // Draw body
+      ctx.fillStyle = TIERS[b.tier].color;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, TIERS[b.tier].r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    aimAngle = Math.atan2(e.clientY - rect.top - 170, e.clientX - rect.left - 170);
+  });
+
+  canvas.addEventListener('click', () => {
+    sound.blip();
+    const cx = 170;
+    const cy = 170;
+    const spawnX = cx + Math.cos(aimAngle) * 145;
+    const spawnY = cy + Math.sin(aimAngle) * 145;
+
+    bodies.push({
+      x: spawnX,
+      y: spawnY,
+      vx: -Math.cos(aimAngle) * 4,
+      vy: -Math.sin(aimAngle) * 4,
+      tier: nextTier
+    });
+
+    nextTier = Math.floor(Math.random() * 2);
+    nextEl.textContent = TIERS[nextTier].name;
+  });
+
+  requestAnimationFrame(loop);
+</script>

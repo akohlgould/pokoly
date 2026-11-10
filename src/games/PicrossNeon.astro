@@ -1,0 +1,68 @@
+---
+// Picross Neon: Cyber Matrix
+---
+
+<div id="picross-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Theme: <span class="font-bold text-brand-neon">Cyber Heart</span></div>
+    <button id="pic-reset" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300">Reset</button>
+  </div>
+
+  <div class="p-4 bg-brand-dark border-2 border-brand-border rounded-2xl shadow-2xl">
+    <div id="pic-grid" class="grid grid-cols-5 gap-1.5"></div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  // 5x5 Heart Pattern:
+  // 0 1 0 1 0
+  // 1 1 1 1 1
+  // 1 1 1 1 1
+  // 0 1 1 1 0
+  // 0 0 1 0 0
+  const SOLUTION = [
+    0, 1, 0, 1, 0,
+    1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,
+    0, 1, 1, 1, 0,
+    0, 0, 1, 0, 0
+  ];
+
+  let current = Array(25).fill(0);
+  const gridEl = document.getElementById('pic-grid')!;
+  const resetBtn = document.getElementById('pic-reset')!;
+
+  function render() {
+    gridEl.innerHTML = '';
+    current.forEach((val, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `w-12 h-12 rounded-lg border font-bold text-sm transition-all ${
+        val === 1 ? 'bg-indigo-500 border-indigo-400 text-white shadow-md' : 'bg-brand-card border-brand-border hover:border-gray-500'
+      }`;
+      btn.addEventListener('click', () => {
+        sound.click();
+        current[idx] = current[idx] === 1 ? 0 : 1;
+        render();
+        checkWin();
+      });
+      gridEl.appendChild(btn);
+    });
+  }
+
+  function checkWin() {
+    const won = current.every((v, i) => v === SOLUTION[i]);
+    if (won) {
+      sound.victory();
+      setTimeout(() => alert('🎉 Picross Matrix Cleared! Uncovered: Neon Heart!'), 200);
+    }
+  }
+
+  resetBtn.addEventListener('click', () => {
+    current = Array(25).fill(0);
+    render();
+  });
+
+  render();
+</script>

@@ -1,0 +1,136 @@
+---
+// Breakout Sandbox: Falling Sand
+---
+
+<div id="sandbox-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Score: <span id="sand-score" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Particles: <span id="sand-particles" class="font-mono font-bold text-brand-gold">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="sand-canvas" width="320" height="380" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('sand-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('sand-score')!;
+  const partEl = document.getElementById('sand-particles')!;
+
+  let paddle = { x: 120, y: 350, w: 80, h: 10 };
+  let ball = { x: 160, y: 250, vx: 3, vy: -3, r: 6 };
+  let particles: { x: number; y: number; vx: number; vy: number; color: string }[] = [];
+  let bricks: { x: number; y: number; w: number; h: number; isTNT: boolean; hit: boolean }[] = [];
+  let score = 0;
+
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 6; c++) {
+      bricks.push({
+        x: 20 + c * 48,
+        y: 40 + r * 22,
+        w: 44,
+        h: 18,
+        isTNT: Math.random() < 0.15,
+        hit: false
+      });
+    }
+  }
+
+  function loop() {
+    ctx.fillStyle = '#080a10';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Update ball
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    if (ball.x < ball.r || ball.x > canvas.width - ball.r) ball.vx *= -1;
+    if (ball.y < ball.r) ball.vy *= -1;
+
+    // Paddle collision
+    if (ball.y > paddle.y - ball.r && ball.x >= paddle.x && ball.x <= paddle.x + paddle.w) {
+      sound.click();
+      ball.vy = -Math.abs(ball.vy);
+      ball.vx = ((ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)) * 4;
+    }
+
+    // Brick collisions
+    bricks.forEach(b => {
+      if (!b.hit && ball.x >= b.x && ball.x <= b.x + b.w && ball.y >= b.y && ball.y <= b.y + b.h) {
+        b.hit = true;
+        ball.vy *= -1;
+        score += b.isTNT ? 50 : 20;
+        scoreEl.textContent = score.toString();
+
+        if (b.isTNT) {
+          sound.explosion();
+        } else {
+          sound.blip();
+        }
+
+        // Spawn sand particles
+        for (let p = 0; p < (b.isTNT ? 60 : 25); p++) {
+          particles.push({
+            x: b.x + Math.random() * b.w,
+            y: b.y + Math.random() * b.h,
+            vx: (Math.random() - 0.5) * 4,
+            vy: Math.random() * 3 + 1,
+            color: b.isTNT ? '#ef4444' : '#f59e0b'
+          });
+        }
+      }
+    });
+
+    // Reset ball if below floor
+    if (ball.y > canvas.height) {
+      ball = { x: 160, y: 250, vx: 3, vy: -3, r: 6 };
+    }
+
+    // Update particles (falling sand)
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.vy += 0.15; // gravity
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.y > canvas.height) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, 2, 2);
+    }
+    partEl.textContent = particles.length.toString();
+
+    // Draw bricks
+    bricks.forEach(b => {
+      if (!b.hit) {
+        ctx.fillStyle = b.isTNT ? '#ef4444' : '#d97706';
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+      }
+    });
+
+    // Draw paddle & ball
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    paddle.x = Math.max(0, Math.min(canvas.width - paddle.w, e.clientX - rect.left - paddle.w / 2));
+  });
+
+  requestAnimationFrame(loop);
+</script>

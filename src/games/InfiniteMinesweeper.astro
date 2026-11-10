@@ -1,0 +1,107 @@
+---
+// SweeperRPG: Infinite Mines
+---
+
+<div id="sweeper-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Depth: <span id="sw-depth" class="font-mono font-bold text-brand-neon">1</span></div>
+    <div>HP: <span id="sw-hp" class="font-mono font-bold text-emerald-400">100</span></div>
+    <div>XP: <span id="sw-xp" class="font-mono font-bold text-brand-gold">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl p-2">
+    <div id="sw-grid" class="grid grid-cols-6 gap-1.5"></div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  let hp = 100;
+  let xp = 0;
+  let depth = 1;
+  const gridEl = document.getElementById('sw-grid')!;
+  const hpEl = document.getElementById('sw-hp')!;
+  const xpEl = document.getElementById('sw-xp')!;
+  const depthEl = document.getElementById('sw-depth')!;
+
+  interface Tile {
+    isMine: boolean;
+    revealed: boolean;
+    val: number;
+  }
+
+  let tiles: Tile[] = [];
+
+  function initBoard() {
+    tiles = [];
+    for (let i = 0; i < 36; i++) {
+      tiles.push({
+        isMine: Math.random() < 0.2,
+        revealed: false,
+        val: 0
+      });
+    }
+
+    // Calculate neighboring mines
+    tiles.forEach((t, i) => {
+      if (t.isMine) return;
+      const neighbors = [i - 1, i + 1, i - 6, i + 6];
+      let count = 0;
+      neighbors.forEach(n => {
+        if (n >= 0 && n < 36 && tiles[n]?.isMine) count++;
+      });
+      t.val = count;
+    });
+
+    render();
+  }
+
+  function render() {
+    gridEl.innerHTML = '';
+    hpEl.textContent = hp.toString();
+    xpEl.textContent = xp.toString();
+    depthEl.textContent = depth.toString();
+
+    tiles.forEach((t, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `w-11 h-11 rounded-lg border font-mono font-bold text-sm transition-all ${
+        t.revealed ? (t.isMine ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-brand-card border-brand-border text-brand-neon') : 'bg-brand-dark border-brand-border hover:border-gray-500'
+      }`;
+      btn.textContent = t.revealed ? (t.isMine ? '💣' : t.val > 0 ? t.val.toString() : '') : '';
+      btn.addEventListener('click', () => {
+        if (t.revealed || hp <= 0) return;
+        t.revealed = true;
+        if (t.isMine) {
+          sound.explosion();
+          hp = Math.max(0, hp - 35);
+          if (hp <= 0) {
+            sound.gameOver();
+            alert('💥 Defeated in the mines! Resetting depth.');
+            hp = 100;
+            depth = 1;
+            initBoard();
+            return;
+          }
+        } else {
+          sound.blip();
+          xp += 10;
+        }
+
+        const unrevealedSafe = tiles.filter(tile => !tile.isMine && !tile.revealed);
+        if (unrevealedSafe.length === 0) {
+          sound.victory();
+          depth++;
+          xp += 100;
+          initBoard();
+          return;
+        }
+
+        render();
+      });
+      gridEl.appendChild(btn);
+    });
+  }
+
+  initBoard();
+</script>

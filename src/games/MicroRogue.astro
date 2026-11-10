@@ -1,0 +1,125 @@
+---
+// MicroRogue: 1-Bit Crypt
+---
+
+<div id="micro-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-white/20 bg-black px-4 py-2 text-xs">
+    <div class="font-mono text-white font-bold">DEPTH: <span id="micro-depth">1</span></div>
+    <div class="font-mono text-gray-400">ENEMIES: <span id="micro-enemies" class="text-white font-bold">3</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-white/40 overflow-hidden bg-black shadow-2xl">
+    <canvas id="micro-canvas" width="300" height="300" class="block"></canvas>
+  </div>
+
+  <div class="mt-4 flex gap-2">
+    <button id="micro-up" class="px-4 py-2 bg-white/10 rounded-lg text-white font-bold border border-white/20">▲</button>
+  </div>
+  <div class="flex gap-2 mt-1">
+    <button id="micro-left" class="px-4 py-2 bg-white/10 rounded-lg text-white font-bold border border-white/20">◀</button>
+    <button id="micro-down" class="px-4 py-2 bg-white/10 rounded-lg text-white font-bold border border-white/20">▼</button>
+    <button id="micro-right" class="px-4 py-2 bg-white/10 rounded-lg text-white font-bold border border-white/20">▶</button>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('micro-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const depthEl = document.getElementById('micro-depth')!;
+  const enemiesEl = document.getElementById('micro-enemies')!;
+
+  const GRID = 9;
+  const CELL = 300 / GRID;
+  let player = { x: 1, y: 1 };
+  let exit = { x: 7, y: 7 };
+  let enemies = [
+    { x: 4, y: 4 },
+    { x: 6, y: 2 },
+    { x: 2, y: 6 }
+  ];
+  let depth = 1;
+
+  function draw() {
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid lines
+    ctx.strokeStyle = '#222222';
+    for (let i = 0; i <= GRID; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * CELL, 0);
+      ctx.lineTo(i * CELL, 300);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, i * CELL);
+      ctx.lineTo(300, i * CELL);
+      ctx.stroke();
+    }
+
+    // Draw exit
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(exit.x * CELL + 6, exit.y * CELL + 6, CELL - 12, CELL - 12);
+
+    // Draw player (+)
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('+', player.x * CELL + CELL / 2, player.y * CELL + CELL / 2);
+
+    // Draw enemies (x)
+    enemies.forEach(e => {
+      ctx.fillText('x', e.x * CELL + CELL / 2, e.y * CELL + CELL / 2);
+    });
+
+    depthEl.textContent = depth.toString();
+    enemiesEl.textContent = enemies.length.toString();
+  }
+
+  function move(dx: number, dy: number) {
+    const nx = Math.max(0, Math.min(GRID - 1, player.x + dx));
+    const ny = Math.max(0, Math.min(GRID - 1, player.y + dy));
+
+    sound.click();
+    player.x = nx;
+    player.y = ny;
+
+    // Check enemy kills
+    enemies = enemies.filter(e => {
+      if (e.x === player.x && e.y === player.y) {
+        sound.score();
+        return false;
+      }
+      return true;
+    });
+
+    // Check exit
+    if (player.x === exit.x && player.y === exit.y && enemies.length === 0) {
+      sound.victory();
+      depth++;
+      player = { x: 1, y: 1 };
+      enemies = [
+        { x: Math.floor(Math.random() * 7) + 1, y: Math.floor(Math.random() * 7) + 1 },
+        { x: Math.floor(Math.random() * 7) + 1, y: Math.floor(Math.random() * 7) + 1 }
+      ];
+    }
+
+    draw();
+  }
+
+  document.getElementById('micro-up')?.addEventListener('click', () => move(0, -1));
+  document.getElementById('micro-down')?.addEventListener('click', () => move(0, 1));
+  document.getElementById('micro-left')?.addEventListener('click', () => move(-1, 0));
+  document.getElementById('micro-right')?.addEventListener('click', () => move(1, 0));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp') move(0, -1);
+    if (e.key === 'ArrowDown') move(0, 1);
+    if (e.key === 'ArrowLeft') move(-1, 0);
+    if (e.key === 'ArrowRight') move(1, 0);
+  });
+
+  draw();
+</script>

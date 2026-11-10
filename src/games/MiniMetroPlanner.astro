@@ -1,0 +1,71 @@
+---
+// MiniMetro: Transit Grid
+---
+
+<div id="metro-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Passengers: <span id="metro-count" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Lines: <span class="font-mono font-bold text-pink-400">2 Active</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="metro-canvas" width="320" height="340" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('metro-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const countEl = document.getElementById('metro-count')!;
+
+  let stations = [
+    { x: 60, y: 80, type: 'circle' },
+    { x: 240, y: 100, type: 'triangle' },
+    { x: 160, y: 240, type: 'square' }
+  ];
+  let passengersDelivered = 0;
+
+  function loop() {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw rail line
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(stations[0].x, stations[0].y);
+    ctx.lineTo(stations[1].x, stations[1].y);
+    ctx.lineTo(stations[2].x, stations[2].y);
+    ctx.stroke();
+
+    // Draw stations
+    stations.forEach(s => {
+      ctx.fillStyle = '#ffffff';
+      if (s.type === 'circle') {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 12, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (s.type === 'square') {
+        ctx.fillRect(s.x - 10, s.y - 10, 20, 20);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y - 12);
+        ctx.lineTo(s.x - 12, s.y + 10);
+        ctx.lineTo(s.x + 12, s.y + 10);
+        ctx.fill();
+      }
+    });
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('click', () => {
+    sound.score();
+    passengersDelivered += 5;
+    countEl.textContent = passengersDelivered.toString();
+  });
+
+  requestAnimationFrame(loop);
+</script>

@@ -1,0 +1,108 @@
+---
+// JellyDrop: 2048 Soft Merge
+---
+
+<div id="jelly-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-pink-500/40 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Score: <span id="jelly-score" class="font-mono font-bold text-pink-400">0</span></div>
+    <div>Next: <span id="jelly-next" class="font-mono font-bold text-white">2</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-pink-500/40 overflow-hidden bg-black shadow-2xl">
+    <canvas id="jelly-canvas" width="320" height="380" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('jelly-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('jelly-score')!;
+  const nextEl = document.getElementById('jelly-next')!;
+
+  let score = 0;
+  let nextVal = 2;
+  let dropX = 160;
+  let jellies: { x: number; y: number; vy: number; val: number; r: number }[] = [];
+
+  function loop() {
+    ctx.fillStyle = '#0d0612';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Drop indicator
+    ctx.strokeStyle = 'rgba(236,72,153,0.3)';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(dropX, 20);
+    ctx.lineTo(dropX, 360);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Update jellies
+    for (let i = jellies.length - 1; i >= 0; i--) {
+      const j = jellies[i];
+      j.vy += 0.25; // gravity
+      j.y += j.vy;
+
+      // Floor collision with bounce
+      if (j.y > canvas.height - j.r) {
+        j.y = canvas.height - j.r;
+        j.vy *= -0.4;
+      }
+
+      // Check merge with other jellies
+      for (let k = i - 1; k >= 0; k--) {
+        const j2 = jellies[k];
+        const dist = Math.hypot(j.x - j2.x, j.y - j2.y);
+        if (dist < j.r + j2.r) {
+          if (j.val === j2.val) {
+            sound.merge();
+            j.val *= 2;
+            j.r = Math.min(36, j.r + 4);
+            score += j.val;
+            scoreEl.textContent = score.toString();
+            jellies.splice(k, 1);
+            break;
+          } else {
+            j.vy *= -0.3;
+          }
+        }
+      }
+
+      // Draw jelly
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.arc(j.x, j.y, j.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(j.val.toString(), j.x, j.y);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    dropX = Math.max(30, Math.min(canvas.width - 30, e.clientX - rect.left));
+  });
+
+  canvas.addEventListener('click', () => {
+    sound.click();
+    jellies.push({
+      x: dropX,
+      y: 30,
+      vy: 1,
+      val: nextVal,
+      r: 16
+    });
+    nextVal = Math.random() < 0.7 ? 2 : 4;
+    nextEl.textContent = nextVal.toString();
+  });
+
+  requestAnimationFrame(loop);
+</script>

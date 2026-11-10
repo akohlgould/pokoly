@@ -1,0 +1,96 @@
+---
+// DriftLine: One-Touch Neon Drift
+---
+
+<div id="drift-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Score: <span id="drift-score" class="font-mono font-bold text-brand-neon">0</span></div>
+    <div>Best: <span id="drift-best" class="font-mono font-bold text-white">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="drift-canvas" width="320" height="380" class="block"></canvas>
+  </div>
+
+  <div class="text-xs text-gray-400 mt-2">Hold Mouse / Screen to Drift around Pylons!</div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('drift-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const scoreEl = document.getElementById('drift-score')!;
+  const bestEl = document.getElementById('drift-best')!;
+
+  let car = { x: 160, y: 320, angle: -Math.PI / 2, speed: 4 };
+  let pylon = { x: 160, y: 190 };
+  let isTethered = false;
+  let score = 0;
+  let best = 0;
+
+  function loop() {
+    ctx.fillStyle = '#090a14';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Drift physics
+    if (isTethered) {
+      const dx = car.x - pylon.x;
+      const dy = car.y - pylon.y;
+      const angle = Math.atan2(dy, dx);
+      car.angle = angle + Math.PI / 2;
+      car.x = pylon.x + Math.cos(angle + 0.08) * 60;
+      car.y = pylon.y + Math.sin(angle + 0.08) * 60;
+
+      // Draw tether line
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(car.x, car.y);
+      ctx.lineTo(pylon.x, pylon.y);
+      ctx.stroke();
+    } else {
+      car.x += Math.cos(car.angle) * car.speed;
+      car.y += Math.sin(car.angle) * car.speed;
+    }
+
+    // Check boundary crash
+    if (car.x < 10 || car.x > canvas.width - 10 || car.y < 10 || car.y > canvas.height - 10) {
+      sound.explosion();
+      car = { x: 160, y: 320, angle: -Math.PI / 2, speed: 4 };
+      if (score > best) best = score;
+      bestEl.textContent = best.toString();
+      score = 0;
+      scoreEl.textContent = '0';
+    }
+
+    // Draw pylon
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(pylon.x, pylon.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw car
+    ctx.save();
+    ctx.translate(car.x, car.y);
+    ctx.rotate(car.angle);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-6, -12, 12, 24);
+    ctx.restore();
+
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('mousedown', () => {
+    isTethered = true;
+    sound.score();
+    score += 10;
+    scoreEl.textContent = score.toString();
+  });
+
+  window.addEventListener('mouseup', () => {
+    isTethered = false;
+  });
+
+  requestAnimationFrame(loop);
+</script>

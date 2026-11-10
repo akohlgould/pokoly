@@ -14,12 +14,41 @@ export function getStaticPaths() {
 const { category } = Astro.props;
 const categoryGames = GAMES.filter(g => g.category === category.id);
 const siteUrl = (Astro.site?.toString() || 'https://pokoly.com').replace(/\/$/, '');
+
+const categorySchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Best Free ${category.name} Online - Pokoly`,
+    description: `Play free ${category.name} in your browser without downloads or installs.`,
+    url: `${siteUrl}/categories/${category.id}/`
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${siteUrl}/`
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: category.name,
+        item: `${siteUrl}/categories/${category.id}/`
+      }
+    ]
+  }
+];
 ---
 
 <BaseLayout
   title={`Best Free ${category.name} Online - Play Instant at Pokoly`}
   description={`Play the top free ${category.name} online with no download and no lag. ${category.description}.`}
-  canonical={`${siteUrl}/categories/${category.id}`}
+  canonical={`${siteUrl}/categories/${category.id}/`}
+  schema={categorySchema}
 >
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
     <!-- Header -->

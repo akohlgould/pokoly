@@ -1,0 +1,603 @@
+---
+// CircuitHacker: Overheat Terminal
+---
+
+<div id="circuit-root" class="relative flex flex-col items-center justify-center p-2 select-none max-w-4xl mx-auto w-full">
+  <!-- Cyberpunk Terminal Header -->
+  <div class="mb-3 flex w-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-500/40 bg-[#06100c]/95 px-4 py-2.5 text-xs font-mono shadow-lg shadow-emerald-950/30">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="text-emerald-400">⚡</span>
+        <span class="text-gray-400">Security Gate:</span>
+        <span id="circuit-level" class="font-bold text-emerald-400">Sector 1</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-cyan-400">🔓</span>
+        <span class="text-gray-400">Nodes Bypassed:</span>
+        <span id="circuit-nodes" class="font-bold text-cyan-400">0 / 2</span>
+      </div>
+    </div>
+
+    <!-- Thermal Heat Bar -->
+    <div class="flex items-center gap-2">
+      <span class="text-[11px] text-gray-400">Core Temp:</span>
+      <div class="w-28 sm:w-36 h-3 bg-gray-900 rounded-full overflow-hidden border border-gray-700 relative">
+        <div id="circuit-temp-bar" class="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-600 w-[20%] transition-all duration-200"></div>
+      </div>
+      <span id="circuit-temp-text" class="font-bold text-emerald-400 w-12 text-right">35°C</span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="circuit-pulse-btn" class="rounded-xl border border-emerald-500/50 bg-emerald-950/60 px-3 py-1 font-bold text-emerald-300 hover:bg-emerald-800/40 transition-colors">
+        ⚡ Pulse Current
+      </button>
+      <button id="circuit-reset-btn" class="rounded-xl border border-gray-700 bg-gray-900 px-2.5 py-1 text-gray-400 hover:text-white transition-colors">
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Breadboard Canvas + Oscilloscope Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 w-full">
+    <!-- Breadboard Grid (3 cols on desktop) -->
+    <div class="lg:col-span-3 relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-[#030a07] p-2 shadow-2xl">
+      <canvas id="circuit-canvas" width="600" height="420" class="w-full h-auto block cursor-pointer"></canvas>
+
+      <!-- Bottom Hint Bar -->
+      <div class="mt-2 flex items-center justify-between px-2 text-[11px] font-mono text-gray-400">
+        <span>Click breadboard slot to cycle chip: [WIRE] → [AND] → [OR] → [NOT] → [XOR]</span>
+        <span class="text-emerald-400">Click placed chip to rotate 90°</span>
+      </div>
+    </div>
+
+    <!-- Sidebar: Oscilloscope Readout & Chip Guide -->
+    <div class="space-y-3">
+      <!-- Oscilloscope Box -->
+      <div class="rounded-3xl border border-emerald-500/40 bg-[#040e09] p-3 text-xs font-mono shadow-md">
+        <div class="flex items-center justify-between pb-1.5 border-b border-emerald-500/20 text-emerald-400 font-bold">
+          <span>OSCILLOSCOPE</span>
+          <span class="animate-pulse">● LIVE</span>
+        </div>
+        <canvas id="circuit-osc" width="180" height="70" class="w-full h-16 mt-2 rounded-xl bg-black border border-emerald-900/50 block"></canvas>
+        <div class="mt-2 text-[10px] text-gray-400 flex justify-between">
+          <span>SIGNAL: <span id="circuit-freq" class="text-cyan-400">60 Hz</span></span>
+          <span>SYNC: <span id="circuit-sync" class="text-emerald-400 font-bold">LOCKED</span></span>
+        </div>
+      </div>
+
+      <!-- Logic Gate Quick Reference -->
+      <div class="rounded-3xl border border-emerald-500/20 bg-[#040e09]/60 p-3 text-[11px] font-mono text-gray-300 space-y-2">
+        <div class="font-bold text-emerald-400 uppercase tracking-wide">Component Matrix</div>
+        <div class="flex items-center justify-between border-b border-gray-800 pb-1">
+          <span class="font-bold text-white">AND:</span>
+          <span class="text-gray-400">Outputs 1 if both inputs 1</span>
+        </div>
+        <div class="flex items-center justify-between border-b border-gray-800 pb-1">
+          <span class="font-bold text-white">OR:</span>
+          <span class="text-gray-400">Outputs 1 if any input 1</span>
+        </div>
+        <div class="flex items-center justify-between border-b border-gray-800 pb-1">
+          <span class="font-bold text-white">NOT:</span>
+          <span class="text-gray-400">Inverts 1 → 0, 0 → 1</span>
+        </div>
+        <div class="flex items-center justify-between pb-1">
+          <span class="font-bold text-white">XOR:</span>
+          <span class="text-gray-400">Outputs 1 only when inputs differ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="circuit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-emerald-500/50 bg-[#05110a] p-6 max-w-sm w-full text-center shadow-2xl shadow-emerald-500/20 font-mono">
+      <span id="circuit-modal-icon" class="text-5xl">⚡</span>
+      <h3 id="circuit-modal-title" class="text-2xl font-black text-white mt-3 font-display">Security Terminal Bypassed!</h3>
+      <p id="circuit-modal-msg" class="text-xs text-gray-300 mt-2 leading-relaxed">Circuit current balanced and mainframe terminal decrypted before thermal shutdown.</p>
+      <div id="circuit-modal-score" class="mt-3 text-sm text-emerald-400 font-bold">+240 XP Earned</div>
+      <button id="circuit-modal-btn" class="mt-5 w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-transform">
+        Next Security Sector →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('circuit-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const oscCanvas = document.getElementById('circuit-osc') as HTMLCanvasElement;
+  const oscCtx = oscCanvas.getContext('2d')!;
+
+  const levelEl = document.getElementById('circuit-level')!;
+  const nodesEl = document.getElementById('circuit-nodes')!;
+  const tempBar = document.getElementById('circuit-temp-bar')!;
+  const tempText = document.getElementById('circuit-temp-text')!;
+  const freqEl = document.getElementById('circuit-freq')!;
+  const syncEl = document.getElementById('circuit-sync')!;
+
+  const pulseBtn = document.getElementById('circuit-pulse-btn')!;
+  const resetBtn = document.getElementById('circuit-reset-btn')!;
+
+  const modal = document.getElementById('circuit-modal')!;
+  const modalIcon = document.getElementById('circuit-modal-icon')!;
+  const modalTitle = document.getElementById('circuit-modal-title')!;
+  const modalMsg = document.getElementById('circuit-modal-msg')!;
+  const modalScore = document.getElementById('circuit-modal-score')!;
+  const modalBtn = document.getElementById('circuit-modal-btn')!;
+
+  // Grid dimensions: 6 cols x 4 rows
+  const COLS = 6;
+  const ROWS = 4;
+  const CELL_SIZE = 70;
+  const ORIGIN_X = 90;
+  const ORIGIN_Y = 65;
+
+  type ChipType = 'EMPTY' | 'WIRE' | 'AND' | 'OR' | 'NOT' | 'XOR';
+
+  interface Cell {
+    col: number;
+    row: number;
+    type: ChipType;
+    rotation: number; // 0, 90, 180, 270
+    isFixed: boolean;
+    powered: boolean;
+  }
+
+  interface PowerSource {
+    row: number;
+    value: boolean;
+  }
+
+  interface TargetNode {
+    row: number;
+    requiredValue: boolean;
+    achieved: boolean;
+  }
+
+  let currentSector = 1;
+  let score = 0;
+  let temperature = 35; // degrees C
+  let isGameOver = false;
+  let isSectorWon = false;
+
+  let grid: Cell[][] = [];
+  let sources: PowerSource[] = [];
+  let targets: TargetNode[] = [];
+  let pulsePhase = 0;
+
+  function initSector(sec: number) {
+    isGameOver = false;
+    isSectorWon = false;
+    currentSector = sec;
+    temperature = 35;
+    modal.classList.add('hidden');
+
+    levelEl.textContent = `Sector ${sec}`;
+
+    // Create empty grid
+    grid = [];
+    for (let r = 0; r < ROWS; r++) {
+      grid[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        grid[r][c] = {
+          col: c,
+          row: r,
+          type: 'EMPTY',
+          rotation: 0,
+          isFixed: false,
+          powered: false
+        };
+      }
+    }
+
+    if (sec === 1) {
+      // Sector 1: Straightforward Wire & NOT Gate
+      sources = [{ row: 1, value: true }, { row: 2, value: true }];
+      targets = [
+        { row: 1, requiredValue: true, achieved: false },
+        { row: 2, requiredValue: false, achieved: false }
+      ];
+      grid[1][0] = { col: 0, row: 1, type: 'WIRE', rotation: 0, isFixed: true, powered: true };
+      grid[2][0] = { col: 0, row: 2, type: 'WIRE', rotation: 0, isFixed: true, powered: true };
+    } else if (sec === 2) {
+      // Sector 2: AND Gate & OR Gate
+      sources = [{ row: 0, value: true }, { row: 2, value: true }, { row: 3, value: false }];
+      targets = [
+        { row: 1, requiredValue: true, achieved: false },
+        { row: 3, requiredValue: true, achieved: false }
+      ];
+      grid[0][0] = { col: 0, row: 0, type: 'WIRE', rotation: 0, isFixed: true, powered: true };
+      grid[2][0] = { col: 0, row: 2, type: 'WIRE', rotation: 0, isFixed: true, powered: true };
+    } else {
+      // Sector 3+: Complex Parity & XOR Gate
+      sources = [{ row: 0, value: true }, { row: 1, value: false }, { row: 2, value: true }, { row: 3, value: true }];
+      targets = [
+        { row: 0, requiredValue: false, achieved: false },
+        { row: 2, requiredValue: true, achieved: false }
+      ];
+      grid[0][0] = { col: 0, row: 0, type: 'WIRE', rotation: 0, isFixed: true, powered: true };
+      grid[2][0] = { col: 0, row: 2, type: 'WIRE', rotation: 0, isFixed: true, powered: true };
+    }
+
+    evaluateCircuit();
+    player.trackGamePlay('circuithacker');
+  }
+
+  function cycleCell(r: number, c: number) {
+    if (isGameOver || isSectorWon) return;
+    const cell = grid[r][c];
+    if (cell.isFixed) return;
+
+    const cycle: ChipType[] = ['EMPTY', 'WIRE', 'AND', 'OR', 'NOT', 'XOR'];
+    const idx = cycle.indexOf(cell.type);
+    cell.type = cycle[(idx + 1) % cycle.length];
+    sound.click();
+
+    evaluateCircuit();
+  }
+
+  function rotateCell(r: number, c: number) {
+    if (isGameOver || isSectorWon) return;
+    const cell = grid[r][c];
+    if (cell.isFixed || cell.type === 'EMPTY') return;
+
+    cell.rotation = (cell.rotation + 90) % 360;
+    sound.blip();
+    evaluateCircuit();
+  }
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    // Check which cell was clicked
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cx = ORIGIN_X + c * CELL_SIZE;
+        const cy = ORIGIN_Y + r * CELL_SIZE;
+        if (x >= cx && x <= cx + CELL_SIZE - 4 && y >= cy && y <= cy + CELL_SIZE - 4) {
+          if (grid[r][c].type !== 'EMPTY') {
+            // Already a chip: rotate it
+            rotateCell(r, c);
+          } else {
+            // Empty: cycle to wire
+            cycleCell(r, c);
+          }
+          return;
+        }
+      }
+    }
+  });
+
+  // Right click to cycle backward or change chip type
+  canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cx = ORIGIN_X + c * CELL_SIZE;
+        const cy = ORIGIN_Y + r * CELL_SIZE;
+        if (x >= cx && x <= cx + CELL_SIZE && y >= cy && y <= cy + CELL_SIZE) {
+          cycleCell(r, c);
+          return;
+        }
+      }
+    }
+  });
+
+  function evaluateCircuit() {
+    // Reset all powered flags
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        grid[r][c].powered = false;
+      }
+    }
+
+    // Propagate left to right across grid
+    for (let c = 0; c < COLS; c++) {
+      for (let r = 0; r < ROWS; r++) {
+        const cell = grid[r][c];
+        if (cell.type === 'EMPTY') continue;
+
+        // Check power inputs coming from the left
+        let inputFromLeft = false;
+        if (c === 0) {
+          const src = sources.find(s => s.row === r);
+          inputFromLeft = src ? src.value : false;
+        } else {
+          inputFromLeft = grid[r][c - 1].powered;
+        }
+
+        // Top and bottom neighboring power inputs
+        const inputFromTop = (r > 0) ? grid[r - 1][c].powered : false;
+        const inputFromBottom = (r < ROWS - 1) ? grid[r + 1][c].powered : false;
+
+        // Calculate cell output based on type & rotation
+        let out = false;
+        if (cell.type === 'WIRE') {
+          out = inputFromLeft || inputFromTop || inputFromBottom;
+        } else if (cell.type === 'NOT') {
+          out = !inputFromLeft;
+        } else if (cell.type === 'AND') {
+          out = inputFromLeft && (inputFromTop || inputFromBottom);
+        } else if (cell.type === 'OR') {
+          out = inputFromLeft || inputFromTop || inputFromBottom;
+        } else if (cell.type === 'XOR') {
+          out = inputFromLeft !== (inputFromTop || inputFromBottom);
+        }
+
+        cell.powered = out;
+      }
+    }
+
+    // Check targets at the rightmost column (col = COLS - 1)
+    let achievedCount = 0;
+    targets.forEach(t => {
+      const rightCell = grid[t.row][COLS - 1];
+      const actualVal = rightCell.powered;
+      t.achieved = (actualVal === t.requiredValue);
+      if (t.achieved) achievedCount++;
+    });
+
+    nodesEl.textContent = `${achievedCount} / ${targets.length}`;
+
+    if (achievedCount === targets.length && !isSectorWon && !isGameOver) {
+      winSector();
+    }
+  }
+
+  function update() {
+    if (isGameOver || isSectorWon) return;
+
+    pulsePhase += 0.08;
+
+    // Slight temperature rise if active circuits are running
+    let activeChips = 0;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (grid[r][c].powered) activeChips++;
+      }
+    }
+
+    temperature = Math.min(100, temperature + (activeChips > 4 ? 0.04 : 0.015));
+    tempBar.style.width = `${temperature}%`;
+    tempText.textContent = `${Math.floor(temperature)}°C`;
+
+    if (temperature >= 75) {
+      tempText.className = 'font-bold text-red-500 w-12 text-right animate-pulse';
+    } else {
+      tempText.className = 'font-bold text-emerald-400 w-12 text-right';
+    }
+
+    if (temperature >= 100) {
+      gameOver();
+    }
+  }
+
+  function render() {
+    // Breadboard Dark Green Textured PCB
+    ctx.fillStyle = '#030a06';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // PCB Solder Holes Matrix
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+    for (let x = 10; x < canvas.width; x += 14) {
+      for (let y = 10; y < canvas.height; y += 14) {
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+
+    // Draw Source Terminals (Left Side)
+    sources.forEach(src => {
+      const cy = ORIGIN_Y + src.row * CELL_SIZE + CELL_SIZE / 2;
+      ctx.save();
+      ctx.fillStyle = src.value ? '#10b981' : '#64748b';
+      ctx.shadowColor = src.value ? '#34d399' : 'transparent';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(45, cy, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(src.value ? 'HIGH' : 'LOW', 45, cy + 3);
+
+      // Connecting trace into column 0
+      ctx.strokeStyle = src.value ? '#34d399' : '#334155';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(59, cy);
+      ctx.lineTo(ORIGIN_X, cy);
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Draw Target Nodes (Right Side)
+    targets.forEach(tgt => {
+      const cy = ORIGIN_Y + tgt.row * CELL_SIZE + CELL_SIZE / 2;
+      const targetX = ORIGIN_X + COLS * CELL_SIZE + 35;
+      ctx.save();
+      ctx.fillStyle = tgt.achieved ? '#10b981' : '#ef4444';
+      ctx.shadowColor = tgt.achieved ? '#34d399' : '#dc2626';
+      ctx.shadowBlur = 12;
+
+      ctx.beginPath();
+      ctx.arc(targetX, cy, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(tgt.requiredValue ? 'REQ:1' : 'REQ:0', targetX, cy + 3);
+
+      // Connecting trace from rightmost column
+      ctx.strokeStyle = tgt.achieved ? '#34d399' : '#475569';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(ORIGIN_X + COLS * CELL_SIZE, cy);
+      ctx.lineTo(targetX - 16, cy);
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Draw Grid Cells & Chips
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = grid[r][c];
+        const x = ORIGIN_X + c * CELL_SIZE;
+        const y = ORIGIN_Y + r * CELL_SIZE;
+        const w = CELL_SIZE - 6;
+        const h = CELL_SIZE - 6;
+
+        ctx.save();
+        // Slot Socket Background
+        ctx.fillStyle = cell.powered ? 'rgba(16, 185, 129, 0.15)' : 'rgba(15, 23, 42, 0.6)';
+        ctx.strokeStyle = cell.powered ? '#10b981' : '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x, y, w, h);
+        ctx.fillRect(x, y, w, h);
+
+        if (cell.type !== 'EMPTY') {
+          // Chip Body
+          ctx.translate(x + w / 2, y + h / 2);
+          ctx.rotate((cell.rotation * Math.PI) / 180);
+
+          ctx.fillStyle = cell.isFixed ? '#0f172a' : (cell.powered ? '#064e3b' : '#1e293b');
+          ctx.strokeStyle = cell.powered ? '#34d399' : '#475569';
+          ctx.lineWidth = 2;
+          ctx.fillRect(-w / 2 + 6, -h / 2 + 6, w - 12, h - 12);
+          ctx.strokeRect(-w / 2 + 6, -h / 2 + 6, w - 12, h - 12);
+
+          // Component Pins
+          ctx.fillStyle = '#cbd5e1';
+          ctx.fillRect(-w / 2 + 2, -10, 4, 4);
+          ctx.fillRect(-w / 2 + 2, 6, 4, 4);
+          ctx.fillRect(w / 2 - 6, -2, 4, 4);
+
+          // Chip Type Label
+          ctx.fillStyle = cell.powered ? '#a7f3d0' : '#94a3b8';
+          ctx.font = 'bold 11px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(cell.type, 0, 4);
+        } else {
+          // Empty slot indicator
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.font = '9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('+', x + w / 2, y + h / 2 + 3);
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // Draw Oscilloscope Signal
+    renderOscilloscope();
+  }
+
+  function renderOscilloscope() {
+    oscCtx.fillStyle = '#020603';
+    oscCtx.fillRect(0, 0, oscCanvas.width, oscCanvas.height);
+
+    // Grid lines
+    oscCtx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+    oscCtx.lineWidth = 1;
+    for (let x = 0; x < oscCanvas.width; x += 20) {
+      oscCtx.beginPath();
+      oscCtx.moveTo(x, 0);
+      oscCtx.lineTo(x, oscCanvas.height);
+      oscCtx.stroke();
+    }
+    for (let y = 0; y < oscCanvas.height; y += 15) {
+      oscCtx.beginPath();
+      oscCtx.moveTo(0, y);
+      oscCtx.lineTo(oscCanvas.width, y);
+      oscCtx.stroke();
+    }
+
+    // Oscillating Green Sine / Square Waveform
+    oscCtx.strokeStyle = '#10b981';
+    oscCtx.lineWidth = 2;
+    oscCtx.shadowColor = '#34d399';
+    oscCtx.shadowBlur = 6;
+    oscCtx.beginPath();
+
+    for (let x = 0; x < oscCanvas.width; x++) {
+      const y = oscCanvas.height / 2 + Math.sin((x + pulsePhase * 30) * 0.08) * 18;
+      if (x === 0) oscCtx.moveTo(x, y);
+      else oscCtx.lineTo(x, y);
+    }
+    oscCtx.stroke();
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function winSector() {
+    isSectorWon = true;
+    sound.victory();
+    launchConfetti();
+    player.addScore('circuithacker', 300);
+    player.addXP(250);
+
+    modalIcon.textContent = '🔓';
+    modalTitle.textContent = `Security Sector ${currentSector} Bypassed!`;
+    modalMsg.textContent = 'All target logic registers achieved required voltage without overheating!';
+    modalScore.textContent = `+250 XP • Terminal Temp: ${Math.floor(temperature)}°C`;
+    modalBtn.textContent = 'Access Next Sector →';
+    modal.classList.remove('hidden');
+  }
+
+  function gameOver() {
+    isGameOver = true;
+    sound.explosion();
+    player.addScore('circuithacker', score);
+
+    modalIcon.textContent = '🔥';
+    modalTitle.textContent = 'Terminal Overheated!';
+    modalMsg.textContent = 'Core temperature reached 100°C critical threshold. Security lockdown engaged.';
+    modalScore.textContent = `Current Sector: ${currentSector}`;
+    modalBtn.textContent = 'Cool Down & Retry';
+    modal.classList.remove('hidden');
+  }
+
+  modalBtn.addEventListener('click', () => {
+    if (isSectorWon) {
+      currentSector++;
+      initSector(currentSector);
+    } else {
+      initSector(currentSector);
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    sound.click();
+    initSector(currentSector);
+  });
+
+  pulseBtn.addEventListener('click', () => {
+    sound.playTone(440, 'square', 0.1, 0.15);
+    evaluateCircuit();
+  });
+
+  // Start Sector 1
+  initSector(1);
+  loop();
+</script>

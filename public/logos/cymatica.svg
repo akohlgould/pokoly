@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+      <defs>
+        <linearGradient id="cym-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#22d3ee" />
+          <stop offset="50%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#6366f1" />
+        </linearGradient>
+        <filter id="cym-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#06b6d4" flood-opacity="0.8" />
+        </filter>
+      </defs>
+      <rect width="120" height="120" rx="26" fill="#060913" />
+      <!-- Standing Wave Interference Ripples -->
+      <circle cx="60" cy="60" r="46" fill="none" stroke="#1e293b" stroke-width="1.5" />
+      <circle cx="60" cy="60" r="36" fill="none" stroke="#083344" stroke-width="2" stroke-dasharray="4,4" />
+      <circle cx="60" cy="60" r="26" fill="none" stroke="url(#cym-grad)" stroke-width="2.5" filter="url(#cym-glow)" />
+      <!-- Chladni Sacred Geometry Nodal Axes -->
+      <path d="M60 20 Q40 60 60 100 Q80 60 60 20 Z" fill="none" stroke="#22d3ee" stroke-width="2" opacity="0.85" />
+      <path d="M20 60 Q60 40 100 60 Q60 80 20 60 Z" fill="none" stroke="#a855f7" stroke-width="2" opacity="0.85" />
+      <!-- Resonant Quantum Motes / Nodes -->
+      <circle cx="60" cy="60" r="7" fill="#22d3ee" filter="url(#cym-glow)" />
+      <circle cx="60" cy="60" r="3" fill="#ffffff" />
+      <circle cx="44" cy="44" r="3.5" fill="#38bdf8" />
+      <circle cx="76" cy="44" r="3.5" fill="#38bdf8" />
+      <circle cx="44" cy="76" r="3.5" fill="#38bdf8" />
+      <circle cx="76" cy="76" r="3.5" fill="#38bdf8" />
+      <circle cx="60" cy="28" r="2.5" fill="#facc15" />
+      <circle cx="60" cy="92" r="2.5" fill="#facc15" />
+    </svg>

@@ -1,0 +1,101 @@
+---
+// Domino Cascade: Chain Reaction
+---
+
+<div id="domino-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Toppled: <span id="dom-count" class="font-mono font-bold text-brand-neon">0/6</span></div>
+    <button id="dom-reset" class="rounded border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300">Reset</button>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="dom-canvas" width="320" height="300" class="block"></canvas>
+  </div>
+
+  <button id="dom-push-btn" class="mt-3 w-full rounded-xl bg-gradient-to-r from-blue-600 to-brand-accent py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-all">
+    PUSH FIRST DOMINO!
+  </button>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('dom-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const countEl = document.getElementById('dom-count')!;
+  const pushBtn = document.getElementById('dom-push-btn')!;
+  const resetBtn = document.getElementById('dom-reset')!;
+
+  let dominoes: { x: number; y: number; angle: number; fallen: boolean }[] = [];
+  let isRunning = false;
+
+  function init() {
+    dominoes = [];
+    for (let i = 0; i < 6; i++) {
+      dominoes.push({
+        x: 40 + i * 40,
+        y: 200,
+        angle: 0,
+        fallen: false
+      });
+    }
+    isRunning = false;
+    countEl.textContent = '0/6';
+    draw();
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Floor
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(0, 240, canvas.width, 60);
+
+    // Bell at end
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(290, 210, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px sans-serif';
+    ctx.fillText('🔔', 284, 214);
+
+    // Draw dominoes
+    dominoes.forEach(d => {
+      ctx.save();
+      ctx.translate(d.x, d.y + 40);
+      ctx.rotate(d.angle);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-6, -40, 12, 40);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-4, -20, 8, 2);
+      ctx.restore();
+    });
+  }
+
+  pushBtn.addEventListener('click', () => {
+    if (isRunning) return;
+    isRunning = true;
+    sound.click();
+
+    let idx = 0;
+    const interval = setInterval(() => {
+      if (idx < dominoes.length) {
+        sound.blip();
+        dominoes[idx].angle = Math.PI / 3; // Topple forward
+        dominoes[idx].fallen = true;
+        idx++;
+        countEl.textContent = `${idx}/6`;
+        draw();
+      } else {
+        clearInterval(interval);
+        sound.victory();
+        alert('🎉 Ding! Cascade Reached the Finish Bell!');
+      }
+    }, 250);
+  });
+
+  resetBtn.addEventListener('click', init);
+  init();
+</script>

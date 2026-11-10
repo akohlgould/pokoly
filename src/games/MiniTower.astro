@@ -1,0 +1,161 @@
+---
+// MiniTower: Auto-Battler
+---
+
+<div id="tower-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Wave: <span id="tower-wave" class="font-mono font-bold text-brand-neon">1</span></div>
+    <div>Gold: <span id="tower-gold" class="font-mono font-bold text-brand-gold">10</span></div>
+    <div>Wins: <span id="tower-wins" class="font-mono font-bold text-white">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="tower-canvas" width="320" height="300" class="block"></canvas>
+  </div>
+
+  <div class="grid grid-cols-3 gap-2 mt-3 w-full">
+    <button class="buy-unit rounded-xl border border-brand-border bg-brand-card p-2 text-xs text-white hover:border-brand-neon" data-type="knight">🛡️ Knight (4G)</button>
+    <button class="buy-unit rounded-xl border border-brand-border bg-brand-card p-2 text-xs text-white hover:border-brand-neon" data-type="archer">🏹 Archer (3G)</button>
+    <button class="buy-unit rounded-xl border border-brand-border bg-brand-card p-2 text-xs text-white hover:border-brand-neon" data-type="mage">🔮 Mage (5G)</button>
+  </div>
+
+  <button id="tower-battle-btn" class="mt-3 w-full rounded-xl bg-gradient-to-r from-brand-accent to-blue-600 py-3 text-xs font-bold text-white shadow-lg hover:scale-105 active:scale-95 transition-all">
+    START BATTLE!
+  </button>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('tower-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const waveEl = document.getElementById('tower-wave')!;
+  const goldEl = document.getElementById('tower-gold')!;
+  const winsEl = document.getElementById('tower-wins')!;
+  const battleBtn = document.getElementById('tower-battle-btn')!;
+
+  let wave = 1;
+  let gold = 10;
+  let wins = 0;
+  let playerUnits: { type: string; x: number; y: number; hp: number; atk: number }[] = [];
+  let enemyUnits: { type: string; x: number; y: number; hp: number; atk: number }[] = [];
+  let inBattle = false;
+
+  function spawnEnemies() {
+    enemyUnits = [];
+    for (let i = 0; i < wave + 1; i++) {
+      enemyUnits.push({
+        type: 'goblin',
+        x: 250,
+        y: 60 + i * 50,
+        hp: 30 + wave * 10,
+        atk: 5 + wave * 2
+      });
+    }
+  }
+
+  function draw() {
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw battlefield split line
+    ctx.strokeStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.moveTo(160, 0);
+    ctx.lineTo(160, 300);
+    ctx.stroke();
+
+    // Draw player units
+    playerUnits.forEach(u => {
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(u.x, u.y, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(u.type[0].toUpperCase(), u.x - 4, u.y + 4);
+    });
+
+    // Draw enemies
+    enemyUnits.forEach(u => {
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(u.x, u.y, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('E', u.x - 4, u.y + 4);
+    });
+  }
+
+  document.querySelectorAll('.buy-unit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (inBattle) return;
+      const type = (e.currentTarget as HTMLElement).dataset.type!;
+      const costs: Record<string, number> = { knight: 4, archer: 3, mage: 5 };
+      if (gold >= costs[type] && playerUnits.length < 5) {
+        sound.click();
+        gold -= costs[type];
+        goldEl.textContent = gold.toString();
+        playerUnits.push({
+          type,
+          x: 60,
+          y: 60 + playerUnits.length * 45,
+          hp: type === 'knight' ? 80 : 40,
+          atk: type === 'archer' ? 15 : 10
+        });
+        draw();
+      }
+    });
+  });
+
+  battleBtn.addEventListener('click', () => {
+    if (inBattle || playerUnits.length === 0) return;
+    inBattle = true;
+    sound.score();
+
+    const interval = setInterval(() => {
+      playerUnits.forEach(p => p.x += 1.5);
+      enemyUnits.forEach(e => e.x -= 1.5);
+
+      if (playerUnits.length > 0 && enemyUnits.length > 0) {
+        const p = playerUnits[0];
+        const e = enemyUnits[0];
+        if (Math.hypot(p.x - e.x, p.y - e.y) < 30) {
+          p.hp -= e.atk;
+          e.hp -= p.atk;
+          if (p.hp <= 0) playerUnits.shift();
+          if (e.hp <= 0) enemyUnits.shift();
+        }
+      }
+
+      draw();
+
+      if (enemyUnits.length === 0) {
+        clearInterval(interval);
+        inBattle = false;
+        sound.victory();
+        wins++;
+        wave++;
+        gold += 8;
+        winsEl.textContent = wins.toString();
+        waveEl.textContent = wave.toString();
+        goldEl.textContent = gold.toString();
+        spawnEnemies();
+        draw();
+      } else if (playerUnits.length === 0) {
+        clearInterval(interval);
+        inBattle = false;
+        sound.gameOver();
+        alert('💥 Army wiped out! Try again.');
+        gold = 10;
+        wave = 1;
+        spawnEnemies();
+        draw();
+      }
+    }, 40);
+  });
+
+  spawnEnemies();
+  draw();
+</script>

@@ -1,0 +1,72 @@
+---
+// SpeedPark: Precision 2D Valet
+---
+
+<div id="park-game" class="flex flex-col items-center justify-center p-3 select-none max-w-sm mx-auto">
+  <div class="mb-3 flex w-full items-center justify-between rounded-xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2 text-xs">
+    <div>Time Left: <span id="park-time" class="font-mono font-bold text-brand-neon">15s</span></div>
+    <div>Score: <span id="park-score" class="font-mono font-bold text-brand-gold">0</span></div>
+  </div>
+
+  <div class="relative rounded-2xl border-2 border-brand-border overflow-hidden bg-black shadow-2xl">
+    <canvas id="park-canvas" width="320" height="340" class="block"></canvas>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+
+  const canvas = document.getElementById('park-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const timeEl = document.getElementById('park-time')!;
+
+  let car = { x: 60, y: 280, angle: -Math.PI / 2, speed: 0 };
+  let parkingBay = { x: 220, y: 80, w: 60, h: 90 };
+  let keys: Record<string, boolean> = {};
+
+  function loop() {
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Car controls
+    if (keys['ArrowUp'] || keys['KeyW']) car.speed = Math.min(3, car.speed + 0.1);
+    else if (keys['ArrowDown'] || keys['KeyS']) car.speed = Math.max(-2, car.speed - 0.1);
+    else car.speed *= 0.94; // friction
+
+    if (keys['ArrowLeft'] || keys['KeyA']) car.angle -= 0.04;
+    if (keys['ArrowRight'] || keys['KeyD']) car.angle += 0.04;
+
+    car.x += Math.cos(car.angle) * car.speed;
+    car.y += Math.sin(car.angle) * car.speed;
+
+    // Draw parking bay
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 6]);
+    ctx.strokeRect(parkingBay.x, parkingBay.y, parkingBay.w, parkingBay.h);
+    ctx.setLineDash([]);
+
+    // Check successful park
+    if (car.x >= parkingBay.x && car.x <= parkingBay.x + parkingBay.w &&
+        car.y >= parkingBay.y && car.y <= parkingBay.y + parkingBay.h && Math.abs(car.speed) < 0.2) {
+      sound.victory();
+      alert('🎉 Parked Perfectly in Valet Bay!');
+      car = { x: 60, y: 280, angle: -Math.PI / 2, speed: 0 };
+    }
+
+    // Draw car
+    ctx.save();
+    ctx.translate(car.x, car.y);
+    ctx.rotate(car.angle);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(-12, -22, 24, 44);
+    ctx.restore();
+
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('keydown', (e) => keys[e.code] = true);
+  window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+  requestAnimationFrame(loop);
+</script>

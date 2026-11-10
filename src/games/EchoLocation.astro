@@ -1,0 +1,710 @@
+---
+// EchoLocation: Sonar Cave Escape
+---
+
+<div id="echo-game-container" class="relative flex flex-col items-center justify-center p-3 select-none max-w-4xl mx-auto w-full">
+  <!-- HUD Header -->
+  <div class="mb-3 flex w-full flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-border/60 bg-brand-dark/95 px-4 py-2.5 text-xs">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="text-cyan-400">📡</span>
+        <span class="text-gray-400">Depth:</span>
+        <span id="echo-level" class="font-mono font-bold text-cyan-400">Level 1</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-amber-400">💎</span>
+        <span class="text-gray-400">Crystals:</span>
+        <span id="echo-crystals" class="font-mono font-bold text-amber-400">0 / 3</span>
+      </div>
+    </div>
+
+    <!-- Stamina / Sonar Energy Bar -->
+    <div class="flex items-center gap-2">
+      <span class="text-[11px] font-mono text-gray-400">Sonar Pulse:</span>
+      <div class="w-24 sm:w-32 h-2.5 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+        <div id="echo-energy-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-400 w-full transition-all duration-100"></div>
+      </div>
+    </div>
+
+    <!-- Score & Reset -->
+    <div class="flex items-center gap-3">
+      <div>Score: <span id="echo-score" class="font-mono font-bold text-white">0</span></div>
+      <button id="echo-reset-btn" class="rounded-xl border border-brand-border bg-brand-card px-2.5 py-1 text-xs text-gray-300 hover:text-white transition-colors">
+        Restart
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Canvas Viewport -->
+  <div class="relative w-full overflow-hidden rounded-3xl border border-cyan-500/30 bg-[#05070f] shadow-2xl shadow-cyan-950/40">
+    <canvas id="echo-canvas" width="800" height="500" class="w-full h-auto block cursor-crosshair"></canvas>
+
+    <!-- Ping Alert Overlay / On-screen Instructions -->
+    <div id="echo-hint" class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-cyan-500/40 bg-black/70 px-4 py-1.5 text-[11px] font-mono text-cyan-300 backdrop-blur-md">
+      [Space] or [Click Canvas] to Emit Sonar Ping • WASD / Arrows to Move
+    </div>
+
+    <!-- Mobile Floating Action Ping Button -->
+    <button
+      id="echo-mobile-ping"
+      class="sm:hidden absolute bottom-4 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 font-bold text-white shadow-lg shadow-cyan-500/40 active:scale-90"
+      aria-label="Emit Sonar Ping"
+    >
+      📡
+    </button>
+  </div>
+
+  <!-- Victory / Game Over Overlay Modal -->
+  <div id="echo-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+    <div class="rounded-3xl border-2 border-cyan-500/40 bg-[#070b16] p-6 max-w-sm w-full text-center shadow-2xl shadow-cyan-500/20">
+      <span id="echo-modal-icon" class="text-5xl">🦇</span>
+      <h3 id="echo-modal-title" class="text-2xl font-black text-white mt-3 font-display">Cave Depth Cleared!</h3>
+      <p id="echo-modal-msg" class="text-xs text-gray-300 mt-2 leading-relaxed">You gathered all sonar resonance crystals and found the exit portal.</p>
+      <div id="echo-modal-score" class="mt-3 text-sm font-mono text-cyan-400 font-bold">+250 XP Earned</div>
+      <button id="echo-modal-btn" class="mt-5 w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 py-3 text-xs font-bold text-white shadow-lg shadow-cyan-500/30 hover:scale-105 active:scale-95 transition-transform">
+        Next Cavern Depth →
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { sound } from '../utils/audio';
+  import { player } from '../utils/player';
+  import { launchConfetti } from '../utils/confetti';
+
+  const canvas = document.getElementById('echo-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const levelEl = document.getElementById('echo-level')!;
+  const crystalsEl = document.getElementById('echo-crystals')!;
+  const scoreEl = document.getElementById('echo-score')!;
+  const energyBar = document.getElementById('echo-energy-bar')!;
+  const modal = document.getElementById('echo-modal')!;
+  const modalIcon = document.getElementById('echo-modal-icon')!;
+  const modalTitle = document.getElementById('echo-modal-title')!;
+  const modalMsg = document.getElementById('echo-modal-msg')!;
+  const modalScore = document.getElementById('echo-modal-score')!;
+  const modalBtn = document.getElementById('echo-modal-btn')!;
+  const resetBtn = document.getElementById('echo-reset-btn')!;
+  const mobilePingBtn = document.getElementById('echo-mobile-ping');
+
+  // Game state
+  let currentLevel = 1;
+  let score = 0;
+  let energy = 100;
+  let crystalsCollected = 0;
+  let totalCrystals = 3;
+  let isGameOver = false;
+  let isLevelWon = false;
+
+  // Player
+  const playerState = {
+    x: 60,
+    y: 250,
+    radius: 9,
+    speed: 3.2,
+    vx: 0,
+    vy: 0,
+    angle: 0
+  };
+
+  // Sonar Waves
+  interface Wave {
+    x: number;
+    y: number;
+    radius: number;
+    maxRadius: number;
+    speed: number;
+    opacity: number;
+    color: string;
+  }
+  let waves: Wave[] = [];
+
+  // Echo Points (illuminated surfaces that glow and fade)
+  interface EchoPoint {
+    x: number;
+    y: number;
+    radius: number;
+    alpha: number;
+    color: string;
+  }
+  let echoPoints: EchoPoint[] = [];
+
+  // Cave Walls (line segments)
+  interface Wall {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  }
+  let walls: Wall[] = [];
+
+  // Crystals
+  interface Crystal {
+    x: number;
+    y: number;
+    radius: number;
+    collected: boolean;
+    illuminated: number; // 0 to 1
+  }
+  let crystals: Crystal[] = [];
+
+  // Exit Portal
+  interface Portal {
+    x: number;
+    y: number;
+    radius: number;
+    illuminated: number;
+  }
+  let portal: Portal = { x: 740, y: 250, radius: 22, illuminated: 0 };
+
+  // Lurking Predators
+  interface Predator {
+    x: number;
+    y: number;
+    radius: number;
+    state: 'sleeping' | 'alert' | 'hunting';
+    targetX: number;
+    targetY: number;
+    speed: number;
+    illuminated: number;
+    alertTimer: number;
+  }
+  let predators: Predator[] = [];
+
+  // Keys
+  const keys: Record<string, boolean> = {};
+
+  window.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      emitPing();
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    // Direct movement toward click, or emit ping
+    const dx = clickX - playerState.x;
+    const dy = clickY - playerState.y;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist < 40) {
+      emitPing();
+    } else {
+      playerState.angle = Math.atan2(dy, dx);
+      playerState.vx = Math.cos(playerState.angle) * playerState.speed;
+      playerState.vy = Math.sin(playerState.angle) * playerState.speed;
+      emitPing();
+    }
+  });
+
+  mobilePingBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    emitPing();
+  });
+
+  function emitPing() {
+    if (energy < 20 || isGameOver || isLevelWon) return;
+    energy = Math.max(0, energy - 25);
+    energyBar.style.width = `${energy}%`;
+
+    // Audio radar ping
+    sound.playTone(840, 'sine', 0.15, 0.2);
+    setTimeout(() => sound.playTone(1260, 'sine', 0.2, 0.12), 40);
+
+    // Spawn expanding wave
+    waves.push({
+      x: playerState.x,
+      y: playerState.y,
+      radius: 5,
+      maxRadius: 280,
+      speed: 6.5,
+      opacity: 1,
+      color: '#00f5ff'
+    });
+
+    // Alert nearby predators if pulse is close
+    predators.forEach(p => {
+      const dist = Math.hypot(p.x - playerState.x, p.y - playerState.y);
+      if (dist < 260) {
+        p.state = 'hunting';
+        p.targetX = playerState.x;
+        p.targetY = playerState.y;
+        p.alertTimer = 180;
+      }
+    });
+  }
+
+  function generateLevel(lvl: number) {
+    isGameOver = false;
+    isLevelWon = false;
+    modal.classList.add('hidden');
+    energy = 100;
+    crystalsCollected = 0;
+    totalCrystals = 3;
+    waves = [];
+    echoPoints = [];
+    crystals = [];
+    predators = [];
+
+    levelEl.textContent = `Level ${lvl}`;
+    crystalsEl.textContent = `0 / ${totalCrystals}`;
+    scoreEl.textContent = score.toString();
+
+    playerState.x = 60;
+    playerState.y = 250;
+    playerState.vx = 0;
+    playerState.vy = 0;
+
+    portal = {
+      x: 730,
+      y: 100 + Math.random() * 300,
+      radius: 22,
+      illuminated: 0
+    };
+
+    // Border walls
+    walls = [
+      { x1: 20, y1: 20, x2: 780, y2: 20 },
+      { x1: 780, y1: 20, x2: 780, y2: 480 },
+      { x1: 780, y1: 480, x2: 20, y2: 480 },
+      { x1: 20, y1: 480, x2: 20, y2: 20 }
+    ];
+
+    // Procedural internal stalactites and cave rock pillars
+    const pillarCount = 6 + lvl * 2;
+    for (let i = 0; i < pillarCount; i++) {
+      const cx = 140 + Math.random() * 520;
+      const cy = 60 + Math.random() * 360;
+      const size = 30 + Math.random() * 45;
+      // Triangle or diamond pillars
+      walls.push(
+        { x1: cx, y1: cy - size, x2: cx + size, y2: cy },
+        { x1: cx + size, y1: cy, x2: cx, y2: cy + size },
+        { x1: cx, y1: cy + size, x2: cx - size, y2: cy },
+        { x1: cx - size, y1: cy, x2: cx, y2: cy - size }
+      );
+    }
+
+    // Spawn 3 crystals in open areas
+    for (let i = 0; i < totalCrystals; i++) {
+      crystals.push({
+        x: 180 + i * 190 + (Math.random() * 60 - 30),
+        y: 80 + Math.random() * 340,
+        radius: 10,
+        collected: false,
+        illuminated: 0
+      });
+    }
+
+    // Spawn Predators
+    const predCount = Math.min(6, 1 + lvl);
+    for (let i = 0; i < predCount; i++) {
+      predators.push({
+        x: 350 + Math.random() * 320,
+        y: 60 + Math.random() * 380,
+        radius: 12,
+        state: 'sleeping',
+        targetX: 0,
+        targetY: 0,
+        speed: 1.6 + lvl * 0.2,
+        illuminated: 0,
+        alertTimer: 0
+      });
+    }
+
+    player.trackGamePlay('echolocation');
+    emitPing();
+  }
+
+  function update() {
+    if (isGameOver || isLevelWon) return;
+
+    // Energy regen
+    if (energy < 100) {
+      energy = Math.min(100, energy + 0.35);
+      energyBar.style.width = `${energy}%`;
+    }
+
+    // Input movement
+    let moveX = 0;
+    let moveY = 0;
+    if (keys['arrowup'] || keys['w']) moveY -= 1;
+    if (keys['arrowdown'] || keys['s']) moveY += 1;
+    if (keys['arrowleft'] || keys['a']) moveX -= 1;
+    if (keys['arrowright'] || keys['d']) moveX += 1;
+
+    if (moveX !== 0 || moveY !== 0) {
+      const len = Math.hypot(moveX, moveY);
+      playerState.vx = (moveX / len) * playerState.speed;
+      playerState.vy = (moveY / len) * playerState.speed;
+      playerState.angle = Math.atan2(moveY, moveX);
+    } else {
+      playerState.vx *= 0.85;
+      playerState.vy *= 0.85;
+    }
+
+    // Move player with wall sliding & bounce
+    const nextX = playerState.x + playerState.vx;
+    const nextY = playerState.y + playerState.vy;
+
+    let collided = false;
+    for (const w of walls) {
+      if (distToSegment(nextX, nextY, w.x1, w.y1, w.x2, w.y2) < playerState.radius + 2) {
+        collided = true;
+        break;
+      }
+    }
+
+    if (!collided) {
+      playerState.x = nextX;
+      playerState.y = nextY;
+    }
+
+    // Update expanding sonar waves
+    for (let i = waves.length - 1; i >= 0; i--) {
+      const w = waves[i];
+      w.radius += w.speed;
+      w.opacity = Math.max(0, 1 - w.radius / w.maxRadius);
+
+      // Check wave collision against walls to produce echo sparkles
+      walls.forEach(wall => {
+        const d = distToSegment(w.x, w.y, wall.x1, wall.y1, wall.x2, wall.y2);
+        if (Math.abs(d - w.radius) < 6) {
+          // Add echo point
+          const midX = (wall.x1 + wall.x2) / 2;
+          const midY = (wall.y1 + wall.y2) / 2;
+          echoPoints.push({
+            x: midX + (Math.random() - 0.5) * 20,
+            y: midY + (Math.random() - 0.5) * 20,
+            radius: 2 + Math.random() * 3,
+            alpha: 0.9,
+            color: '#38bdf8'
+          });
+        }
+      });
+
+      // Wave illuminates crystals
+      crystals.forEach(c => {
+        if (!c.collected && Math.abs(Math.hypot(c.x - w.x, c.y - w.y) - w.radius) < 18) {
+          c.illuminated = 1.0;
+        }
+      });
+
+      // Wave illuminates portal
+      if (Math.abs(Math.hypot(portal.x - w.x, portal.y - w.y) - w.radius) < 24) {
+        portal.illuminated = 1.0;
+      }
+
+      // Wave illuminates predators
+      predators.forEach(p => {
+        if (Math.abs(Math.hypot(p.x - w.x, p.y - w.y) - w.radius) < 20) {
+          p.illuminated = 1.0;
+        }
+      });
+
+      if (w.radius >= w.maxRadius) {
+        waves.splice(i, 1);
+      }
+    }
+
+    // Fade echo points
+    for (let i = echoPoints.length - 1; i >= 0; i--) {
+      echoPoints[i].alpha -= 0.02;
+      if (echoPoints[i].alpha <= 0) {
+        echoPoints.splice(i, 1);
+      }
+    }
+
+    // Crystals pickup
+    crystals.forEach(c => {
+      c.illuminated = Math.max(0, c.illuminated - 0.015);
+      if (!c.collected) {
+        const d = Math.hypot(c.x - playerState.x, c.y - playerState.y);
+        if (d < c.radius + playerState.radius + 6) {
+          c.collected = true;
+          crystalsCollected++;
+          score += 150;
+          crystalsEl.textContent = `${crystalsCollected} / ${totalCrystals}`;
+          scoreEl.textContent = score.toString();
+          sound.score();
+
+          // Spawn mini resonance ping
+          waves.push({
+            x: c.x,
+            y: c.y,
+            radius: 2,
+            maxRadius: 180,
+            speed: 5,
+            opacity: 1,
+            color: '#fbbf24'
+          });
+        }
+      }
+    });
+
+    portal.illuminated = Math.max(0, portal.illuminated - 0.015);
+
+    // Exit portal collision
+    if (crystalsCollected >= totalCrystals) {
+      const dExit = Math.hypot(portal.x - playerState.x, portal.y - playerState.y);
+      if (dExit < portal.radius + playerState.radius) {
+        winLevel();
+      }
+    }
+
+    // Predators update
+    predators.forEach(p => {
+      p.illuminated = Math.max(0, p.illuminated - 0.015);
+
+      if (p.state === 'hunting') {
+        const dx = playerState.x - p.x;
+        const dy = playerState.y - p.y;
+        const d = Math.hypot(dx, dy);
+
+        if (d > 5) {
+          p.x += (dx / d) * p.speed;
+          p.y += (dy / d) * p.speed;
+        }
+
+        // Catch player
+        if (d < p.radius + playerState.radius) {
+          gameOver();
+        }
+
+        p.alertTimer--;
+        if (p.alertTimer <= 0) {
+          p.state = 'sleeping';
+        }
+      }
+    });
+  }
+
+  function distToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number) {
+    const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+    if (l2 === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+  }
+
+  function render() {
+    ctx.fillStyle = '#03050c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw active expanding waves
+    waves.forEach(w => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = w.color;
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = w.opacity * 0.7;
+      ctx.shadowColor = w.color;
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // Draw illuminated echo points
+    echoPoints.forEach(p => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.alpha;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Draw walls illuminated by recent wave contact
+    ctx.save();
+    walls.forEach(w => {
+      // Find highest wave overlap
+      let maxAlpha = 0.05;
+      waves.forEach(wave => {
+        const d = distToSegment(wave.x, wave.y, w.x1, w.y1, w.x2, w.y2);
+        if (Math.abs(d - wave.radius) < 40) {
+          const proximity = 1 - Math.abs(d - wave.radius) / 40;
+          maxAlpha = Math.max(maxAlpha, wave.opacity * proximity * 0.9);
+        }
+      });
+
+      ctx.beginPath();
+      ctx.moveTo(w.x1, w.y1);
+      ctx.lineTo(w.x2, w.y2);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.globalAlpha = maxAlpha;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#0284c7';
+      ctx.shadowBlur = maxAlpha > 0.2 ? 8 : 0;
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    // Draw Exit Portal
+    ctx.save();
+    const portalReady = crystalsCollected >= totalCrystals;
+    const portalAlpha = Math.max(0.12, portal.illuminated);
+    ctx.beginPath();
+    ctx.arc(portal.x, portal.y, portal.radius, 0, Math.PI * 2);
+    ctx.fillStyle = portalReady ? 'rgba(16, 185, 129, 0.25)' : 'rgba(99, 102, 241, 0.15)';
+    ctx.strokeStyle = portalReady ? '#34d399' : '#818cf8';
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = portalReady ? 1.0 : portalAlpha;
+    ctx.shadowColor = portalReady ? '#10b981' : '#6366f1';
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.stroke();
+
+    // Swirling portal center
+    ctx.beginPath();
+    ctx.arc(portal.x, portal.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = portalReady ? '#ecfdf5' : '#e0e7ff';
+    ctx.fill();
+    ctx.restore();
+
+    // Draw Crystals
+    crystals.forEach(c => {
+      if (c.collected) return;
+      ctx.save();
+      const alpha = Math.max(0.08, c.illuminated);
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#fbbf24';
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = alpha > 0.3 ? 12 : 0;
+      ctx.fill();
+
+      // Diamond core
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Draw Predators
+    predators.forEach(p => {
+      ctx.save();
+      const alpha = p.state === 'hunting' ? 1.0 : Math.max(0.04, p.illuminated);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.state === 'hunting' ? '#ef4444' : '#6b7280';
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = '#dc2626';
+      ctx.shadowBlur = p.state === 'hunting' ? 16 : 0;
+      ctx.fill();
+
+      // Threat Eyes
+      if (alpha > 0.2) {
+        ctx.fillStyle = p.state === 'hunting' ? '#fee2e2' : '#f87171';
+        ctx.beginPath();
+        ctx.arc(p.x - 4, p.y - 3, 2, 0, Math.PI * 2);
+        ctx.arc(p.x + 4, p.y - 3, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+
+    // Draw Player Creature
+    ctx.save();
+    ctx.translate(playerState.x, playerState.y);
+    ctx.rotate(playerState.angle);
+
+    // Bioluminescent glow around player
+    const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, 25);
+    grad.addColorStop(0, 'rgba(6, 182, 212, 0.8)');
+    grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.2)');
+    grad.addColorStop(1, 'rgba(6, 182, 212, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 25, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, playerState.radius, playerState.radius * 0.75, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Echolocation snout / antennae
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(playerState.radius, 0);
+    ctx.lineTo(playerState.radius + 6, 0);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function loop() {
+    update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function winLevel() {
+    isLevelWon = true;
+    sound.victory();
+    launchConfetti();
+    player.addScore('echolocation', score);
+    player.addXP(200);
+
+    modalIcon.textContent = '🎉';
+    modalTitle.textContent = `Depth ${currentLevel} Cleared!`;
+    modalMsg.textContent = `You navigated through the pitch darkness, gathered the resonant crystals, and escaped the cave predators!`;
+    modalScore.textContent = `+200 XP • Total Score: ${score}`;
+    modalBtn.textContent = 'Enter Deeper Cavern →';
+    modal.classList.remove('hidden');
+  }
+
+  function gameOver() {
+    isGameOver = true;
+    sound.gameOver();
+    player.addScore('echolocation', score);
+
+    modalIcon.textContent = '💀';
+    modalTitle.textContent = 'Caught in the Dark!';
+    modalMsg.textContent = 'A lurking cave predator heard your echo reverberations and cornered you in the shadows.';
+    modalScore.textContent = `Final Depth: Level ${currentLevel} • Score: ${score}`;
+    modalBtn.textContent = 'Try Again';
+    modal.classList.remove('hidden');
+  }
+
+  modalBtn.addEventListener('click', () => {
+    if (isLevelWon) {
+      currentLevel++;
+      generateLevel(currentLevel);
+    } else {
+      score = 0;
+      currentLevel = 1;
+      generateLevel(1);
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    sound.click();
+    generateLevel(currentLevel);
+  });
+
+  // Start game
+  generateLevel(1);
+  loop();
+</script>

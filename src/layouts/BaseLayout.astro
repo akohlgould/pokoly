@@ -14,10 +14,16 @@ interface Props {
   schema?: object | object[];
 }
 
+const rawCanonical = Astro.props.canonical || Astro.url.href;
+const canonicalUrlObj = new URL(rawCanonical, Astro.site || 'https://pokoly.com');
+const normalizedPath = canonicalUrlObj.pathname.endsWith('/')
+  ? canonicalUrlObj.pathname
+  : `${canonicalUrlObj.pathname}/`;
+const canonical = `${canonicalUrlObj.origin}${normalizedPath}`;
+
 const {
   title,
   description,
-  canonical = Astro.url.href,
   image = '/logos/pokoly-logo.svg',
   schema
 } = Astro.props;
@@ -36,13 +42,14 @@ const {
     <meta name="title" content={title} />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={new URL(image, Astro.url).href} />
+    <meta property="og:image" content={new URL(image, Astro.site || Astro.url).href} />
     <meta property="og:site_name" content="Pokoly.com" />
 
     <!-- Twitter -->
@@ -50,7 +57,7 @@ const {
     <meta property="twitter:url" content={canonical} />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
-    <meta property="twitter:image" content={new URL(image, Astro.url).href} />
+    <meta property="twitter:image" content={new URL(image, Astro.site || Astro.url).href} />
 
     <!-- Preconnect Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -126,7 +133,19 @@ const {
               'clockworkheist': '/games/clockworkheist',
               'geothermal': '/games/geothermal',
               'neurolink': '/games/neurolink',
-              'tectonicdrift': '/games/tectonicdrift'
+              'tectonicdrift': '/games/tectonicdrift',
+              'cymatica': '/games/cymatica',
+              'penumbra': '/games/penumbra-null',
+              'gravifold': '/games/gravifold',
+              'sonar': '/games/echolocation',
+              'echo': '/games/echolocation',
+              'echolocation': '/games/echolocation',
+              'cursor': '/games/cursorsiege',
+              'cursorsiege': '/games/cursorsiege',
+              'malware': '/games/cursorsiege',
+              'circuit': '/games/circuithacker',
+              'circuithacker': '/games/circuithacker',
+              'logic': '/games/circuithacker'
             };
             var target = map[sub];
             if (target && (window.location.pathname === '/' || window.location.pathname === '')) {

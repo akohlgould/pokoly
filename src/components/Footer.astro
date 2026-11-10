@@ -37,7 +37,7 @@ import { GAMES, CATEGORIES } from '../data/games';
         <ul class="mt-3 space-y-2 text-xs">
           {CATEGORIES.slice(1).map(cat => (
             <li>
-              <a href={`/categories/${cat.id}`} class="transition-colors hover:text-brand-neon">
+              <a href={`/categories/${cat.id}/`} class="transition-colors hover:text-brand-neon">
                 {cat.name}
               </a>
             </li>
@@ -51,7 +51,7 @@ import { GAMES, CATEGORIES } from '../data/games';
         <ul class="mt-3 space-y-2 text-xs">
           {GAMES.slice(0, 5).map(game => (
             <li>
-              <a href={`/games/${game.slug}`} class="flex items-center gap-1.5 transition-colors hover:text-white">
+              <a href={`/games/${game.slug}/`} class="flex items-center gap-1.5 transition-colors hover:text-white">
                 <span class="text-brand-neon">{game.subdomain}.pokoly.com</span>
               </a>
             </li>
@@ -63,10 +63,10 @@ import { GAMES, CATEGORIES } from '../data/games';
       <div>
         <h3 class="font-mono text-xs font-semibold tracking-wider text-gray-200 uppercase">Legal & Contact</h3>
         <ul class="mt-3 space-y-2 text-xs">
-          <li><a href="/privacy" class="transition-colors hover:text-white">Privacy Policy</a></li>
-          <li><a href="/terms" class="transition-colors hover:text-white">Terms of Service</a></li>
-          <li><a href="/about" class="transition-colors hover:text-white">About Pokoly</a></li>
-          <li><a href="/unblocked" class="transition-colors hover:text-white">Unblocked Games Guide</a></li>
+          <li><a href="/privacy/" class="transition-colors hover:text-white">Privacy Policy</a></li>
+          <li><a href="/terms/" class="transition-colors hover:text-white">Terms of Service</a></li>
+          <li><a href="/about/" class="transition-colors hover:text-white">About Pokoly</a></li>
+          <li><a href="/unblocked/" class="transition-colors hover:text-white">Unblocked Games Guide</a></li>
           <li><a href="mailto:contact@pokoly.com" class="transition-colors hover:text-white">Contact & Support</a></li>
         </ul>
       </div>
